@@ -24,6 +24,7 @@ dependencies {
 
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
+	implementation("org.springdoc:springdoc-openapi-ui:1.5.11")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
