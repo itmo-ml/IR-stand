@@ -4,6 +4,8 @@ import ru.itmo.stand.dto.DocumentDto
 
 interface DocumentService {
 
-    fun indexDocument(dto: DocumentDto): String
+    fun search(query: String): List<String>
+
+    fun index(dto: DocumentDto): String
 
 }

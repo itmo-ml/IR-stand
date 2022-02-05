@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.impl
 
-import edu.stanford.nlp.pipeline.CoreDocument
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.springframework.stereotype.Service
 import ru.itmo.stand.dto.DocumentDto
@@ -14,13 +13,22 @@ class DocumentServiceImpl(
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService {
 
-    override fun indexDocument(dto: DocumentDto): String {
+    override fun search(query: String): List<String> {
+        val processedQuery = preprocess(query)
+        return documentRepository.findByContent(processedQuery)
+            .map { it.id ?: throw IllegalStateException("Document id must not be null.") }
+    }
 
-        val document: CoreDocument = stanfordCoreNlp.processToCoreDocument(dto.content) // TODO: move to processor
-        val lemmas = document.tokens().joinToString(" ") { it.lemma() }
-
-        return documentRepository.save(dto.copy(content = lemmas).toModel()).id
+    override fun index(dto: DocumentDto): String {
+        val preprocessedContent = preprocess(dto.content)
+        return documentRepository.save(dto.copy(content = preprocessedContent).toModel()).id
             ?: throw IllegalStateException("Document id must not be null.")
     }
+
+    private fun preprocess(text: String) =
+        stanfordCoreNlp.processToCoreDocument(text) // TODO: move to processor
+            .tokens()
+            .joinToString(" ") { it.lemma() }
+
 
 }
