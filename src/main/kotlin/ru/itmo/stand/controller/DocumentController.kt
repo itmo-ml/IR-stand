@@ -2,6 +2,7 @@ package ru.itmo.stand.controller
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -16,8 +17,15 @@ class DocumentController(private val documentService: DocumentService) {
 
     @GetMapping("/")
     fun searchDocument(@RequestParam query: String): ResponseEntity<List<String>> {
-        val dto = documentService.search(query)
-        return if (dto.isEmpty()) ResponseEntity.notFound().build()
+        val ids = documentService.search(query)
+        return if (ids.isEmpty()) ResponseEntity.notFound().build()
+        else ResponseEntity.ok(ids)
+    }
+
+    @GetMapping("/{id}")
+    fun findDocument(@PathVariable id: String): ResponseEntity<DocumentDto> {
+        val dto = documentService.find(id)
+        return if (dto == null) ResponseEntity.notFound().build()
         else ResponseEntity.ok(dto)
     }
 
