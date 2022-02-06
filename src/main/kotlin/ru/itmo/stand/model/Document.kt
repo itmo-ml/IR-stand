@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.annotations.Setting
 @Setting(settingPath = "document_index_settings.json")
 data class Document(
     @Id
-    val id: String? = null,
+    var id: String? = null,
 
     val content: String,
 )
