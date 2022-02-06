@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.dto.DocumentDto
 import ru.itmo.stand.repository.DocumentRepository
 import ru.itmo.stand.service.DocumentService
@@ -34,6 +35,13 @@ class DocumentServiceImpl(
             .map { it.toModel() }
         return documentRepository.saveAll(models)
             .map { it.id ?: throwDocIdNotFoundEx() }
+    }
+
+    override fun getFootprint(): String? {
+        return RestTemplate().getForObject(
+            "http://localhost:9200/_cat/indices/document?h=store.size", //TODO move to config
+            String::class.java
+        )
     }
 
     private fun preprocess(text: String) =

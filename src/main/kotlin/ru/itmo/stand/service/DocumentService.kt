@@ -12,4 +12,6 @@ interface DocumentService {
 
     fun saveBatch(dtoList: List<DocumentDto>): List<String>
 
+    fun getFootprint(): String?
+
 }

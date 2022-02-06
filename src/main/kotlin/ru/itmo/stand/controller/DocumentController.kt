@@ -37,4 +37,10 @@ class DocumentController(private val documentService: DocumentService) {
     fun saveDocuments(@RequestBody dtoList: List<DocumentDto>) =
         documentService.saveBatch(dtoList)
 
+    @GetMapping("/footprint")
+    fun getFootprint() = documentService.getFootprint().let {
+        if (it == null) ResponseEntity.notFound().build()
+        else ResponseEntity.ok(it)
+    }
+
 }
