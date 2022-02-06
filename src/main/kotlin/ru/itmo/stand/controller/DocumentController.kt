@@ -16,17 +16,15 @@ import ru.itmo.stand.service.DocumentService
 class DocumentController(private val documentService: DocumentService) {
 
     @GetMapping("/")
-    fun searchDocument(@RequestParam query: String): ResponseEntity<List<String>> {
-        val ids = documentService.search(query)
-        return if (ids.isEmpty()) ResponseEntity.notFound().build()
-        else ResponseEntity.ok(ids)
+    fun searchDocument(@RequestParam query: String) = documentService.search(query).let {
+        if (it.isEmpty()) ResponseEntity.notFound().build()
+        else ResponseEntity.ok(it)
     }
 
     @GetMapping("/{id}")
-    fun findDocument(@PathVariable id: String): ResponseEntity<DocumentDto> {
-        val dto = documentService.find(id)
-        return if (dto == null) ResponseEntity.notFound().build()
-        else ResponseEntity.ok(dto)
+    fun findDocument(@PathVariable id: String) = documentService.find(id).let {
+        if (it == null) ResponseEntity.notFound().build()
+        else ResponseEntity.ok(it)
     }
 
     @PostMapping("/")
