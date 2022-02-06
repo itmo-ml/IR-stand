@@ -8,6 +8,8 @@ interface DocumentService {
 
     fun search(query: String): List<String>
 
-    fun index(dto: DocumentDto): String
+    fun save(dto: DocumentDto): String
+
+    fun saveBatch(dtoList: List<DocumentDto>): List<String>
 
 }

@@ -20,19 +20,28 @@ class DocumentServiceImpl(
     override fun search(query: String): List<String> {
         val processedQuery = preprocess(query)
         return documentRepository.findByContent(processedQuery)
-            .map { it.id ?: throw IllegalStateException("Document id must not be null.") }
+            .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
-    override fun index(dto: DocumentDto): String {
-        val preprocessedContent = preprocess(dto.content)
-        return documentRepository.save(dto.copy(content = preprocessedContent).toModel()).id
-            ?: throw IllegalStateException("Document id must not be null.")
+    override fun save(dto: DocumentDto): String {
+        val model = dto.copy(content = preprocess(dto.content)).toModel()
+        return documentRepository.save(model).id
+            ?: throwDocIdNotFoundEx()
+    }
+
+    override fun saveBatch(dtoList: List<DocumentDto>): List<String> {
+        val models = dtoList.map { it.copy(content = preprocess(it.content)) }
+            .map { it.toModel() }
+        return documentRepository.saveAll(models)
+            .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
     private fun preprocess(text: String) =
         stanfordCoreNlp.processToCoreDocument(text) // TODO: move to processor
             .tokens()
             .joinToString(" ") { it.lemma() }
+
+    private fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
 
 
 }

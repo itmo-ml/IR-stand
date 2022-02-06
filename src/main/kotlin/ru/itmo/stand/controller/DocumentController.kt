@@ -12,7 +12,7 @@ import ru.itmo.stand.dto.DocumentDto
 import ru.itmo.stand.service.DocumentService
 
 @RestController
-@RequestMapping("/api/document")
+@RequestMapping("/api/documents")
 class DocumentController(private val documentService: DocumentService) {
 
     @GetMapping("/")
@@ -30,6 +30,11 @@ class DocumentController(private val documentService: DocumentService) {
     }
 
     @PostMapping("/")
-    fun indexDocument(@RequestBody dto: DocumentDto) = documentService.index(dto)
+    fun saveDocument(@RequestBody dto: DocumentDto) =
+        documentService.save(dto)
+
+    @PostMapping("/batch")
+    fun saveDocuments(@RequestBody dtoList: List<DocumentDto>) =
+        documentService.saveBatch(dtoList)
 
 }
