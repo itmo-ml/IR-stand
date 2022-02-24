@@ -37,6 +37,7 @@ class DocumentServiceImpl(
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
+    //TODO: split to RAM/HDD
     override fun getFootprint(): String? {
         return RestTemplate().getForObject(
             "http://localhost:9200/_cat/indices/document?h=store.size", //TODO move to config

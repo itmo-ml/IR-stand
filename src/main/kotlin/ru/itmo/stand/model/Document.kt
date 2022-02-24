@@ -5,7 +5,7 @@ import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Setting
 
 @Document(indexName = "document")
-@Setting(settingPath = "document_index_settings.json")
+@Setting(settingPath = "document_index_settings.json")// TODO: split by method
 data class Document(
     @Id
     var id: String? = null,
