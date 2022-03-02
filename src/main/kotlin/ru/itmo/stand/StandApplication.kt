@@ -1,5 +1,7 @@
 package ru.itmo.stand
 
+import kotlin.system.exitProcess
+import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
@@ -8,7 +10,7 @@ import org.springframework.boot.runApplication
 class StandApplication
 
 fun main(args: Array<String>) {
-	runApplication<StandApplication>(*args)
+    exitProcess(SpringApplication.exit(runApplication<StandApplication>(*args)))
 }
 
 /*

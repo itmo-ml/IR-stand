@@ -17,14 +17,14 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.springframework:spring-web")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+	implementation("info.picocli:picocli-spring-boot-starter:4.6.3")
+
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
-	implementation("org.springdoc:springdoc-openapi-ui:1.5.11")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

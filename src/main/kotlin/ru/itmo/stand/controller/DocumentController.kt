@@ -33,7 +33,7 @@ class DocumentController(private val documentService: DocumentService) {
 
     @PostMapping("/batch")
     fun saveDocuments(@RequestBody dtoList: List<DocumentDto>) =
-        documentService.saveBatch(dtoList)
+        documentService.saveInBatch(dtoList)
 
     @GetMapping("/footprint")
     fun getFootprint() = documentService.getFootprint().let {

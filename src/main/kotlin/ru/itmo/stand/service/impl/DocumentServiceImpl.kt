@@ -30,7 +30,7 @@ class DocumentServiceImpl(
             ?: throwDocIdNotFoundEx()
     }
 
-    override fun saveBatch(dtoList: List<DocumentDto>): List<String> {
+    override fun saveInBatch(dtoList: List<DocumentDto>): List<String> {
         val models = dtoList.map { it.copy(content = preprocess(it.content)) }
             .map { it.toModel() }
         return documentRepository.saveAll(models)
