@@ -2,7 +2,7 @@ package ru.itmo.stand.command
 
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
-import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -13,14 +13,14 @@ import ru.itmo.stand.service.DocumentService
 )
 class SearchCommand(private val documentService: DocumentService) : Runnable {
 
-    @Option(
-        names = ["-q", "--query"],
-        required = true,
+    @Parameters(
+        paramLabel = "query",
+        arity = "1",
         description = ["Query to find relevant documents. Return their IDs."]
     )
-    private var query: String = ""
+    private lateinit var query: String
 
     override fun run() {
-        println(documentService.search(query))
+        println(documentService.search(query).ifEmpty { "Documents not found." })
     }
 }
