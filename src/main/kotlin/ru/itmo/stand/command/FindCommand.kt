@@ -2,7 +2,7 @@ package ru.itmo.stand.command
 
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
-import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -13,12 +13,12 @@ import ru.itmo.stand.service.DocumentService
 )
 class FindCommand(private val documentService: DocumentService) : Runnable {
 
-    @Option(
-        names = ["-i", "--id"],
-        required = true,
+    @Parameters(
+        paramLabel = "id",
+        arity = "1",
         description = ["ID by which the document is found."]
     )
-    private var id: String = ""
+    private lateinit var id: String
 
     override fun run() {
         println(documentService.find(id)?.content ?: "Document not found.")
