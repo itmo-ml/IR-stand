@@ -2,9 +2,9 @@ package ru.itmo.stand.repository
 
 import org.springframework.data.elasticsearch.annotations.Query
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
-import ru.itmo.stand.model.Document
+import ru.itmo.stand.model.DocumentBm25
 
-interface DocumentRepository : ElasticsearchRepository<Document, String> {
+interface DocumentBm25Repository : ElasticsearchRepository<DocumentBm25, String> {
 
     @Query(
         """
@@ -14,6 +14,6 @@ interface DocumentRepository : ElasticsearchRepository<Document, String> {
           }
         }"""
     )
-    fun findByContent(content: String): List<Document>
+    fun findByContent(content: String): List<DocumentBm25>
 
 }
