@@ -4,7 +4,9 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.dto.DocumentBm25Dto
+import ru.itmo.stand.model.DocumentBm25.Companion.DOCUMENT_BM25
 import ru.itmo.stand.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentBm25Service
 import ru.itmo.stand.toDto
@@ -13,6 +15,7 @@ import ru.itmo.stand.toModel
 @Service
 class DocumentBm25ServiceImpl(
     private val documentBm25Repository: DocumentBm25Repository,
+    private val standProperties: StandProperties,
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentBm25Service {
 
@@ -40,7 +43,7 @@ class DocumentBm25ServiceImpl(
     //TODO: split to RAM/HDD
     override fun getFootprint(): String? {
         return RestTemplate().getForObject(
-            "http://localhost:9200/_cat/indices/document?h=store.size", //TODO move to config
+            "http://${standProperties.elasticsearch.hostAndPort}/_cat/indices/$DOCUMENT_BM25?h=store.size",
             String::class.java
         )
     }
