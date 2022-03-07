@@ -1,6 +1,8 @@
 package ru.itmo.stand.service.impl
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import org.apache.commons.io.FileUtils.byteCountToDisplaySize
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
@@ -17,6 +19,7 @@ class DocumentBm25ServiceImpl(
     private val documentBm25Repository: DocumentBm25Repository,
     private val standProperties: StandProperties,
     private val stanfordCoreNlp: StanfordCoreNLP,
+    private val objectMapper: ObjectMapper,
 ) : DocumentBm25Service {
 
     override fun find(id: String): DocumentBm25Dto? = documentBm25Repository.findByIdOrNull(id)?.toDto()
@@ -40,16 +43,25 @@ class DocumentBm25ServiceImpl(
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
-    //TODO: split to RAM/HDD
     override fun getFootprint(): String? {
-        return RestTemplate().getForObject(
-            "http://${standProperties.elasticsearch.hostAndPort}/_cat/indices/$DOCUMENT_BM25?h=store.size",
+        val requestResult = RestTemplate().getForObject(
+            "http://${standProperties.elasticsearch.hostAndPort}/$DOCUMENT_BM25/_stats",
             String::class.java
         )
+
+        val totalIndexStats = objectMapper.readTree(requestResult)
+            .get("indices")
+            ?.get(DOCUMENT_BM25)
+            ?.get("total") ?: throw IllegalStateException("Total $DOCUMENT_BM25 index stats not found.")
+
+        return """
+            HDD: ${byteCountToDisplaySize(totalIndexStats.get("store").get("size_in_bytes").asLong())}
+            RAM: ${byteCountToDisplaySize(totalIndexStats.get("segments").get("memory_in_bytes").asLong())}
+        """.trimIndent()
     }
 
     private fun preprocess(text: String) =
-        stanfordCoreNlp.processToCoreDocument(text) // TODO: move to processor
+        stanfordCoreNlp.processToCoreDocument(text)
             .tokens()
             .joinToString(" ") { it.lemma() }
 

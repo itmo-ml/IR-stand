@@ -9,6 +9,6 @@ import ru.itmo.stand.service.DocumentBm25Service
 class FootprintCommand(private val documentBm25Service: DocumentBm25Service) : Runnable {
 
     override fun run() {
-        println("Footprint: ${documentBm25Service.getFootprint()}")
+        println("Footprint:\n${documentBm25Service.getFootprint()}")
     }
 }
