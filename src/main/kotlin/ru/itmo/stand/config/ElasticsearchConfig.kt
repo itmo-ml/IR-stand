@@ -8,12 +8,14 @@ import org.springframework.data.elasticsearch.client.RestClients
 import org.springframework.data.elasticsearch.config.AbstractElasticsearchConfiguration
 
 @Configuration
-class ElasticsearchConfig : AbstractElasticsearchConfiguration() {
+class ElasticsearchConfig(
+    private val standProperties: StandProperties
+) : AbstractElasticsearchConfiguration() {
 
     @Bean
     override fun elasticsearchClient(): RestHighLevelClient {
         val clientConfiguration = ClientConfiguration.builder()
-            .connectedTo("localhost:9200") //TODO: move to config
+            .connectedTo(standProperties.elasticsearch.hostAndPort)
             .build()
         return RestClients.create(clientConfiguration).rest()
     }

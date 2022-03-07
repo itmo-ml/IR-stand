@@ -3,10 +3,13 @@ package ru.itmo.stand
 import kotlin.system.exitProcess
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
+import ru.itmo.stand.config.StandProperties
 
 
 @SpringBootApplication
+@EnableConfigurationProperties(StandProperties::class)
 class StandApplication
 
 fun main(args: Array<String>) {

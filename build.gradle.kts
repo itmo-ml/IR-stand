@@ -1,10 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("org.springframework.boot") version "2.6.3"
+	id("org.springframework.boot") version "2.6.4"
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
 	kotlin("jvm") version "1.6.10"
 	kotlin("plugin.spring") version "1.6.10"
+	kotlin("kapt") version "1.6.10"
 }
 
 group = "ru.itmo"
@@ -25,6 +26,9 @@ dependencies {
 
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
+
+	kapt("org.springframework.boot:spring-boot-configuration-processor")
+	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

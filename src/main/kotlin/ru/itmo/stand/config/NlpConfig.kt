@@ -14,7 +14,7 @@ class NlpConfig {
     @Bean
     fun stanfordCoreNlp(): StanfordCoreNLP {
         val props = Properties()
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma") //TODO: move to config props
+        props.setProperty("annotators", "tokenize,ssplit,pos,lemma")
         val stanfordCoreNLP = StanfordCoreNLP(props)
 
         val message = stanfordCoreNLP.processToCoreDocument("StanfordCoreNLP: warmed up.")
