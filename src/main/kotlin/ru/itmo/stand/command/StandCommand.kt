@@ -14,6 +14,7 @@ import picocli.CommandLine.Command
         SearchCommand::class,
         SaveCommand::class,
         SaveInBatchCommand::class,
+        TestCommand::class,
     ],
 )
 class StandCommand

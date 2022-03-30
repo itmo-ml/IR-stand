@@ -27,6 +27,7 @@ dependencies {
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
 	implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
 	implementation("commons-io:commons-io:2.11.0")
+	implementation("org.tensorflow:tensorflow:1.4.0")
 
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
