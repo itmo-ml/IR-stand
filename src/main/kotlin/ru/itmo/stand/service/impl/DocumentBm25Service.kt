@@ -6,23 +6,25 @@ import org.apache.commons.io.FileUtils.byteCountToDisplaySize
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.dto.DocumentBm25Dto
+import ru.itmo.stand.model.DocumentBm25
 import ru.itmo.stand.model.DocumentBm25.Companion.DOCUMENT_BM25
 import ru.itmo.stand.repository.DocumentBm25Repository
-import ru.itmo.stand.service.DocumentBm25Service
-import ru.itmo.stand.toDto
-import ru.itmo.stand.toModel
+import ru.itmo.stand.service.DocumentService
 
 @Service
-class DocumentBm25ServiceImpl(
+class DocumentBm25Service(
     private val documentBm25Repository: DocumentBm25Repository,
     private val standProperties: StandProperties,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val objectMapper: ObjectMapper,
-) : DocumentBm25Service {
+) : DocumentService {
 
-    override fun find(id: String): DocumentBm25Dto? = documentBm25Repository.findByIdOrNull(id)?.toDto()
+    override val method: Method
+        get() = Method.BM25
+
+    override fun find(id: String): String? = documentBm25Repository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
         val processedQuery = preprocess(query)
@@ -30,17 +32,14 @@ class DocumentBm25ServiceImpl(
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
-    override fun save(dto: DocumentBm25Dto): String {
-        val model = dto.copy(content = preprocess(dto.content)).toModel()
-        return documentBm25Repository.save(model).id
-            ?: throwDocIdNotFoundEx()
+    override fun save(content: String): String {
+        val processedModel = DocumentBm25(content = preprocess(content))
+        return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
-    override fun saveInBatch(dtoList: List<DocumentBm25Dto>): List<String> {
-        val models = dtoList.map { it.copy(content = preprocess(it.content)) }
-            .map { it.toModel() }
-        return documentBm25Repository.saveAll(models)
-            .map { it.id ?: throwDocIdNotFoundEx() }
+    override fun saveInBatch(contents: List<String>): List<String> {
+        val processedModels = contents.map { DocumentBm25(content = preprocess(it)) }
+        return documentBm25Repository.saveAll(processedModels).map { it.id ?: throwDocIdNotFoundEx() }
     }
 
     override fun getFootprint(): String? {
@@ -66,6 +65,4 @@ class DocumentBm25ServiceImpl(
             .joinToString(" ") { it.lemma() }
 
     private fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
-
-
 }

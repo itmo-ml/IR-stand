@@ -1,26 +1,33 @@
-package ru.itmo.stand.command
+package ru.itmo.stand.service.impl
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import java.nio.IntBuffer
 import java.nio.file.Files
 import java.nio.file.Paths
-import org.springframework.stereotype.Component
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
-import picocli.CommandLine.Command
+import ru.itmo.stand.config.Method
+import ru.itmo.stand.repository.DocumentSnrmRepository
+import ru.itmo.stand.service.DocumentService
 
-@Component
-@Command(
-    name = "test",
-    mixinStandardHelpOptions = true,
-    description = ["Temp command"]
-)
-class TestCommand(
+@Service
+class DocumentSnrmService(
+    private val documentSnrmRepository: DocumentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
-) : Runnable {
+) : DocumentService {
 
-    override fun run() {
-        // load model
+    override val method: Method
+        get() = Method.SNRM
+
+    override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
+
+    override fun search(query: String): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun save(content: String): String {
         val modelPath = "src/main/resources/models/snrm/frozen"
         val b = SavedModelBundle.load(modelPath, "serve")
         // create session
@@ -78,5 +85,14 @@ class TestCommand(
             .forEach {
                 println("Idx: ${it.first}, Val: ${it.second}")
             }
+        TODO("Not yet implemented")
+    }
+
+    override fun saveInBatch(contents: List<String>): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFootprint(): String? {
+        TODO("Not yet implemented")
     }
 }

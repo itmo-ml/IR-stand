@@ -3,9 +3,7 @@ package ru.itmo.stand.command
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import ru.itmo.stand.command.converter.DocumentBm25DtoConverter
-import ru.itmo.stand.dto.DocumentBm25Dto
-import ru.itmo.stand.service.DocumentBm25Service
+import ru.itmo.stand.service.DocumentService
 
 @Component
 @Command(
@@ -13,17 +11,16 @@ import ru.itmo.stand.service.DocumentBm25Service
     mixinStandardHelpOptions = true,
     description = ["Save the documents and return their IDs."],
 )
-class SaveInBatchCommand(private val documentBm25Service: DocumentBm25Service) : Runnable {
+class SaveInBatchCommand(private val documentBm25Service: DocumentService) : Runnable {
 
     @Parameters(
         paramLabel = "documents",
         arity = "2..*",
         description = ["The content of the documents to save. At least two documents."],
-        converter = [DocumentBm25DtoConverter::class],
     )
-    private lateinit var dtoList: List<DocumentBm25Dto>
+    private lateinit var contents: List<String>
 
     override fun run() {
-        println("Saved document IDs: ${documentBm25Service.saveInBatch(dtoList)}")
+        println("Saved document IDs: ${documentBm25Service.saveInBatch(contents)}")
     }
 }
