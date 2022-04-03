@@ -25,7 +25,9 @@ class DocumentSnrmService(
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
-        TODO("Not yet implemented")
+        val processedQuery = preprocess(query)
+        return documentSnrmRepository.findByRepresentation(processedQuery)
+            .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
     override fun save(content: String): String {

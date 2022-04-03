@@ -2,8 +2,9 @@ package ru.itmo.stand.command
 
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import ru.itmo.stand.model.DocumentBm25
+import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -12,7 +13,7 @@ import ru.itmo.stand.service.DocumentService
     mixinStandardHelpOptions = true,
     description = ["Return IDs of documents relevant to the query."]
 )
-class SearchCommand(private val documentBm25Service: DocumentService) : Runnable {
+class SearchCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
 
     @Parameters(
         paramLabel = "query",
@@ -21,7 +22,10 @@ class SearchCommand(private val documentBm25Service: DocumentService) : Runnable
     )
     private lateinit var query: String
 
+    @Option(names = ["-m", "-method"], required = true)
+    private lateinit var method: Method
+
     override fun run() {
-        println(documentBm25Service.search(query).ifEmpty { "Documents not found." })
+        println(documentServicesByMethod[method]!!.search(query).ifEmpty { "Documents not found." })
     }
 }
