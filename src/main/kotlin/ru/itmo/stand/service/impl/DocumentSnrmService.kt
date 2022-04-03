@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.model.DocumentSnrm
 import ru.itmo.stand.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
 
@@ -42,9 +43,7 @@ class DocumentSnrmService(
         val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
 
         // tokenization
-        val tokens = stanfordCoreNlp.processToCoreDocument("""
-            My name is Slava
-            """.trimIndent())
+        val tokens = stanfordCoreNlp.processToCoreDocument(content)
             .tokens()
             .map { it.lemma().lowercase() }
 
@@ -75,17 +74,15 @@ class DocumentSnrmService(
         println(y.shape().contentToString())
 
         // print representation
-        val representation = Array(1) { FloatArray(5000) }
+        val initArray = Array(1) { FloatArray(5000) }
 //        val representation = Array(1) { Array(1) { Array(50) { FloatArray(5000) } } }
 //        println(y.copyTo(representation).contentDeepToString())
 
-        y.copyTo(representation)[0]
-            .mapIndexed { index, fl -> Pair(index, fl) }
-            .filter { it.second != 0.0f }
-            .forEach {
-                println("Idx: ${it.first}, Val: ${it.second}")
-            }
-        TODO("Not yet implemented")
+        val representation = y.copyTo(initArray)[0]
+//            .mapIndexed { index, fl -> Pair(index, fl) }
+            .filter { it != 0.0f }
+            .joinToString(" ")
+        return documentSnrmRepository.save(DocumentSnrm(content = representation)).id ?: throwDocIdNotFoundEx()
     }
 
     override fun saveInBatch(contents: List<String>): List<String> {

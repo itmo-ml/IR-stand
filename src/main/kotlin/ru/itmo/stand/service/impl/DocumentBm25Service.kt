@@ -63,6 +63,4 @@ class DocumentBm25Service(
         stanfordCoreNlp.processToCoreDocument(text)
             .tokens()
             .joinToString(" ") { it.lemma() }
-
-    private fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
 }
