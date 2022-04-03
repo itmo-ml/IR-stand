@@ -59,8 +59,8 @@ class DocumentBm25Service(
         """.trimIndent()
     }
 
-    private fun preprocess(text: String) =
-        stanfordCoreNlp.processToCoreDocument(text)
+    override fun preprocess(content: String) =
+        stanfordCoreNlp.processToCoreDocument(content)
             .tokens()
             .joinToString(" ") { it.lemma() }
 }

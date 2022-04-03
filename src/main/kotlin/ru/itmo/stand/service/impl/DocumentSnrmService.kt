@@ -29,6 +29,21 @@ class DocumentSnrmService(
     }
 
     override fun save(content: String): String {
+        val representation = preprocess(content)
+        return documentSnrmRepository.save(
+            DocumentSnrm(content = content, representation = representation)
+        ).id ?: throwDocIdNotFoundEx()
+    }
+
+    override fun saveInBatch(contents: List<String>): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFootprint(): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun preprocess(content: String): String {
         val modelPath = "src/main/resources/models/snrm/frozen"
         val b = SavedModelBundle.load(modelPath, "serve")
         // create session
@@ -78,18 +93,9 @@ class DocumentSnrmService(
 //        val representation = Array(1) { Array(1) { Array(50) { FloatArray(5000) } } }
 //        println(y.copyTo(representation).contentDeepToString())
 
-        val representation = y.copyTo(initArray)[0]
+        return y.copyTo(initArray)[0]
 //            .mapIndexed { index, fl -> Pair(index, fl) }
             .filter { it != 0.0f }
             .joinToString(" ")
-        return documentSnrmRepository.save(DocumentSnrm(content = representation)).id ?: throwDocIdNotFoundEx()
-    }
-
-    override fun saveInBatch(contents: List<String>): List<String> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getFootprint(): String? {
-        TODO("Not yet implemented")
     }
 }

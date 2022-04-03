@@ -16,5 +16,7 @@ interface DocumentService {
 
     fun getFootprint(): String?
 
+    fun preprocess(content: String): String
+
     fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
 }
