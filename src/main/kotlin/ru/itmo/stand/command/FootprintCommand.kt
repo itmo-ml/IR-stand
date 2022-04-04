@@ -6,7 +6,11 @@ import ru.itmo.stand.model.DocumentBm25
 import ru.itmo.stand.service.DocumentService
 
 @Component
-@Command(name = "footprint", description = ["Return footprint for index."])
+@Command(
+    name = "footprint",
+    mixinStandardHelpOptions = true,
+    description = ["Return footprint for index."],
+)
 class FootprintCommand(private val documentBm25Service: DocumentService) : Runnable {
 
     override fun run() {

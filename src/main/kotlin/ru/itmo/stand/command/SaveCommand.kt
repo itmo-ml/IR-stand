@@ -22,7 +22,11 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     )
     private lateinit var content: String
 
-    @Option(names = ["-m", "-method"], required = true)
+    @Option(
+        names = ["-m", "-method"],
+        required = true,
+        description = ["Search method. Available values: BM25, SNRM."]
+    )
     private lateinit var method: Method
 
     override fun run() {
