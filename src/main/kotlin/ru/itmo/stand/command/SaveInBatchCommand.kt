@@ -1,8 +1,12 @@
 package ru.itmo.stand.command
 
+import java.io.File
+import java.nio.file.Files
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
+import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -11,16 +15,24 @@ import ru.itmo.stand.service.DocumentService
     mixinStandardHelpOptions = true,
     description = ["Save the documents and return their IDs."],
 )
-class SaveInBatchCommand(private val documentBm25Service: DocumentService) : Runnable {
+class SaveInBatchCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
 
     @Parameters(
-        paramLabel = "documents",
-        arity = "2..*",
-        description = ["The content of the documents to save. At least two documents."],
+        paramLabel = "documents file",
+        arity = "1",
+        description = ["File with content of the documents to save."],
     )
-    private lateinit var contents: List<String>
+    private lateinit var contentFile: File
+
+    @Option(
+        names = ["-m", "-method"],
+        required = true,
+        description = ["Search method. Available values: BM25, SNRM."]
+    )
+    private lateinit var method: Method
 
     override fun run() {
-        println("Saved document IDs: ${documentBm25Service.saveInBatch(contents)}")
+        val contents = Files.lines(contentFile.toPath()).toList()
+        println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents)}")
     }
 }

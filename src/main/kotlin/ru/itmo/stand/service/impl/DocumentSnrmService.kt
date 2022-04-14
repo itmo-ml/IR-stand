@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.model.DocumentSnrm
 import ru.itmo.stand.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
@@ -38,7 +39,8 @@ class DocumentSnrmService(
     }
 
     override fun saveInBatch(contents: List<String>): List<String> {
-        TODO("Not yet implemented")
+        println("Result: ${contents.size}")
+        return emptyList()
     }
 
     override fun getFootprint(): String? {
@@ -71,7 +73,7 @@ class DocumentSnrmService(
         println("Test: $termIds")
 
         // fill until max doc length or trim for it
-        val maxDocLength = 103
+        val maxDocLength = MAX_DOC_LEN
         for (i in 1..(maxDocLength - termIds.size)) termIds.add(0)
         val preparedTermIds: MutableList<Int> = termIds.subList(0, maxDocLength)
 
