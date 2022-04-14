@@ -5,6 +5,7 @@ import java.nio.IntBuffer
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.system.measureTimeMillis
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -23,6 +24,7 @@ class DocumentSnrmService(
     private val inMemoryIndex: InMemoryIndex,
 ) : DocumentService {
 
+    private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
     private val termToId = mutableMapOf("UNKNOWN" to 0).also {
@@ -49,12 +51,16 @@ class DocumentSnrmService(
     }
 
     override fun saveInBatch(contents: List<String>): List<String> {
+        log.info("Total size: ${contents.size}")
         val time = measureTimeMillis {
             contents.map { it.split("\t") }
+                .asSequence()
+                .onEachIndexed { index, _ ->
+                    if (index % 100 == 0) log.info("Index now holds ${inMemoryIndex.countDocuments()} documents")
+                }
                 .forEach { inMemoryIndex.add(listOf(it[0].toInt()), listOf(preprocess(it[1]))) }
         }
-        println("Time in ms: $time")
-
+        log.info("Time in ms: $time")
         inMemoryIndex.store()
         return emptyList()
     }
@@ -76,7 +82,6 @@ class DocumentSnrmService(
         val termIds = tokens.filter { !stopwords.contains(it) }
             .map { if (termToId.containsKey(it)) termToId[it]!! else termToId["UNKNOWN"]!! }
             .toMutableList()
-        println("Test: $termIds")
 
         // fill until max doc length or trim for it
         val maxDocLength = MAX_DOC_LEN
@@ -95,10 +100,6 @@ class DocumentSnrmService(
             .fetch("Mean_5")
             .run()[0]
 
-        // print shape
-        println(y.shape().contentToString())
-
-        // print representation
         val initArray = Array(1) { FloatArray(5000) }
 //        val representation = Array(1) { Array(1) { Array(50) { FloatArray(5000) } } }
 //        println(y.copyTo(representation).contentDeepToString())
