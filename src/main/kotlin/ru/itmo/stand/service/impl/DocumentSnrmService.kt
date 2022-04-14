@@ -10,6 +10,7 @@ import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
+import ru.itmo.stand.index.InMemoryIndex
 import ru.itmo.stand.model.DocumentSnrm
 import ru.itmo.stand.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
@@ -18,7 +19,10 @@ import ru.itmo.stand.service.DocumentService
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
+    private val inMemoryIndex: InMemoryIndex,
 ) : DocumentService {
+
+    private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
 
     override val method: Method
         get() = Method.SNRM
@@ -26,13 +30,13 @@ class DocumentSnrmService(
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
-        val processedQuery = preprocess(query)
+        val processedQuery = preprocess(query).joinToString { " " }
         return documentSnrmRepository.findByRepresentation(processedQuery)
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
     override fun save(content: String): String {
-        val representation = preprocess(content)
+        val representation = preprocess(content).joinToString { " " }
         return documentSnrmRepository.save(
             DocumentSnrm(content = content, representation = representation)
         ).id ?: throwDocIdNotFoundEx()
@@ -40,6 +44,10 @@ class DocumentSnrmService(
 
     override fun saveInBatch(contents: List<String>): List<String> {
         println("Result: ${contents.size}")
+        contents.take(10)
+            .map { it.split("\t") }
+            .forEach { inMemoryIndex.add(listOf(it[0].toInt()), listOf(preprocess(it[1]))) }
+
         return emptyList()
     }
 
@@ -47,11 +55,9 @@ class DocumentSnrmService(
         TODO("Not yet implemented")
     }
 
-    override fun preprocess(content: String): String {
-        val modelPath = "src/main/resources/models/snrm/frozen"
-        val b = SavedModelBundle.load(modelPath, "serve")
+    private fun preprocess(content: String): FloatArray {
         // create session
-        val sess = b.session()
+        val sess = model.session()
 
         // load termToId dictionary
         val termToId = mutableMapOf("UNKNOWN" to 0)
@@ -100,6 +106,6 @@ class DocumentSnrmService(
         return y.copyTo(initArray)[0]
 //            .mapIndexed { index, fl -> Pair(index, fl) }
             .filter { it != 0.0f }
-            .joinToString(" ")
+            .toFloatArray()
     }
 }
