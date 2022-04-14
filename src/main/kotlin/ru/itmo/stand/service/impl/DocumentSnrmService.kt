@@ -4,6 +4,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import java.nio.IntBuffer
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.system.measureTimeMillis
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -23,6 +24,11 @@ class DocumentSnrmService(
 ) : DocumentService {
 
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
+    private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
+    private val termToId = mutableMapOf("UNKNOWN" to 0).also {
+        var id = 1
+        Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
+    }
 
     override val method: Method
         get() = Method.SNRM
@@ -43,11 +49,13 @@ class DocumentSnrmService(
     }
 
     override fun saveInBatch(contents: List<String>): List<String> {
-        println("Result: ${contents.size}")
-        contents.take(10)
-            .map { it.split("\t") }
-            .forEach { inMemoryIndex.add(listOf(it[0].toInt()), listOf(preprocess(it[1]))) }
+        val time = measureTimeMillis {
+            contents.map { it.split("\t") }
+                .forEach { inMemoryIndex.add(listOf(it[0].toInt()), listOf(preprocess(it[1]))) }
+        }
+        println("Time in ms: $time")
 
+        inMemoryIndex.store()
         return emptyList()
     }
 
@@ -58,14 +66,6 @@ class DocumentSnrmService(
     private fun preprocess(content: String): FloatArray {
         // create session
         val sess = model.session()
-
-        // load termToId dictionary
-        val termToId = mutableMapOf("UNKNOWN" to 0)
-        var id = 1
-        Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { termToId[it] = id++ }
-
-        // load stopwords
-        val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
 
         // tokenization
         val tokens = stanfordCoreNlp.processToCoreDocument(content)
