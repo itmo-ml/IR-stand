@@ -5,7 +5,8 @@ services:
     ports:
       - "9200:9200"
     environment:
-      discovery.type: single-node
+      - discovery.type=single-node
+      - xpack.security.enabled=false
   kibana:
     image: docker.elastic.co/kibana/kibana:8.1.2
     ports:
