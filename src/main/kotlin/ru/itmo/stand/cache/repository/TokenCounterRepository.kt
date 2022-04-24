@@ -5,16 +5,13 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class TokenCounterRepository(
-    private val redisTemplate: RedisTemplate<String, Any>
+    redisTemplate: RedisTemplate<String, Any>
 ) {
-
-    private val stringOps = redisTemplate.opsForValue()
+    private val valueOperations = redisTemplate.opsForValue()
     private val counterKey = "token_counter"
 
-    public fun getNext(): Long? {
-
+    fun getNext(): Long {
         //if key does not exist it will be auto-created
-        return stringOps.increment(counterKey)
+        return valueOperations.increment(counterKey) ?: throw IllegalStateException("Next value can't be null")
     }
-
 }
