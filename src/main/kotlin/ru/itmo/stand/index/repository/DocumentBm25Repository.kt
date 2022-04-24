@@ -1,8 +1,8 @@
-package ru.itmo.stand.repository
+package ru.itmo.stand.index.repository
 
 import org.springframework.data.elasticsearch.annotations.Query
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
-import ru.itmo.stand.model.DocumentBm25
+import ru.itmo.stand.index.model.DocumentBm25
 
 interface DocumentBm25Repository : ElasticsearchRepository<DocumentBm25, String> {
 

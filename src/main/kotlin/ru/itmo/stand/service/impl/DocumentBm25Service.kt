@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.model.DocumentBm25
-import ru.itmo.stand.model.DocumentBm25.Companion.DOCUMENT_BM25
-import ru.itmo.stand.repository.DocumentBm25Repository
+import ru.itmo.stand.index.model.DocumentBm25
+import ru.itmo.stand.index.model.DocumentBm25.Companion.DOCUMENT_BM25
+import ru.itmo.stand.index.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentService
 
 @Service

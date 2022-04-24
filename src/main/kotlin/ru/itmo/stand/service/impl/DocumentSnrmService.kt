@@ -13,8 +13,8 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.index.InMemoryIndex
-import ru.itmo.stand.model.DocumentSnrm
-import ru.itmo.stand.repository.DocumentSnrmRepository
+import ru.itmo.stand.index.model.DocumentSnrm
+import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
 
 @Service
