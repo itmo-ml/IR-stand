@@ -4,20 +4,18 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Repository
 
 @Repository
-class TermRepository (
-    private val redisTemplate: RedisTemplate<Double, String>
-        ){
+class TermRepository(
+    redisTemplate: RedisTemplate<String, Any>,
+) {
+    private val hashOperations = redisTemplate.opsForHash<Double, String>()
+    private val mapName = "term"
 
-    private val ops = redisTemplate.opsForValue();
-
-    public fun saveTerm(key: Double, value: String) {
-
+    fun saveTerm(key: Double, value: String) {
         //TODO: can be optimized for batch insert using lua scripts
-        ops.set(key, value);
+        hashOperations.put(mapName, key, value);
     }
 
-    public fun getTerm(key: Double): String? {
-        return ops.get(key)
+    fun getTerm(key: Double): String? {
+        return hashOperations.get(mapName, key)
     }
-
 }
