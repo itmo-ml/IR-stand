@@ -19,4 +19,6 @@ class DocumentVectorRepository(
     }
 
     fun getDoc(docId: String): FloatArray? = hashOperations.get(mapName, docId)
+
+    fun getDocs(docIds: List<String>): List<FloatArray> = hashOperations.multiGet(mapName, docIds)
 }
