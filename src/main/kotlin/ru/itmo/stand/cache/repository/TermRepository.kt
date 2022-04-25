@@ -8,7 +8,7 @@ class TermRepository(
     redisTemplate: RedisTemplate<String, Any>,
 ) {
     private val hashOperations = redisTemplate.opsForHash<Float, String>()
-    private val mapName = "term"
+    private val mapName = "term_snrm"
 
     fun saveTerm(key: Float, value: String) {
         hashOperations.put(mapName, key, value);

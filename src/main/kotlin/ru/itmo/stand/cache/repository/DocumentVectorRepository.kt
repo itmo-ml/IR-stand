@@ -8,7 +8,7 @@ class DocumentVectorRepository(
     redisTemplate: RedisTemplate<String, Any>
 ) {
     private val hashOperations = redisTemplate.opsForHash<String, FloatArray>()
-    private val mapName = "document"
+    private val mapName = "document_vector_snrm"
 
     fun saveDoc(docId: String, vector: FloatArray) {
         hashOperations.put(mapName, docId, vector)

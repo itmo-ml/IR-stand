@@ -8,7 +8,7 @@ class TokenCounterRepository(
     redisTemplate: RedisTemplate<String, Any>
 ) {
     private val valueOperations = redisTemplate.opsForValue()
-    private val counterKey = "token_counter"
+    private val counterKey = "token_counter_snrm"
 
     fun getNext(): Long {
         //if key does not exist it will be auto-created
