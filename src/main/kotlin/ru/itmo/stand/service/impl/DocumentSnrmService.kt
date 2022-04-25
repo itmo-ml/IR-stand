@@ -122,19 +122,14 @@ class DocumentSnrmService(
             temp.subList(0, MAX_DOC_LEN)
         }
 
-
-        val tmp = termIds.map { it.toIntArray() }
-        val tmp2 = tmp.toTypedArray()
         // create tensor
         val x = Tensor.create(termIds.map { it.toIntArray() }.toTypedArray())
 
         // inference
-        val y_all = sess.runner()
+        val y= sess.runner()
             .feed("Placeholder_4", x)
             .fetch("Mean_5")
-            .run();
-
-        val y = y_all[0];
+            .run()[0]
 
         val initArray = Array(contents.size) { FloatArray(modelOutputSize) }
 
