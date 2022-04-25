@@ -9,6 +9,9 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
+import ru.itmo.stand.cache.repository.DocumentVectorRepository
+import ru.itmo.stand.cache.repository.TermRepository
+import ru.itmo.stand.cache.repository.TokenCounterRepository
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
@@ -22,8 +25,13 @@ class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val inMemoryIndex: InMemoryIndex,
+    private val documentVectorRepository: DocumentVectorRepository,
+    private val tokenCounterRepository: TokenCounterRepository,
+    private val termRepository: TermRepository
 ) : DocumentService {
 
+    private val modelOutputSize = 5000;
+    private val tokenPrefix = "word";
     private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
@@ -44,10 +52,26 @@ class DocumentSnrmService(
     }
 
     override fun save(content: String): String {
-        val representation = preprocess(listOf(content))[0].joinToString(" ")
-        return documentSnrmRepository.save(
-            DocumentSnrm(content = content, representation = representation)
+        val representation = preprocess(listOf(content))[0];
+
+        //generate tokens word1, word2, word3
+        val latentTermMap = representation
+            .associateBy({it}, {tokenPrefix + tokenCounterRepository.getNext()})
+            .toMutableMap();
+
+        //save them in redis
+        termRepository.saveTerms(latentTermMap)
+
+        //save document in elastic
+        val tokenRepresentation = latentTermMap.values.joinToString(" ");
+        val docId = documentSnrmRepository.save(
+            DocumentSnrm(content = content, representation = tokenRepresentation)
         ).id ?: throwDocIdNotFoundEx()
+
+        //save document in redis with id from elastic
+        documentVectorRepository.saveDoc(docId, representation);
+
+        return docId;
     }
 
     override fun saveInBatch(contents: List<String>): List<String> {
@@ -99,18 +123,20 @@ class DocumentSnrmService(
         }
 
 
+        val tmp = termIds.map { it.toIntArray() }
+        val tmp2 = tmp.toTypedArray()
         // create tensor
         val x = Tensor.create(termIds.map { it.toIntArray() }.toTypedArray())
 
         // inference
-        val y = sess.runner()
+        val y_all = sess.runner()
             .feed("Placeholder_4", x)
             .fetch("Mean_5")
-            .run()[0]
+            .run();
 
-        val initArray = Array(contents.size) { FloatArray(5000) }
-//        val representation = Array(1) { Array(1) { Array(50) { FloatArray(5000) } } }
-//        println(y.copyTo(representation).contentDeepToString())
+        val y = y_all[0];
+
+        val initArray = Array(contents.size) { FloatArray(modelOutputSize) }
 
         return y.copyTo(initArray).map { arr ->
             arr.filter { it != 0.0f }

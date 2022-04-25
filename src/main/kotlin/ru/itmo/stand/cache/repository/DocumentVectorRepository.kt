@@ -7,12 +7,12 @@ import org.springframework.stereotype.Repository
 class DocumentVectorRepository(
     redisTemplate: RedisTemplate<String, Any>
 ) {
-    private val hashOperations = redisTemplate.opsForHash<String, DoubleArray>()
+    private val hashOperations = redisTemplate.opsForHash<String, FloatArray>()
     private val mapName = "document"
 
-    fun saveDoc(docId: String, vector: DoubleArray) {
+    fun saveDoc(docId: String, vector: FloatArray) {
         hashOperations.put(mapName, docId, vector)
     }
 
-    fun getDoc(docId: String): DoubleArray? = hashOperations.get(mapName, docId)
+    fun getDoc(docId: String): FloatArray? = hashOperations.get(mapName, docId)
 }
