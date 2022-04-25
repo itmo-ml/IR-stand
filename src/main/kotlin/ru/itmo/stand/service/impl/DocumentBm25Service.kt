@@ -32,13 +32,17 @@ class DocumentBm25Service(
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
-    override fun save(content: String): String {
-        val processedModel = DocumentBm25(content = preprocess(content))
+    override fun save(content: String, withId: Boolean): String {
+        val (externalId, passage) = extractId(content, withId);
+        val processedModel = DocumentBm25(content = preprocess(passage), externalId = externalId)
         return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
-    override fun saveInBatch(contents: List<String>): List<String> {
-        val processedModels = contents.map { DocumentBm25(content = preprocess(it)) }
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+        val processedModels = contents.map {
+            val (externalId, passage) = extractId(it, withId);
+            DocumentBm25(content = preprocess(passage), externalId = externalId)
+        }
         return documentBm25Repository.saveAll(processedModels).map { it.id ?: throwDocIdNotFoundEx() }
     }
 
