@@ -14,5 +14,9 @@ class DocumentVectorRepository(
         hashOperations.put(mapName, docId, vector)
     }
 
+    fun saveDocs(documents: MutableMap<String, FloatArray>) {
+        hashOperations.putAll(mapName, documents)
+    }
+
     fun getDoc(docId: String): FloatArray? = hashOperations.get(mapName, docId)
 }

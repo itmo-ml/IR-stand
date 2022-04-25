@@ -51,12 +51,16 @@ class DocumentSnrmService(
             .map { it.id ?: throwDocIdNotFoundEx() }
     }
 
-    override fun save(content: String): String {
-        val representation = preprocess(listOf(content))[0];
+
+    override fun save(content: String, withId: Boolean): String {
+
+        val (externalId, passage) = extractId(content, withId);
+
+        val representation = preprocess(listOf(passage))[0];
 
         //generate tokens word1, word2, word3
         val latentTermMap = representation
-            .associateBy({it}, {tokenPrefix + tokenCounterRepository.getNext()})
+            .associateBy({ it }, { tokenPrefix + tokenCounterRepository.getNext() })
             .toMutableMap();
 
         //save them in redis
@@ -65,7 +69,7 @@ class DocumentSnrmService(
         //save document in elastic
         val tokenRepresentation = latentTermMap.values.joinToString(" ");
         val docId = documentSnrmRepository.save(
-            DocumentSnrm(content = content, representation = tokenRepresentation)
+            DocumentSnrm(content = content, representation = tokenRepresentation, externalId = externalId)
         ).id ?: throwDocIdNotFoundEx()
 
         //save document in redis with id from elastic
@@ -74,32 +78,48 @@ class DocumentSnrmService(
         return docId;
     }
 
-    override fun saveInBatch(contents: List<String>): List<String> {
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
         log.info("Total size: ${contents.size}")
-        val time = measureTimeMillis {
-            contents.asSequence()
-                .onEachIndexed { index, _ ->
-                    if (index % BATCH_SIZE_DOCUMENTS == 0) {
-                        log.info("Index now holds ${inMemoryIndex.countDocuments()} documents")
-                    }
-                }
-                .chunked(BATCH_SIZE_DOCUMENTS)
-                .forEach { chunk ->
-                    val idsAndPassages = chunk.map { it.split("\t") }
-                    val ids = idsAndPassages.map { it[0] }.map { it.toInt() }
-                    val passages = idsAndPassages.map { it[1] }
-                    inMemoryIndex.add(ids, preprocess(passages))
+
+        contents.asSequence()
+            .chunked(BATCH_SIZE_DOCUMENTS)
+            .forEach { chunk ->
+
+                val idsAndPassages = chunk.map { extractId(it, withId) }
+                val ids = idsAndPassages.map { it.first }
+                val passages = idsAndPassages.map { it.second }
+                val representations = preprocess(passages);
+
+                val latentTermMaps = representations.map {
+                    it.associateBy({ it2 -> it2 }, { tokenPrefix + tokenCounterRepository.getNext() })
+                        .toMutableMap()
                 }
 
-        }
-        log.info("Time in ms: $time")
-        inMemoryIndex.store()
+                latentTermMaps.forEach { termRepository.saveTerms(it) }
+
+                val documents = List(representations.size) { idx ->
+                    val representation = latentTermMaps[idx].values.joinToString(" ")
+                    DocumentSnrm(content = passages[idx], externalId = ids[idx], representation = representation)
+                }
+                val savedDocs = documentSnrmRepository.saveAll(documents).toList()
+
+                val documentVectors = representations.mapIndexed { idx, value ->
+                    val id = savedDocs[idx].id ?: throwDocIdNotFoundEx()
+                    Pair(id, value)
+                }.associateBy({it.first}, {it.second}).toMutableMap()
+
+                documentVectorRepository.saveDocs(documentVectors)
+
+            }
+
+
         return emptyList()
     }
 
     override fun getFootprint(): String? {
         TODO("Not yet implemented")
     }
+
 
     private fun preprocess(contents: List<String>): List<FloatArray> {
         // create session
@@ -126,7 +146,7 @@ class DocumentSnrmService(
         val x = Tensor.create(termIds.map { it.toIntArray() }.toTypedArray())
 
         // inference
-        val y= sess.runner()
+        val y = sess.runner()
             .feed("Placeholder_4", x)
             .fetch("Mean_5")
             .run()[0]

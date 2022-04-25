@@ -14,6 +14,9 @@ data class DocumentSnrm(
     @Field(index = false, type = FieldType.Text)
     val content: String,
 
+    @Field(index=false, type=FieldType.Long)
+    val externalId: Long?,
+
     @Field
     val representation: String,
 ) {

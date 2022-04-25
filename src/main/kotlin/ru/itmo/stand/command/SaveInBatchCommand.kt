@@ -31,8 +31,13 @@ class SaveInBatchCommand(private val documentServicesByMethod: Map<Method, Docum
     )
     private lateinit var method: Method
 
+    @Option(
+        names=["--with-id"]
+    )
+    private var withId: Boolean = false
+
     override fun run() {
         val contents = Files.lines(contentFile.toPath()).toList()
-        println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents)}")
+        println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
     }
 }
