@@ -34,14 +34,14 @@ class DocumentBm25Service(
 
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId);
-        val processedModel = DocumentBm25(content = preprocess(passage), externalId = externalId)
+        val processedModel = DocumentBm25(content = content, representation = preprocess(passage), externalId = externalId)
         return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
         val processedModels = contents.map {
             val (externalId, passage) = extractId(it, withId);
-            DocumentBm25(content = preprocess(passage), externalId = externalId)
+            DocumentBm25(content = it, representation = preprocess(passage), externalId = externalId)
         }
         return documentBm25Repository.saveAll(processedModels).map { it.id ?: throwDocIdNotFoundEx() }
     }

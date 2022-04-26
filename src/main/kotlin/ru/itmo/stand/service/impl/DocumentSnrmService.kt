@@ -15,6 +15,7 @@ import ru.itmo.stand.cache.repository.TokenCounterRepository
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
+import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.index.InMemoryIndex
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
@@ -24,13 +25,11 @@ import ru.itmo.stand.service.DocumentService
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
-    private val inMemoryIndex: InMemoryIndex,
     private val documentVectorRepository: DocumentVectorRepository,
     private val tokenCounterRepository: TokenCounterRepository,
     private val termRepository: TermRepository
 ) : DocumentService {
 
-    private val modelOutputSize = 5000;
     private val tokenPrefix = "word";
     private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
@@ -151,7 +150,7 @@ class DocumentSnrmService(
             .fetch("Mean_5")
             .run()[0]
 
-        val initArray = Array(contents.size) { FloatArray(modelOutputSize) }
+        val initArray = Array(contents.size) { FloatArray(SNRM_OUTPUT_SIZE) }
 
         return y.copyTo(initArray).map { arr ->
             arr.filter { it != 0.0f }

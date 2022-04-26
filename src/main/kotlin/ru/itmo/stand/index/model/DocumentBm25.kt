@@ -16,6 +16,9 @@ data class DocumentBm25(
     @Field(index = false, type = FieldType.Text)
     val content: String,
 
+    @Field(index = false, type = FieldType.Text)
+    val representation: String,
+
     @Field(index = false, type = FieldType.Long)
     val externalId: Long?
 ) {

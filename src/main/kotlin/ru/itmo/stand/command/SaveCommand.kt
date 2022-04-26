@@ -31,7 +31,8 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     private lateinit var method: Method
 
     @Option(
-        names=["--with-id"]
+        names=["--with-id"],
+        description =["Indicates that document has its own id, separated by tab"]
     )
     private var withId: Boolean = false
 
