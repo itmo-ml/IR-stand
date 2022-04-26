@@ -14,7 +14,7 @@ class TermRepository(
         hashOperations.put(mapName, key, value);
     }
 
-    fun saveTerms(terms: MutableMap<Float, String>) {
+    fun saveTerms(terms: Map<Float, String>) {
         hashOperations.putAll(mapName, terms);
     }
     

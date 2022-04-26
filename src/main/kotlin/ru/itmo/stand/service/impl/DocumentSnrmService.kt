@@ -3,7 +3,6 @@ package ru.itmo.stand.service.impl
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.system.measureTimeMillis
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -16,7 +15,6 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
-import ru.itmo.stand.index.InMemoryIndex
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
@@ -27,7 +25,7 @@ class DocumentSnrmService(
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val documentVectorRepository: DocumentVectorRepository,
     private val tokenCounterRepository: TokenCounterRepository,
-    private val termRepository: TermRepository
+    private val termRepository: TermRepository,
 ) : DocumentService {
 
     private val tokenPrefix = "word";
@@ -37,7 +35,7 @@ class DocumentSnrmService(
     private val termToId = mutableMapOf("UNKNOWN" to 0).also {
         var id = 1
         Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
-    }
+    }.toMap()
 
     override val method: Method
         get() = Method.SNRM
@@ -60,7 +58,6 @@ class DocumentSnrmService(
         //generate tokens word1, word2, word3
         val latentTermMap = representation
             .associateBy({ it }, { tokenPrefix + tokenCounterRepository.getNext() })
-            .toMutableMap();
 
         //save them in redis
         termRepository.saveTerms(latentTermMap)
@@ -91,7 +88,6 @@ class DocumentSnrmService(
 
                 val latentTermMaps = representations.map {
                     it.associateBy({ it2 -> it2 }, { tokenPrefix + tokenCounterRepository.getNext() })
-                        .toMutableMap()
                 }
 
                 latentTermMaps.forEach { termRepository.saveTerms(it) }
@@ -105,7 +101,7 @@ class DocumentSnrmService(
                 val documentVectors = representations.mapIndexed { idx, value ->
                     val id = savedDocs[idx].id ?: throwDocIdNotFoundEx()
                     Pair(id, value)
-                }.associateBy({it.first}, {it.second}).toMutableMap()
+                }.associateBy({ it.first }, { it.second })
 
                 documentVectorRepository.saveDocs(documentVectors)
 
