@@ -45,7 +45,7 @@ class DocumentSnrmService(
 
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query))[0]
-        val terms = queryVector.map { termRepository.getTerm(it) }.joinToString(" ")
+        val terms = queryVector.joinToString(" ") { termRepository.getTerm(it) ?: "${tokenPrefix}0" }
         val docIds = documentSnrmRepository.findByRepresentation(terms).map { it.id ?: throwDocIdNotFoundEx() }
         // TODO: think about improving the algorithm
         return documentVectorRepository.getDocs(docIds)
