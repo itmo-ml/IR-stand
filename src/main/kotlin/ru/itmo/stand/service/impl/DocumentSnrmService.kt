@@ -18,6 +18,7 @@ import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.util.dot
 
 @Service
 class DocumentSnrmService(
@@ -43,9 +44,15 @@ class DocumentSnrmService(
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
-        val processedQuery = preprocess(listOf(query))[0].joinToString(" ")
-        return documentSnrmRepository.findByRepresentation(processedQuery)
-            .map { it.id ?: throwDocIdNotFoundEx() }
+        val queryVector = preprocess(listOf(query))[0]
+        val terms = queryVector.joinToString(" ") { termRepository.getTerm(it) ?: "${tokenPrefix}0" }
+        val docIds = documentSnrmRepository.findByRepresentation(terms).map { it.id ?: throwDocIdNotFoundEx() }
+        // TODO: think about improving the algorithm
+        return documentVectorRepository.getDocs(docIds)
+            .mapIndexed { index, docVector -> Pair(docIds[index], docVector dot queryVector) }
+            .sortedBy { it.second }
+            .take(10) // TODO: make it a parameter
+            .map { it.first }
     }
 
 
