@@ -18,15 +18,15 @@ interface DocumentService {
 
     fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
 
-     fun extractId(content: String, withId: Boolean): Pair<Long?, String> {
-        if (withId) {
+    fun extractId(content: String, withId: Boolean): Pair<Long?, String> {
+        return if (withId) {
             val idAndPassage = content.split("\t");
             if (idAndPassage.size != 2) {
                 throw IllegalStateException("With id option was specified but no id was found")
             }
-            return Pair(idAndPassage[0].toLong(), idAndPassage[1]);
+            Pair(idAndPassage[0].toLong(), idAndPassage[1]);
         } else {
-            return Pair(null, content);
+            Pair(null, content);
         }
     }
 }

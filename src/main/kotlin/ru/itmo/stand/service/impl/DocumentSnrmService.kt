@@ -57,20 +57,11 @@ class DocumentSnrmService(
 
 
     override fun save(content: String, withId: Boolean): String {
-
         val (externalId, passage) = extractId(content, withId);
-
         val representation = preprocess(listOf(passage))[0];
 
-        //generate tokens word1, word2, word3
-        val latentTermMap = representation
-            .associateBy({ it }, { tokenPrefix + tokenCounterRepository.getNext() })
-
-        //save them in redis
-        termRepository.saveTerms(latentTermMap)
-
         //save document in elastic
-        val tokenRepresentation = latentTermMap.values.joinToString(" ");
+        val tokenRepresentation = convertToTokenRepresentation(representation)
         val docId = documentSnrmRepository.save(
             DocumentSnrm(content = content, representation = tokenRepresentation, externalId = externalId)
         ).id ?: throwDocIdNotFoundEx()
@@ -92,16 +83,14 @@ class DocumentSnrmService(
                 val ids = idsAndPassages.map { it.first }
                 val passages = idsAndPassages.map { it.second }
                 val representations = preprocess(passages);
-
-                val latentTermMaps = representations.map {
-                    it.associateBy({ it2 -> it2 }, { tokenPrefix + tokenCounterRepository.getNext() })
-                }
-
-                latentTermMaps.forEach { termRepository.saveTerms(it) }
+                val tokenRepresentations = representations.map { convertToTokenRepresentation(it) }
 
                 val documents = List(representations.size) { idx ->
-                    val representation = latentTermMaps[idx].values.joinToString(" ")
-                    DocumentSnrm(content = passages[idx], externalId = ids[idx], representation = representation)
+                    DocumentSnrm(
+                        content = passages[idx],
+                        externalId = ids[idx],
+                        representation = tokenRepresentations[idx]
+                    )
                 }
                 val savedDocs = documentSnrmRepository.saveAll(documents).toList()
 
@@ -111,9 +100,7 @@ class DocumentSnrmService(
                 }.associateBy({ it.first }, { it.second })
 
                 documentVectorRepository.saveDocs(documentVectors)
-
             }
-
 
         return emptyList()
     }
@@ -159,5 +146,27 @@ class DocumentSnrmService(
             arr.filter { it != 0.0f }
                 .toFloatArray()
         }
+    }
+
+    /**
+     * Generates and saves in redis word1, word2, word3 tokens for latent terms
+     * and joins them by space.
+     *
+     * @return token representation to store in elasticsearch index.
+     */
+    private fun convertToTokenRepresentation(representation: FloatArray): String {
+        val existingTerms = mutableMapOf<Float, String>()
+        val newTerms = mutableMapOf<Float, String>()
+        for (latentTerm in representation) {
+            val term = termRepository.getTerm(latentTerm)
+            if (term == null) {
+                newTerms[latentTerm] = tokenPrefix + tokenCounterRepository.getNext()
+            } else {
+                existingTerms[latentTerm] = term
+            }
+        }
+        termRepository.saveTerms(newTerms)
+
+        return (existingTerms + newTerms).values.joinToString(" ");
     }
 }
