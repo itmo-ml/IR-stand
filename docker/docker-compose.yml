@@ -19,9 +19,3 @@ services:
     ports:
       - "6379:6379"
       - "8001:8001"
-    command: redis-server --protected-mode no --port 6379 --save 60 1000
-    volumes:
-      - redis:/data
-
-volumes:
-  redis:
