@@ -76,6 +76,11 @@ class DocumentSnrmService(
         log.info("Total size: ${contents.size}")
 
         contents.asSequence()
+            .onEachIndexed { index, _ ->
+                if (index % BATCH_SIZE_DOCUMENTS == 0) {
+                    log.info("Index now holds ${documentVectorRepository.count()} documents")
+                }
+            }
             .chunked(BATCH_SIZE_DOCUMENTS)
             .forEach { chunk ->
 
