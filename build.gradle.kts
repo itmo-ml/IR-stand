@@ -22,6 +22,7 @@ dependencies {
     implementation("org.springframework:spring-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
     implementation("info.picocli:picocli-spring-boot-starter:4.6.3")
 

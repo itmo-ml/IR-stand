@@ -3,6 +3,9 @@ package ru.itmo.stand.service.impl
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -29,7 +32,7 @@ class DocumentSnrmService(
     private val termRepository: TermRepository,
 ) : DocumentService {
 
-    private val tokenPrefix = "word";
+    private val tokenPrefix = "word"
     private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
@@ -57,8 +60,8 @@ class DocumentSnrmService(
 
 
     override fun save(content: String, withId: Boolean): String {
-        val (externalId, passage) = extractId(content, withId);
-        val representation = preprocess(listOf(passage))[0];
+        val (externalId, passage) = extractId(content, withId)
+        val representation = preprocess(listOf(passage))[0]
 
         //save document in elastic
         val tokenRepresentation = convertToTokenRepresentation(representation)
@@ -67,27 +70,22 @@ class DocumentSnrmService(
         ).id ?: throwDocIdNotFoundEx()
 
         //save document in redis with id from elastic
-        documentVectorRepository.saveDoc(docId, representation);
+        documentVectorRepository.saveDoc(docId, representation)
 
-        return docId;
+        return docId
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.IO) {
         log.info("Total size: ${contents.size}")
 
-        contents.asSequence()
-            .onEachIndexed { index, _ ->
-                if (index % BATCH_SIZE_DOCUMENTS == 0) {
-                    log.info("Index now holds ${documentVectorRepository.count()} documents")
-                }
-            }
-            .chunked(BATCH_SIZE_DOCUMENTS)
-            .forEach { chunk ->
+        for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
+            launch {
+                log.info("Index now holds ${documentVectorRepository.count()} documents")
 
                 val idsAndPassages = chunk.map { extractId(it, withId) }
                 val ids = idsAndPassages.map { it.first }
                 val passages = idsAndPassages.map { it.second }
-                val representations = preprocess(passages);
+                val representations = preprocess(passages)
                 val tokenRepresentations = representations.map { convertToTokenRepresentation(it) }
 
                 val documents = List(representations.size) { idx ->
@@ -106,8 +104,9 @@ class DocumentSnrmService(
 
                 documentVectorRepository.saveDocs(documentVectors)
             }
+        }
 
-        return emptyList()
+        emptyList()
     }
 
     override fun getFootprint(): String? {
@@ -172,6 +171,6 @@ class DocumentSnrmService(
         }
         termRepository.saveTerms(newTerms)
 
-        return (existingTerms + newTerms).values.joinToString(" ");
+        return (existingTerms + newTerms).values.joinToString(" ")
     }
 }
