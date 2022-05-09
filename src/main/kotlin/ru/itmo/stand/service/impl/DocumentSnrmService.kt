@@ -75,7 +75,7 @@ class DocumentSnrmService(
         return docId
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.IO) {
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         log.info("Total size: ${contents.size}")
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
