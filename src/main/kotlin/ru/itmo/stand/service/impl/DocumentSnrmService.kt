@@ -6,12 +6,12 @@ import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
-import ru.itmo.stand.cache.repository.DocumentVectorRepository
 import ru.itmo.stand.cache.repository.TermRepository
 import ru.itmo.stand.cache.repository.TokenCounterRepository
 import ru.itmo.stand.config.Method
@@ -26,9 +26,8 @@ import ru.itmo.stand.util.dot
 @Service
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
-    private val stanfordCoreNlp: StanfordCoreNLP,
-    private val documentVectorRepository: DocumentVectorRepository,
     private val tokenCounterRepository: TokenCounterRepository,
+    private val stanfordCoreNlp: StanfordCoreNLP,
     private val termRepository: TermRepository,
 ) : DocumentService {
 
@@ -47,12 +46,11 @@ class DocumentSnrmService(
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
-        val queryVector = preprocess(listOf(query))[0]
-        val terms = queryVector.joinToString(" ") { termRepository.getTerm(it) ?: "${tokenPrefix}0" }
-        val docIds = documentSnrmRepository.findByRepresentation(terms).map { it.id ?: throwDocIdNotFoundEx() }
+        val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
+        val terms = convertToTokenRepresentation(queryVector,  "${tokenPrefix}0")
+        val documents = documentSnrmRepository.findByRepresentation(terms)
         // TODO: think about improving the algorithm
-        return documentVectorRepository.getDocs(docIds)
-            .mapIndexed { index, docVector -> Pair(docIds[index], docVector dot queryVector) }
+        return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.latentRepresentation dot queryVector) }
             .sortedBy { it.second }
             .take(10) // TODO: make it a parameter
             .map { it.first }
@@ -65,14 +63,15 @@ class DocumentSnrmService(
 
         //save document in elastic
         val tokenRepresentation = convertToTokenRepresentation(representation)
-        val docId = documentSnrmRepository.save(
-            DocumentSnrm(content = content, representation = tokenRepresentation, externalId = externalId)
+
+        return documentSnrmRepository.save(
+            DocumentSnrm(
+                content = content,
+                representation = tokenRepresentation,
+                externalId = externalId,
+                latentRepresentation = representation
+            )
         ).id ?: throwDocIdNotFoundEx()
-
-        //save document in redis with id from elastic
-        documentVectorRepository.saveDoc(docId, representation)
-
-        return docId
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
@@ -80,8 +79,6 @@ class DocumentSnrmService(
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {
-                log.info("Index now holds ${documentVectorRepository.count()} documents")
-
                 val idsAndPassages = chunk.map { extractId(it, withId) }
                 val ids = idsAndPassages.map { it.first }
                 val passages = idsAndPassages.map { it.second }
@@ -92,17 +89,15 @@ class DocumentSnrmService(
                     DocumentSnrm(
                         content = passages[idx],
                         externalId = ids[idx],
-                        representation = tokenRepresentations[idx]
+                        representation = tokenRepresentations[idx],
+                        latentRepresentation = representations[idx],
                     )
                 }
-                val savedDocs = documentSnrmRepository.saveAll(documents).toList()
 
-                val documentVectors = representations.mapIndexed { idx, value ->
-                    val id = savedDocs[idx].id ?: throwDocIdNotFoundEx()
-                    Pair(id, value)
-                }.associateBy({ it.first }, { it.second })
-
-                documentVectorRepository.saveDocs(documentVectors)
+                withContext(Dispatchers.IO) {
+                    documentSnrmRepository.saveAll(documents)
+                    log.info("Index now holds ${documentSnrmRepository.count()} documents")
+                }
             }
         }
 
@@ -114,7 +109,7 @@ class DocumentSnrmService(
     }
 
 
-    private fun preprocess(contents: List<String>): List<FloatArray> {
+    private fun preprocess(contents: List<String>): Array<FloatArray> {
         // create session
         val sess = model.session()
 
@@ -146,28 +141,21 @@ class DocumentSnrmService(
 
         val initArray = Array(contents.size) { FloatArray(SNRM_OUTPUT_SIZE) }
 
-        return y.copyTo(initArray).map { arr -> arr.filter { it != 0.0f }.toFloatArray() }
+        return y.copyTo(initArray)
     }
 
     /**
-     * Generates and saves in redis t1, t2, ..., tn tokens for latent terms
-     * and joins them by space.
+     * Gets from redis t1, t2, ..., tn tokens for latent terms and joins them by space.
+     * Generates new token for unknown latent term.
      *
      * @return token representation to store in elasticsearch index.
      */
-    private fun convertToTokenRepresentation(representation: FloatArray): String {
-        val existingTerms = mutableMapOf<Float, String>()
-        val newTerms = mutableMapOf<Float, String>()
-        for (latentTerm in representation) {
-            val term = termRepository.getTerm(latentTerm)
-            if (term == null) {
-                newTerms[latentTerm] = tokenPrefix + tokenCounterRepository.getNext()
-            } else {
-                existingTerms[latentTerm] = term
-            }
+    private fun convertToTokenRepresentation(representation: FloatArray, defaultTerm: String? = null): String =
+        representation.filter { it != 0.0f }.joinToString(" ") {
+            termRepository.getTerm(it) ?: defaultTerm ?: generateTerm(it)
         }
-        termRepository.saveTerms(newTerms)
 
-        return (existingTerms + newTerms).values.joinToString(" ")
+    private fun generateTerm(latentTerm: Float): String = (tokenPrefix + tokenCounterRepository.getNext()).also {
+        termRepository.saveTerm(latentTerm, it)
     }
 }
