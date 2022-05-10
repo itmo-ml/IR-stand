@@ -32,7 +32,7 @@ class DocumentSnrmService(
     private val termRepository: TermRepository,
 ) : DocumentService {
 
-    private val tokenPrefix = "word"
+    private val tokenPrefix = "t"
     private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
@@ -146,14 +146,11 @@ class DocumentSnrmService(
 
         val initArray = Array(contents.size) { FloatArray(SNRM_OUTPUT_SIZE) }
 
-        return y.copyTo(initArray).map { arr ->
-            arr.filter { it != 0.0f }
-                .toFloatArray()
-        }
+        return y.copyTo(initArray).map { arr -> arr.filter { it != 0.0f }.toFloatArray() }
     }
 
     /**
-     * Generates and saves in redis word1, word2, word3 tokens for latent terms
+     * Generates and saves in redis t1, t2, ..., tn tokens for latent terms
      * and joins them by space.
      *
      * @return token representation to store in elasticsearch index.
