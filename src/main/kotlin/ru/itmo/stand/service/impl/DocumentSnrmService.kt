@@ -12,8 +12,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
-import ru.itmo.stand.cache.repository.TermRepository
-import ru.itmo.stand.cache.repository.TokenCounterRepository
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
@@ -26,12 +24,9 @@ import ru.itmo.stand.util.dot
 @Service
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
-    private val tokenCounterRepository: TokenCounterRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
-    private val termRepository: TermRepository,
 ) : DocumentService {
 
-    private val tokenPrefix = "t"
     private val log = LoggerFactory.getLogger(javaClass)
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
@@ -44,11 +39,10 @@ class DocumentSnrmService(
         get() = Method.SNRM
 
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
-
+ 
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
-        val terms = convertToTokenRepresentation(queryVector,  "${tokenPrefix}0")
-        val documents = documentSnrmRepository.findByRepresentation(terms)
+        val documents = documentSnrmRepository.findByRepresentation(joinMeaningfulLatentTerms(queryVector))
         // TODO: think about improving the algorithm
         return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.latentRepresentation dot queryVector) }
             .sortedBy { it.second }
@@ -59,17 +53,15 @@ class DocumentSnrmService(
 
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId)
-        val representation = preprocess(listOf(passage))[0]
-
-        //save document in elastic
-        val tokenRepresentation = convertToTokenRepresentation(representation)
+        val latentRepresentation = preprocess(listOf(passage))[0]
+        val representation = joinMeaningfulLatentTerms(latentRepresentation)
 
         return documentSnrmRepository.save(
             DocumentSnrm(
                 content = content,
-                representation = tokenRepresentation,
+                representation = representation,
                 externalId = externalId,
-                latentRepresentation = representation
+                latentRepresentation = latentRepresentation
             )
         ).id ?: throwDocIdNotFoundEx()
     }
@@ -83,7 +75,7 @@ class DocumentSnrmService(
                 val ids = idsAndPassages.map { it.first }
                 val passages = idsAndPassages.map { it.second }
                 val representations = preprocess(passages)
-                val tokenRepresentations = representations.map { convertToTokenRepresentation(it) }
+                val tokenRepresentations = representations.map { joinMeaningfulLatentTerms(it) }
 
                 val documents = List(representations.size) { idx ->
                     DocumentSnrm(
@@ -145,17 +137,8 @@ class DocumentSnrmService(
     }
 
     /**
-     * Gets from redis t1, t2, ..., tn tokens for latent terms and joins them by space.
-     * Generates new token for unknown latent term.
-     *
      * @return token representation to store in elasticsearch index.
      */
-    private fun convertToTokenRepresentation(representation: FloatArray, defaultTerm: String? = null): String =
-        representation.filter { it != 0.0f }.joinToString(" ") {
-            termRepository.getTerm(it) ?: defaultTerm ?: generateTerm(it)
-        }
-
-    private fun generateTerm(latentTerm: Float): String = (tokenPrefix + tokenCounterRepository.getNext()).also {
-        termRepository.saveTerm(latentTerm, it)
-    }
+    private fun joinMeaningfulLatentTerms(representation: FloatArray): String =
+        representation.filter { it != 0.0f }.joinToString(" ")
 }
