@@ -2,8 +2,9 @@ package ru.itmo.stand.command
 
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import ru.itmo.stand.index.model.DocumentBm25
+import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -12,7 +13,7 @@ import ru.itmo.stand.service.DocumentService
     mixinStandardHelpOptions = true,
     description = ["Return the document found by ID."],
 )
-class FindCommand(private val documentBm25Service: DocumentService) : Runnable {
+class FindCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
 
     @Parameters(
         paramLabel = "id",
@@ -21,7 +22,10 @@ class FindCommand(private val documentBm25Service: DocumentService) : Runnable {
     )
     private lateinit var id: String
 
+    @Option(names = ["-m", "-method"], required = true)
+    private lateinit var method: Method
+
     override fun run() {
-        println(documentBm25Service.find(id) ?: "Document not found.")
+        println(documentServicesByMethod[method]!!.find(id) ?: "Document not found.")
     }
 }
