@@ -39,13 +39,13 @@ class DocumentSnrmService(
         get() = Method.SNRM
 
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
- 
+
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
         val documents = documentSnrmRepository.findByRepresentation(joinMeaningfulLatentTerms(queryVector))
         // TODO: think about improving the algorithm
         return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.latentRepresentation dot queryVector) }
-            .sortedBy { it.second }
+            .sortedByDescending { it.second }
             .take(10) // TODO: make it a parameter
             .map { it.first }
     }
