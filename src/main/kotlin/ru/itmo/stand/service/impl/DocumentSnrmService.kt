@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -43,12 +44,23 @@ class DocumentSnrmService(
 
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
-        val documents = documentSnrmRepository.findByRepresentation(joinMeaningfulLatentTerms(queryVector))
+        val documents = mutableListOf<DocumentSnrm>()
+        val latentTerms = joinMeaningfulLatentTerms(queryVector)
+        findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))
+
         // TODO: think about improving the algorithm
         return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.latentRepresentation dot queryVector) }
             .sortedByDescending { it.second }
             .take(10) // TODO: make it a parameter
             .map { it.first }
+    }
+
+    private fun findDocsByTermsWithPages(documents: MutableList<DocumentSnrm>, latentTerms: String, page: Pageable) {
+        val result = documentSnrmRepository.findByRepresentation(latentTerms, page)
+        documents += result.content
+        if (result.hasNext()) {
+            findDocsByTermsWithPages(documents, latentTerms, result.nextPageable())
+        }
     }
 
 
