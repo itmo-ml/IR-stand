@@ -28,6 +28,7 @@ class DocumentSnrmService(
 ) : DocumentService {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    // TODO: use absolute path and move to props
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
     private val termToId = mutableMapOf("UNKNOWN" to 0).also {
@@ -137,8 +138,18 @@ class DocumentSnrmService(
     }
 
     /**
-     * @return token representation to store in elasticsearch index.
+     * For SNRM (see section 3.4 of paper) each index of the learned
+     * representation is treated as a "latent term".
+     * Thus, if the document representation has a dimension of 20000,
+     * it is assumed that there are 20000 latent terms.
+     * Therefore, if the i-th element of the document representation is non-null,
+     * then the document will be added to the inverted index for latent term i.
+     *
+     * @return latent terms to store in inverted index.
      */
     private fun joinMeaningfulLatentTerms(representation: FloatArray): String =
-        representation.filter { it != 0.0f }.joinToString(" ")
+        representation.withIndex()
+            .filter { it.value != 0.0f }
+            .map { it.index }
+            .joinToString(" ")
 }
