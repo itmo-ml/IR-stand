@@ -48,11 +48,34 @@ class DocumentSnrmService(
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(queryVector)
         findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))
 
+        val queryLatentTermWeightMap = convertToMap(latentTerms, weights)
         // TODO: think about improving the algorithm
-        return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.weights dot queryVector) }
+        return documents.map {
+            Pair(
+                it.id ?: throwDocIdNotFoundEx(),
+                dotProduct(queryLatentTermWeightMap, convertToMap(it.representation, it.weights))
+            )
+        }
             .sortedByDescending { it.second }
             .take(10) // TODO: make it a parameter
             .map { it.first }
+    }
+
+    private fun convertToMap(latentTerms: String, weights: FloatArray): Map<Int, Float> = latentTerms.split(" ")
+        .map { it.toInt() }
+        .withIndex()
+        .associateBy({ it.value }, { weights[it.index] })
+
+    private fun dotProduct(queryLatentTermWeightMap: Map<Int, Float>, documentLatentTermWeightMap: Map<Int, Float>): Double {
+        var score = 0.0
+        for (i in queryLatentTermWeightMap.keys) {
+            val queryWeight = queryLatentTermWeightMap[i]
+            val documentWeight = documentLatentTermWeightMap[i]
+            if (queryWeight != null && documentWeight != null && queryWeight > 0.0f) {
+                score += queryWeight * documentWeight
+            }
+        }
+        return score
     }
 
     private fun findDocsByTermsWithPages(documents: MutableList<DocumentSnrm>, latentTerms: String, page: Pageable) {
