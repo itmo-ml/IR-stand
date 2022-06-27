@@ -45,11 +45,11 @@ class DocumentSnrmService(
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
         val documents = mutableListOf<DocumentSnrm>()
-        val latentTerms = joinMeaningfulLatentTerms(queryVector)
+        val (latentTerms, weights) = retrieveLatentTermsAndWeights(queryVector)
         findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))
 
         // TODO: think about improving the algorithm
-        return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.latentRepresentation dot queryVector) }
+        return documents.map { Pair(it.id ?: throwDocIdNotFoundEx(), it.weights dot queryVector) }
             .sortedByDescending { it.second }
             .take(10) // TODO: make it a parameter
             .map { it.first }
@@ -66,15 +66,15 @@ class DocumentSnrmService(
 
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId)
-        val latentRepresentation = preprocess(listOf(passage))[0]
-        val representation = joinMeaningfulLatentTerms(latentRepresentation)
+        val documentVector = preprocess(listOf(passage))[0]
+        val (latentTerms, weights) = retrieveLatentTermsAndWeights(documentVector)
 
         return documentSnrmRepository.save(
             DocumentSnrm(
-                content = content,
-                representation = representation,
                 externalId = externalId,
-                latentRepresentation = latentRepresentation
+                content = content,
+                representation = latentTerms,
+                weights = weights,
             )
         ).id ?: throwDocIdNotFoundEx()
     }
@@ -84,23 +84,24 @@ class DocumentSnrmService(
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {
-                val idsAndPassages = chunk.map { extractId(it, withId) }
-                val ids = idsAndPassages.map { it.first }
-                val passages = idsAndPassages.map { it.second }
-                val representations = preprocess(passages)
-                val tokenRepresentations = representations.map { joinMeaningfulLatentTerms(it) }
+                val idsAndDocuments = chunk.map { extractId(it, withId) }
+                val ids = idsAndDocuments.map { it.first }
+                val documents = idsAndDocuments.map { it.second }
+                val documentVectors = preprocess(documents)
+                val latentTermsAndWeightsPairs = documentVectors.map { retrieveLatentTermsAndWeights(it) }
 
-                val documents = List(representations.size) { idx ->
+                val entities = List(chunk.size) { idx ->
+                    val latentTermsAndWeightsPair = latentTermsAndWeightsPairs[idx]
                     DocumentSnrm(
-                        content = passages[idx],
                         externalId = ids[idx],
-                        representation = tokenRepresentations[idx],
-                        latentRepresentation = representations[idx],
+                        content = documents[idx],
+                        representation = latentTermsAndWeightsPair.first,
+                        weights = latentTermsAndWeightsPair.second,
                     )
                 }
 
                 withContext(Dispatchers.IO) {
-                    documentSnrmRepository.saveAll(documents)
+                    documentSnrmRepository.saveAll(entities)
                     log.info("Index now holds ${documentSnrmRepository.count()} documents")
                 }
             }
@@ -156,12 +157,20 @@ class DocumentSnrmService(
      * it is assumed that there are 20000 latent terms.
      * Therefore, if the i-th element of the document representation is non-null,
      * then the document will be added to the inverted index for latent term i.
+     * The value of this element is the weight of the latent term i
+     * in the learned high-dimensional latent vector space.
      *
      * @return latent terms to store in inverted index.
      */
-    private fun joinMeaningfulLatentTerms(representation: FloatArray): String =
-        representation.withIndex()
-            .filter { it.value != 0.0f }
-            .map { it.index }
-            .joinToString(" ")
+    private fun retrieveLatentTermsAndWeights(representation: FloatArray): Pair<String, FloatArray> {
+        val latentTerms = mutableListOf<Int>() // TODO: try to use StringBuilder
+        val weights = mutableListOf<Float>()
+        for ((index, weight) in representation.withIndex()) {
+            if (weight != 0.0f) {
+                latentTerms.add(index)
+                weights.add(weight)
+            }
+        }
+        return Pair(latentTerms.joinToString(" "), weights.toFloatArray())
+    }
 }

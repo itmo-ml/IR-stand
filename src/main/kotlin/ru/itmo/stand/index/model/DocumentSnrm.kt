@@ -18,7 +18,7 @@ data class DocumentSnrm(
     val externalId: Long?,
 
     @Field(index = false, type = FieldType.Text)
-    val latentRepresentation: FloatArray,
+    val weights: FloatArray,
 
     @Field
     val representation: String,
@@ -36,7 +36,7 @@ data class DocumentSnrm(
         if (id != other.id) return false
         if (content != other.content) return false
         if (externalId != other.externalId) return false
-        if (!latentRepresentation.contentEquals(other.latentRepresentation)) return false
+        if (!weights.contentEquals(other.weights)) return false
         if (representation != other.representation) return false
 
         return true
@@ -46,7 +46,7 @@ data class DocumentSnrm(
         var result = id?.hashCode() ?: 0
         result = 31 * result + content.hashCode()
         result = 31 * result + (externalId?.hashCode() ?: 0)
-        result = 31 * result + latentRepresentation.contentHashCode()
+        result = 31 * result + weights.contentHashCode()
         result = 31 * result + representation.hashCode()
         return result
     }
