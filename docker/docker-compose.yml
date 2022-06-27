@@ -2,6 +2,8 @@ version: '3.9'
 services:
   elasticsearch:
     image: elasticsearch:7.17.3
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     environment:
@@ -15,3 +17,6 @@ services:
     depends_on:
       - elasticsearch
     restart: on-failure
+
+volumes:
+  elasticsearch:
