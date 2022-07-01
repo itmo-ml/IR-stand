@@ -16,11 +16,11 @@ import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
+import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.util.dot
 
 @Service
 class DocumentSnrmService(
@@ -43,7 +43,7 @@ class DocumentSnrmService(
     override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
 
     override fun search(query: String): List<String> {
-        val queryVector = preprocess(listOf(query))[0] // TODO: change network layer for query
+        val queryVector = preprocess(listOf(query), PreprocessingType.QUERY)[0]
         val documents = mutableListOf<DocumentSnrm>()
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(queryVector)
         findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))
@@ -66,7 +66,10 @@ class DocumentSnrmService(
         .withIndex()
         .associateBy({ it.value }, { weights[it.index] })
 
-    private fun dotProduct(queryLatentTermWeightMap: Map<Int, Float>, documentLatentTermWeightMap: Map<Int, Float>): Double {
+    private fun dotProduct(
+        queryLatentTermWeightMap: Map<Int, Float>,
+        documentLatentTermWeightMap: Map<Int, Float>,
+    ): Double {
         var score = 0.0
         for (i in queryLatentTermWeightMap.keys) {
             val queryWeight = queryLatentTermWeightMap[i]
@@ -89,7 +92,7 @@ class DocumentSnrmService(
 
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId)
-        val documentVector = preprocess(listOf(passage))[0]
+        val documentVector = preprocess(listOf(passage), PreprocessingType.DOCUMENT)[0]
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(documentVector)
 
         return documentSnrmRepository.save(
@@ -110,7 +113,7 @@ class DocumentSnrmService(
                 val idsAndDocuments = chunk.map { extractId(it, withId) }
                 val ids = idsAndDocuments.map { it.first }
                 val documents = idsAndDocuments.map { it.second }
-                val documentVectors = preprocess(documents)
+                val documentVectors = preprocess(documents, PreprocessingType.DOCUMENT)
                 val latentTermsAndWeightsPairs = documentVectors.map { retrieveLatentTermsAndWeights(it) }
 
                 val entities = List(chunk.size) { idx ->
@@ -137,8 +140,12 @@ class DocumentSnrmService(
         TODO("Not yet implemented")
     }
 
+    enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
+        QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),
+        DOCUMENT("Placeholder_4", "Mean_5", MAX_DOC_LEN);
+    }
 
-    private fun preprocess(contents: List<String>): Array<FloatArray> {
+    private fun preprocess(contents: List<String>, type: PreprocessingType): Array<FloatArray> {
         // create session
         val sess = model.session()
 
@@ -155,8 +162,8 @@ class DocumentSnrmService(
                 .map { if (termToId.containsKey(it)) termToId[it]!! else termToId["UNKNOWN"]!! }
                 .toMutableList()
             // fill until max doc length or trim for it
-            for (i in 1..(MAX_DOC_LEN - temp.size)) temp.add(0)
-            temp.subList(0, MAX_DOC_LEN)
+            for (i in 1..(type.maxInputArrayLength - temp.size)) temp.add(0)
+            temp.subList(0, type.maxInputArrayLength)
         }
 
         // create tensor
@@ -164,8 +171,8 @@ class DocumentSnrmService(
 
         // inference
         val y = sess.runner()
-            .feed("Placeholder_4", x)
-            .fetch("Mean_5")
+            .feed(type.feedOperation, x)
+            .fetch(type.fetchOperation)
             .run()[0]
 
         val initArray = Array(contents.size) { FloatArray(SNRM_OUTPUT_SIZE) }
