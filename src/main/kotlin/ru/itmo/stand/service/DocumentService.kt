@@ -1,20 +1,41 @@
 package ru.itmo.stand.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.StandProperties
 
-interface DocumentService {
+abstract class DocumentService {
+    @Autowired
+    private lateinit var standProperties: StandProperties
 
-    val method: Method
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
 
-    fun find(id: String): String?
+    abstract val method: Method
 
-    fun search(query: String): List<String>
+    abstract fun find(id: String): String?
 
-    fun save(content: String, withId: Boolean): String
+    abstract fun search(query: String): List<String>
 
-    fun saveInBatch(contents: List<String>, withId: Boolean): List<String>
+    abstract fun save(content: String, withId: Boolean): String
 
-    fun getFootprint(): String?
+    abstract fun saveInBatch(contents: List<String>, withId: Boolean): List<String>
+
+    fun getFootprint(): String {
+        val indexName = method.indexName
+        val requestResult = RestTemplate().postForObject(
+            "http://${standProperties.elasticsearch.hostAndPort}/$indexName/_disk_usage?run_expensive_tasks=true",
+            null,
+            String::class.java
+        )
+
+        return objectMapper.readTree(requestResult)
+            .get(indexName)
+            ?.get("store_size")
+            ?.asText() ?: throw IllegalStateException("$indexName footprint not found.")
+    }
 
     fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
 
