@@ -16,6 +16,7 @@ class ElasticsearchConfig(
     override fun elasticsearchClient(): RestHighLevelClient {
         val clientConfiguration = ClientConfiguration.builder()
             .connectedTo(standProperties.elasticsearch.hostAndPort)
+            .withSocketTimeout(30_000)
             .build()
         return RestClients.create(clientConfiguration).rest()
     }
