@@ -9,7 +9,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
@@ -18,6 +17,8 @@ import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
+import ru.itmo.stand.content.model.ContentSnrm
+import ru.itmo.stand.content.repository.ContentSnrmRepository
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
@@ -25,6 +26,7 @@ import ru.itmo.stand.service.DocumentService
 @Service
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
+    private val contentSnrmRepository: ContentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService {
 
@@ -40,7 +42,7 @@ class DocumentSnrmService(
     override val method: Method
         get() = Method.SNRM
 
-    override fun find(id: String): String? = documentSnrmRepository.findByIdOrNull(id)?.content
+    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
 
     override fun search(query: String): List<String> {
         val queryVector = preprocess(listOf(query), PreprocessingType.QUERY)[0]
@@ -95,14 +97,16 @@ class DocumentSnrmService(
         val documentVector = preprocess(listOf(passage), PreprocessingType.DOCUMENT)[0]
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(documentVector)
 
-        return documentSnrmRepository.save(
+        val documentSnrm = documentSnrmRepository.save(
             DocumentSnrm(
                 externalId = externalId,
-                content = content,
                 representation = latentTerms,
                 weights = weights,
             )
-        ).id ?: throwDocIdNotFoundEx()
+        )
+        val id = documentSnrm.id ?: throwDocIdNotFoundEx()
+        contentSnrmRepository.save(ContentSnrm(indexId = id, content = content))
+        return id
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
@@ -116,18 +120,28 @@ class DocumentSnrmService(
                 val documentVectors = preprocess(documents, PreprocessingType.DOCUMENT)
                 val latentTermsAndWeightsPairs = documentVectors.map { retrieveLatentTermsAndWeights(it) }
 
-                val entities = List(chunk.size) { idx ->
+                val entitiesAndContents = List(chunk.size) { idx ->
                     val latentTermsAndWeightsPair = latentTermsAndWeightsPairs[idx]
-                    DocumentSnrm(
-                        externalId = ids[idx],
-                        content = documents[idx],
-                        representation = latentTermsAndWeightsPair.first,
-                        weights = latentTermsAndWeightsPair.second,
+                    Pair(
+                        DocumentSnrm(
+                            externalId = ids[idx],
+                            representation = latentTermsAndWeightsPair.first,
+                            weights = latentTermsAndWeightsPair.second,
+                        ),
+                        documents[idx]
                     )
                 }
 
                 withContext(Dispatchers.IO) {
-                    documentSnrmRepository.saveAll(entities)
+                    val entities = entitiesAndContents.map { it.first }
+                    val docContents = entitiesAndContents.map { it.second }
+                    val savedEntities = documentSnrmRepository.saveAll(entities)
+                    contentSnrmRepository.saveAll(savedEntities.mapIndexed { idx, it ->
+                        ContentSnrm(
+                            indexId = it.id!!,
+                            content = docContents[idx],
+                        )
+                    })
                     log.info("Index now holds ${documentSnrmRepository.count()} documents")
                 }
             }
