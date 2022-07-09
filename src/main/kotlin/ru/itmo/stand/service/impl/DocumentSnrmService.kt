@@ -28,7 +28,7 @@ class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
-) : DocumentService {
+) : DocumentService() {
 
     private val log = LoggerFactory.getLogger(javaClass)
     // TODO: use absolute path and move to props
@@ -148,10 +148,6 @@ class DocumentSnrmService(
         }
 
         emptyList()
-    }
-
-    override fun getFootprint(): String? {
-        TODO("Not yet implemented")
     }
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {

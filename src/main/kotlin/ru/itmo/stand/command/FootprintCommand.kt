@@ -1,8 +1,9 @@
 package ru.itmo.stand.command
 
 import org.springframework.stereotype.Component
+import picocli.CommandLine
 import picocli.CommandLine.Command
-import ru.itmo.stand.index.model.DocumentBm25
+import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 
 @Component
@@ -11,9 +12,12 @@ import ru.itmo.stand.service.DocumentService
     mixinStandardHelpOptions = true,
     description = ["Return footprint for index."],
 )
-class FootprintCommand(private val documentBm25Service: DocumentService) : Runnable {
+class FootprintCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
+
+    @CommandLine.Option(names = ["-m", "-method"], required = true)
+    private lateinit var method: Method
 
     override fun run() {
-        println("Footprint:\n${documentBm25Service.getFootprint()}")
+        println("Footprint: ${documentServicesByMethod[method]!!.getFootprint()}")
     }
 }
