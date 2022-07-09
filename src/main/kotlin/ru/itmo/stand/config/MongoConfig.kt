@@ -7,4 +7,6 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 class MongoConfig : AbstractMongoClientConfiguration() {
 
     override fun getDatabaseName(): String = "document"
+
+    override fun autoIndexCreation(): Boolean = true
 }

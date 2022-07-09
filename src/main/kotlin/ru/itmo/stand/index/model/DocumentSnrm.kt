@@ -11,9 +11,6 @@ data class DocumentSnrm(
     @Id
     var id: String? = null,
 
-    @Field(index = false, type = FieldType.Text)
-    val content: String,
-
     @Field(index = false, type = FieldType.Long)
     val externalId: Long?,
 
@@ -34,7 +31,6 @@ data class DocumentSnrm(
         other as DocumentSnrm
 
         if (id != other.id) return false
-        if (content != other.content) return false
         if (externalId != other.externalId) return false
         if (!weights.contentEquals(other.weights)) return false
         if (representation != other.representation) return false
@@ -44,7 +40,6 @@ data class DocumentSnrm(
 
     override fun hashCode(): Int {
         var result = id?.hashCode() ?: 0
-        result = 31 * result + content.hashCode()
         result = 31 * result + (externalId?.hashCode() ?: 0)
         result = 31 * result + weights.contentHashCode()
         result = 31 * result + representation.hashCode()
