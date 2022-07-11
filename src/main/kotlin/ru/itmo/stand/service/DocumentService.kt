@@ -1,12 +1,17 @@
 package ru.itmo.stand.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 
 abstract class DocumentService {
+
+    protected val log: Logger = LoggerFactory.getLogger(javaClass)
+
     @Autowired
     private lateinit var standProperties: StandProperties
 

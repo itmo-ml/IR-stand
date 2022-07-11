@@ -10,10 +10,10 @@ interface DocumentBm25Repository : ElasticsearchRepository<DocumentBm25, String>
         """
         {
           "match": {
-            "content": "?0"
+            "representation": "?0"
           }
         }"""
     )
-    fun findByContent(content: String): List<DocumentBm25>
+    fun findByRepresentation(representation: String): List<DocumentBm25>
 
 }

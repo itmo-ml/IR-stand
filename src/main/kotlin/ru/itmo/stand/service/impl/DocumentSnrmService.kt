@@ -7,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -30,7 +29,6 @@ class DocumentSnrmService(
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService() {
 
-    private val log = LoggerFactory.getLogger(javaClass)
     // TODO: use absolute path and move to props
     private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
     private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()

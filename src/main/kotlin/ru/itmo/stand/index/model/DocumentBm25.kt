@@ -13,14 +13,14 @@ data class DocumentBm25(
     @Id
     var id: String? = null,
 
+    @Field(index = false, type = FieldType.Long)
+    val externalId: Long?,
+
     @Field(index = false, type = FieldType.Text)
     val content: String,
 
-    @Field(index = false, type = FieldType.Text)
+    @Field(index = true, type = FieldType.Text)
     val representation: String,
-
-    @Field(index = false, type = FieldType.Long)
-    val externalId: Long?
 ) {
     companion object {
         const val DOCUMENT_BM25 = "document_bm25"
