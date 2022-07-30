@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
+import ru.itmo.stand.util.formatBytesToReadable
 
 abstract class DocumentService {
 
@@ -30,16 +31,25 @@ abstract class DocumentService {
 
     fun getFootprint(): String {
         val indexName = method.indexName
-        val requestResult = RestTemplate().postForObject(
-            "http://${standProperties.elasticsearch.hostAndPort}/$indexName/_disk_usage?run_expensive_tasks=true",
-            null,
+        val totalIndexStats = RestTemplate().getForObject(
+            "http://${standProperties.elasticsearch.hostAndPort}/$indexName/_stats",
             String::class.java
-        )
+        ).let { objectMapper.readTree(it) }
+            .get("indices")
+            ?.get(indexName)
+            ?.get("total") ?: throw IllegalStateException("Total $indexName index stats not found.")
 
-        return objectMapper.readTree(requestResult)
-            .get(indexName)
-            ?.get("store_size")
-            ?.asText() ?: throw IllegalStateException("$indexName footprint not found.")
+        val storeUsage = totalIndexStats.get("store").get("size_in_bytes").asLong().formatBytesToReadable()
+        val memoryUsage = (totalIndexStats.get("fielddata").get("memory_size_in_bytes").asLong() +
+            totalIndexStats.get("completion").get("size_in_bytes").asLong() +
+            totalIndexStats.get("segments").get("memory_in_bytes").asLong() +
+            totalIndexStats.get("query_cache").get("memory_size_in_bytes").asLong() +
+            totalIndexStats.get("request_cache").get("memory_size_in_bytes").asLong()).formatBytesToReadable()
+
+        return """
+            HDD: $storeUsage
+            RAM: $memoryUsage
+        """.trimIndent()
     }
 
     fun throwDocIdNotFoundEx(): Nothing = throw IllegalStateException("Document id must not be null.")
