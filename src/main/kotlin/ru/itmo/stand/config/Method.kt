@@ -5,5 +5,6 @@ import ru.itmo.stand.index.model.DocumentSnrm
 
 enum class Method(val indexName: String) {
     BM25(DocumentBm25.DOCUMENT_BM25),
-    SNRM(DocumentSnrm.DOCUMENT_SNRM);
+    SNRM(DocumentSnrm.DOCUMENT_SNRM),
+    CUSTOM("TODO"); // TODO: add index name
 }
