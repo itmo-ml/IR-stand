@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.dot
+import ru.itmo.stand.util.toNgrams
 
 
 @Service
@@ -53,4 +54,6 @@ class DocumentCustomService : DocumentService() {
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
         TODO("Not yet implemented")
     }
+
+    private fun preprocess(contents: List<String>): List<List<String>> = contents.map { it.toNgrams() }
 }
