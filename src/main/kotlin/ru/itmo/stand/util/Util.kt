@@ -1,10 +1,12 @@
 package ru.itmo.stand.util
 
-import java.io.StringReader
-import java.util.Locale
+import ai.djl.modality.nlp.DefaultVocabulary
+import ai.djl.modality.nlp.bert.WordpieceTokenizer
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
+import java.io.StringReader
+import java.util.Locale
 
 fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = when {
     this < 1024 -> "$this B"
@@ -26,4 +28,11 @@ fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
     val shingleFilter = ShingleFilter(standardTokenizer, minGram, maxGram)
     val attr = shingleFilter.addAttribute(CharTermAttribute::class.java).also { shingleFilter.reset() }
     return mutableListOf<String>().apply { while (shingleFilter.incrementToken()) add(attr.toString()) }
+}
+
+val vocabulary = emptyList<String>() // TODO: add vocabulary
+
+fun String.toSubWords(): List<String> {
+    val wordpieceTokenizer = WordpieceTokenizer(DefaultVocabulary(vocabulary), "[UNK]", Int.MAX_VALUE)
+    return wordpieceTokenizer.tokenize(this)
 }
