@@ -5,7 +5,8 @@ import ai.djl.repository.zoo.Criteria
 import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
-import java.nio.file.Paths
+import edu.stanford.nlp.io.IOUtils.readObjectFromFile
+import edu.stanford.nlp.io.IOUtils.writeObjectToFile
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.content.model.ContentCustom
@@ -13,23 +14,40 @@ import ru.itmo.stand.content.repository.ContentCustomRepository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.toNgrams
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
+
+private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Double>>
 
 @Service
 class DocumentCustomService(
     private val contentCustomRepository: ContentCustomRepository,
-    private val translator: Translator<String, FloatArray>,
+    private val customTranslator: Translator<String, FloatArray>,
 ) : DocumentService() {
 
-    private val invertedIndex = ConcurrentHashMap<String, ConcurrentHashMap<String, Double>>()
     private val model: ZooModel<*, *> = Criteria.builder()
         .optApplication(Application.NLP.TEXT_EMBEDDING)
         .setTypes(String::class.java, FloatArray::class.java)
         .optModelPath(Paths.get("data/pytorch/bertqa/bert.pt")) // search in local folder
-        .optTranslator(translator)
+        .optTranslator(customTranslator)
         .optProgress(ProgressBar())
         .build()
         .loadModel()
+
+    private val invertedIndexFile = Paths.get("src/main/resources/data/custom/inverted_index.bin").toFile()
+    private lateinit var invertedIndex: InvertedIndexType
+
+    @PostConstruct
+    private fun readInvertedIndex() {
+        invertedIndexFile.parentFile.mkdirs()
+        invertedIndex = runCatching { readObjectFromFile<InvertedIndexType>(invertedIndexFile) }
+            .getOrDefault(InvertedIndexType())
+    }
+
+    @PreDestroy
+    private fun writeInvertedIndex() = writeObjectToFile(invertedIndex, invertedIndexFile)
 
     override val method: Method
         get() = Method.CUSTOM
@@ -64,7 +82,7 @@ class DocumentCustomService(
 
     private fun preprocess(contents: List<String>): List<String> = contents.flatMap { it.toNgrams() }
 
-    private fun computeScore(token: String, content: String): Double = model.newPredictor(translator).use {
+    private fun computeScore(token: String, content: String): Double = model.newPredictor(customTranslator).use {
         val tokenEmbedding = it.predict(token)
         val contentEmbedding = it.predict(content)
         tokenEmbedding dot contentEmbedding
