@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl
+package ru.itmo.stand.service.impl.custom
 
 import ai.djl.Application
 import ai.djl.repository.zoo.Criteria
@@ -10,7 +10,6 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.toNgrams
-
 
 @Service
 class DocumentCustomService : DocumentService() {

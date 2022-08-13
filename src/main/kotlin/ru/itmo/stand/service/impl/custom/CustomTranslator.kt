@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl
+package ru.itmo.stand.service.impl.custom
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
