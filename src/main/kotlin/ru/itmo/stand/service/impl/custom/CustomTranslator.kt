@@ -7,9 +7,11 @@ import ai.djl.ndarray.NDList
 import ai.djl.translate.Batchifier
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
+import org.springframework.stereotype.Service
 import java.nio.file.Paths
 import java.util.Locale
 
+@Service
 class CustomTranslator : Translator<String, FloatArray> {
 
     private lateinit var vocabulary: Vocabulary
