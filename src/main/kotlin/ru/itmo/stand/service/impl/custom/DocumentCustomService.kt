@@ -9,6 +9,7 @@ import edu.stanford.nlp.io.IOUtils.readObjectFromFile
 import edu.stanford.nlp.io.IOUtils.writeObjectToFile
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.Params.BASE_PATH
 import ru.itmo.stand.content.model.ContentCustom
 import ru.itmo.stand.content.repository.ContentCustomRepository
 import ru.itmo.stand.service.DocumentService
@@ -30,13 +31,13 @@ class DocumentCustomService(
     private val model: ZooModel<*, *> = Criteria.builder()
         .optApplication(Application.NLP.TEXT_EMBEDDING)
         .setTypes(String::class.java, FloatArray::class.java)
-        .optModelPath(Paths.get("data/pytorch/bertqa/bert.pt")) // search in local folder
+        .optModelPath(Paths.get("$BASE_PATH/models/custom/bert.pt")) // search in local folder
         .optTranslator(customTranslator)
         .optProgress(ProgressBar())
         .build()
         .loadModel()
 
-    private val invertedIndexFile = Paths.get("src/main/resources/data/custom/inverted_index.bin").toFile()
+    private val invertedIndexFile = Paths.get("$BASE_PATH/data/custom/inverted_index.bin").toFile()
     private lateinit var invertedIndex: InvertedIndexType
 
     @PostConstruct

@@ -8,6 +8,7 @@ import ai.djl.translate.Batchifier
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.Params.BASE_PATH
 import java.nio.file.Paths
 import java.util.Locale
 
@@ -18,7 +19,7 @@ class CustomTranslator : Translator<String, FloatArray> {
     private lateinit var tokenizer: BertTokenizer
 
     override fun prepare(ctx: TranslatorContext?) {
-        val path = Paths.get("data/pytorch/bertqa/vocab.txt")
+        val path = Paths.get("$BASE_PATH/data/custom/vocab.txt")
         vocabulary = DefaultVocabulary.builder()
             .optMinFrequency(1)
             .addFromTextFile(path)
