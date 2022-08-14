@@ -7,6 +7,9 @@ import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
 import edu.stanford.nlp.io.IOUtils.readObjectFromFile
 import edu.stanford.nlp.io.IOUtils.writeObjectToFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BASE_PATH
@@ -77,8 +80,15 @@ class DocumentCustomService(
         return invertedIndex.toString()
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
-        TODO("Not yet implemented")
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+        log.info("Total size: ${contents.size}")
+        contents.forEachIndexed { index, content ->
+            if (index % 100 == 0) log.info("Indexed $index passages")
+            launch {
+                save(content, withId)
+            }
+        }
+        emptyList()
     }
 
     private fun preprocess(contents: List<String>): List<String> = contents.flatMap { it.toNgrams() }
