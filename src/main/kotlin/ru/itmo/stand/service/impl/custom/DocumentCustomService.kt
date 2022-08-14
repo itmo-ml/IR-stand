@@ -61,9 +61,17 @@ class DocumentCustomService(
     }
 
     override fun search(query: String): List<String> {
-        println(computeScore("How many people live in London?", "Around 9 Million people live in London"))
-        println(computeScore("How many people live in London?", "London is known for its financial district"))
-        return emptyList()
+        val tokens = preprocess(listOf(query))
+        return tokens.asSequence()
+            .mapNotNull { invertedIndex[it] }
+            .reduce { m1, m2 ->
+                m2.forEach { (k, v) -> m1.merge(k, v) { v1, v2 -> v1.apply { v1 + v2 } } }
+                m1
+            }
+            .toList()
+            .sortedByDescending { (_, score) -> score }
+            .take(10)
+            .map { (docId, _) -> docId }
     }
 
     override fun save(content: String, withId: Boolean): String {
