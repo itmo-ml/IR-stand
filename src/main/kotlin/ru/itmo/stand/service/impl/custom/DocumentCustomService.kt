@@ -1,8 +1,8 @@
 package ru.itmo.stand.service.impl.custom
 
 import ai.djl.Application
+import ai.djl.inference.Predictor
 import ai.djl.repository.zoo.Criteria
-import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
 import edu.stanford.nlp.io.IOUtils.readObjectFromFile
@@ -28,10 +28,10 @@ private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMa
 @Service
 class DocumentCustomService(
     private val contentCustomRepository: ContentCustomRepository,
-    private val customTranslator: Translator<String, FloatArray>,
+    customTranslator: Translator<String, FloatArray>,
 ) : DocumentService() {
 
-    private val model: ZooModel<*, *> = Criteria.builder()
+    private val predictor = Criteria.builder()
         .optApplication(Application.NLP.TEXT_EMBEDDING)
         .setTypes(String::class.java, FloatArray::class.java)
         .optModelPath(Paths.get("$BASE_PATH/models/custom/bert.pt")) // search in local folder
@@ -39,6 +39,7 @@ class DocumentCustomService(
         .optProgress(ProgressBar())
         .build()
         .loadModel()
+        .newPredictor(customTranslator)
 
     private val invertedIndexFile = Paths.get("$BASE_PATH/data/custom/inverted_index.bin").toFile()
     private lateinit var invertedIndex: InvertedIndexType
@@ -51,7 +52,10 @@ class DocumentCustomService(
     }
 
     @PreDestroy
-    private fun writeInvertedIndex() = writeObjectToFile(invertedIndex, invertedIndexFile)
+    private fun writeInvertedIndex() {
+        writeObjectToFile(invertedIndex, invertedIndexFile)
+        predictor.close()
+    }
 
     override val method: Method
         get() = Method.CUSTOM
@@ -80,9 +84,10 @@ class DocumentCustomService(
         val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
 
         tokens.forEach { token ->
-            invertedIndex.merge(token, ConcurrentHashMap(mapOf(documentId to computeScore(token, passage)))) { v1, v2 ->
-                v1.apply { if (!containsKey(documentId)) putAll(v2) }
-            }
+            invertedIndex.merge(
+                token,
+                ConcurrentHashMap(mapOf(documentId to predictor.computeScore(token, passage)))
+            ) { v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) } }
         }
 
         log.info("Content is indexed (mongodb id={})", documentId)
@@ -107,9 +112,9 @@ class DocumentCustomService(
         .map { it.lowercase() }
         .flatMap { it.toNgrams() }
 
-    private fun computeScore(token: String, content: String): Double = model.newPredictor(customTranslator).use {
-        val tokenEmbedding = it.predict(token)
-        val contentEmbedding = it.predict(content)
-        tokenEmbedding dot contentEmbedding
+    private fun Predictor<String, FloatArray>.computeScore(token: String, content: String): Double {
+        val tokenEmbedding = this.predict(token)
+        val contentEmbedding = this.predict(content)
+        return tokenEmbedding dot contentEmbedding
     }
 }
