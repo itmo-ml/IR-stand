@@ -72,8 +72,8 @@ class DocumentCustomService(
         val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
 
         tokens.forEach { token ->
-            invertedIndex.merge(token, ConcurrentHashMap(mapOf(documentId to computeScore(token, passage)))) { _, v ->
-                v.apply { computeIfAbsent(documentId) { computeScore(token, passage) } }
+            invertedIndex.merge(token, ConcurrentHashMap(mapOf(documentId to computeScore(token, passage)))) { v1, v2 ->
+                v1.apply { if (!containsKey(documentId)) putAll(v2) }
             }
         }
 
