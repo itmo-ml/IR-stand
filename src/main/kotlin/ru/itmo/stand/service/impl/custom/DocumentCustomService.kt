@@ -57,7 +57,7 @@ class DocumentCustomService(
         get() = Method.CUSTOM
 
     override fun find(id: String): String? {
-        TODO("Not yet implemented")
+        return invertedIndex.toString() // TODO: add impl for finding by id
     }
 
     override fun search(query: String): List<String> {
@@ -77,13 +77,17 @@ class DocumentCustomService(
             }
         }
 
-        return invertedIndex.toString()
+        log.info("Content is indexed (mongodb id={})", documentId)
+        return documentId
     }
 
+    /**
+     * CLI command example: save-in-batch -m CUSTOM --with-id data/collection.air-subset.tsv
+     */
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         log.info("Total size: ${contents.size}")
         contents.forEachIndexed { index, content ->
-            if (index % 100 == 0) log.info("Indexed $index passages")
+            if (index % 100 == 0) log.info("Indexing is started for $index passages")
             launch {
                 save(content, withId)
             }
@@ -91,7 +95,9 @@ class DocumentCustomService(
         emptyList()
     }
 
-    private fun preprocess(contents: List<String>): List<String> = contents.flatMap { it.toNgrams() }
+    private fun preprocess(contents: List<String>): List<String> = contents
+        .map { it.lowercase() }
+        .flatMap { it.toNgrams() }
 
     private fun computeScore(token: String, content: String): Double = model.newPredictor(customTranslator).use {
         val tokenEmbedding = it.predict(token)
