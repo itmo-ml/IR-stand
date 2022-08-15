@@ -7,6 +7,7 @@ import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import java.io.StringReader
 import java.util.Locale
+import kotlin.system.measureTimeMillis
 
 fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = when {
     this < 1024 -> "$this B"
@@ -36,3 +37,6 @@ fun String.toSubWords(): List<String> {
     val wordpieceTokenizer = WordpieceTokenizer(DefaultVocabulary(vocabulary), "[UNK]", Int.MAX_VALUE)
     return wordpieceTokenizer.tokenize(this)
 }
+
+// TODO: use measureTime when it's stable
+fun measureTimeSeconds(block: () -> Unit): Double = measureTimeMillis(block) / 1000.0

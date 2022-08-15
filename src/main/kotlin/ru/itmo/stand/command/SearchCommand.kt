@@ -1,12 +1,12 @@
 package ru.itmo.stand.command
 
-import kotlin.system.measureTimeMillis
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.util.measureTimeSeconds
 
 @Component
 @Command(
@@ -27,9 +27,9 @@ class SearchCommand(private val documentServicesByMethod: Map<Method, DocumentSe
     private lateinit var method: Method
 
     override fun run() {
-        val latencyInMillis = measureTimeMillis { // TODO: use measureTime when it's stable
+        val latencyInSeconds = measureTimeSeconds {
             println(documentServicesByMethod[method]!!.search(query).ifEmpty { "Documents not found." })
         }
-        println("Latency: ${latencyInMillis / 1000.0} seconds")
+        println("Latency: $latencyInSeconds seconds")
     }
 }

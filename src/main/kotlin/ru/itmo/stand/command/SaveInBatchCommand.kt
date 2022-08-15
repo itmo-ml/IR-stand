@@ -8,6 +8,7 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.util.measureTimeSeconds
 
 @Component
 @Command(
@@ -39,6 +40,9 @@ class SaveInBatchCommand(private val documentServicesByMethod: Map<Method, Docum
 
     override fun run() {
         val contents = Files.lines(contentFile.toPath()).toList()
-        println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
+        val seconds = measureTimeSeconds {
+            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
+        }
+        println("Latency: $seconds seconds")
     }
 }
