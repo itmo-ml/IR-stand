@@ -65,7 +65,7 @@ class DocumentCustomService(
     }
 
     override fun search(query: String): List<String> {
-        val tokens = preprocess(listOf(query))
+        val tokens = preprocess(query)
         return tokens.asSequence()
             .mapNotNull { invertedIndex[it] }
             .reduce { m1, m2 ->
@@ -80,7 +80,7 @@ class DocumentCustomService(
 
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId)
-        val tokens = preprocess(listOf(passage))
+        val tokens = preprocess(passage)
         val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
 
         tokens.forEach { token ->
@@ -108,9 +108,11 @@ class DocumentCustomService(
         emptyList()
     }
 
-    private fun preprocess(contents: List<String>): List<String> = contents
+    private fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
+
+    private fun preprocess(contents: List<String>): List<List<String>> = contents
         .map { it.lowercase() }
-        .flatMap { it.toNgrams() }
+        .map { it.toNgrams() }
 
     private fun Predictor<String, FloatArray>.computeScore(token: String, content: String): Double {
         val tokenEmbedding = this.predict(token)
