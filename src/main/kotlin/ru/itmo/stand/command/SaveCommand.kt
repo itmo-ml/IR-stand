@@ -6,6 +6,7 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.util.measureTimeSeconds
 
 @Component
 @Command(
@@ -36,6 +37,9 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     private var withId: Boolean = false
 
     override fun run() {
-        println("Saved document ID: ${documentServicesByMethod[method]!!.save(content, withId)}")
+        val seconds = measureTimeSeconds {
+            println("Saved document ID: ${documentServicesByMethod[method]!!.save(content, withId)}")
+        }
+        println("Latency: $seconds seconds")
     }
 }
