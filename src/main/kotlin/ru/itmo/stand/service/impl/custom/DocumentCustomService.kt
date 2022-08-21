@@ -84,7 +84,11 @@ class DocumentCustomService(
         val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
 
         val passageVector = predictor.predict(passage)
-        val vectorByTokenPairs = tokens.map { predictor.predict(it) }.zip(tokens) // TODO: add batch
+        // It is assumed that only uni-grams and bi-grams are used.
+        // Since [Batchifier.STACK] is used, the input forms must be the same.
+        // TODO: investigate the use of [PaddingStackBatchifier].
+        val vectorByTokenPairs = tokens.partition { it.split(" ").size == 1 }
+            .let { predictor.batchPredict(it.first).zip(it.first) + predictor.batchPredict(it.second).zip(it.second) }
 
         vectorByTokenPairs.forEach { (tokenVector, token) ->
             invertedIndex.merge(
