@@ -83,10 +83,13 @@ class DocumentCustomService(
         val tokens = preprocess(passage)
         val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
 
-        tokens.forEach { token ->
+        val passageVector = predictor.predict(passage)
+        val vectorByTokenPairs = tokens.map { predictor.predict(it) }.zip(tokens) // TODO: add batch
+
+        vectorByTokenPairs.forEach { (tokenVector, token) ->
             invertedIndex.merge(
                 token,
-                ConcurrentHashMap(mapOf(documentId to predictor.computeScore(token, passage)))
+                ConcurrentHashMap(mapOf(documentId to (tokenVector dot passageVector)))
             ) { v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) } }
         }
 
