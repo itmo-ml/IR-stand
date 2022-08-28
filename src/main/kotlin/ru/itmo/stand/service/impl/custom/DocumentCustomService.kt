@@ -8,17 +8,17 @@ import ai.djl.translate.Translator
 import edu.stanford.nlp.io.IOUtils.readObjectFromFile
 import edu.stanford.nlp.io.IOUtils.writeObjectToFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BASE_PATH
-import ru.itmo.stand.content.model.ContentCustom
-import ru.itmo.stand.content.repository.ContentCustomRepository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.toNgrams
 import java.nio.file.Paths
+import java.util.Collections.emptyList
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
@@ -27,7 +27,6 @@ private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMa
 
 @Service
 class DocumentCustomService(
-    private val contentCustomRepository: ContentCustomRepository,
     customTranslator: Translator<String, FloatArray>,
 ) : DocumentService() {
 
@@ -78,11 +77,13 @@ class DocumentCustomService(
             .map { (docId, _) -> docId }
     }
 
+    /**
+     * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
+     */
     override fun save(content: String, withId: Boolean): String {
-        val (externalId, passage) = extractId(content, withId)
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
+        val (documentId, passage) = extractId(content) { it }
         val tokens = preprocess(passage)
-        val documentId = contentCustomRepository.save(ContentCustom(content = passage)).id!!
-
         val passageVector = predictor.predict(passage)
         // It is assumed that only uni-grams and bi-grams are used.
         // Since [Batchifier.STACK] is used, the input forms must be the same.
@@ -97,7 +98,7 @@ class DocumentCustomService(
             ) { v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) } }
         }
 
-        log.info("Content is indexed (mongodb id={})", documentId)
+        log.info("Content is indexed (id={})", documentId)
         return documentId
     }
 
@@ -106,12 +107,13 @@ class DocumentCustomService(
      */
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         log.info("Total size: ${contents.size}")
-        contents.forEachIndexed { index, content ->
-            if (index % 100 == 0) log.info("Indexing is started for $index passages")
-            launch {
-                save(content, withId)
+        val channel = Channel<String>(BATCH_SIZE_DOCUMENTS)
+        contents.asSequence()
+            .onEachIndexed { index, _ -> if (index % 10 == 0) log.info("Indexing is started for $index passages") }
+            .forEach { content ->
+                channel.send(content)
+                launch { save(channel.receive(), withId) }
             }
-        }
         emptyList()
     }
 
@@ -125,5 +127,9 @@ class DocumentCustomService(
         val tokenEmbedding = this.predict(token)
         val contentEmbedding = this.predict(content)
         return tokenEmbedding dot contentEmbedding
+    }
+
+    companion object {
+        const val BATCH_SIZE_DOCUMENTS = 10
     }
 }
