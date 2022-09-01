@@ -6,6 +6,11 @@ import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import java.io.StringReader
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.Locale
 import kotlin.system.measureTimeMillis
 
@@ -40,3 +45,17 @@ fun String.toSubWords(): List<String> {
 
 // TODO: use measureTime when it's stable
 fun measureTimeSeconds(block: () -> Unit): Double = measureTimeMillis(block) / 1000.0
+
+fun walkDirectory(dirPath: Path): List<Path> {
+    val paths = mutableListOf<Path>()
+    Files.walkFileTree(
+        dirPath,
+        object : SimpleFileVisitor<Path>() {
+            override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
+                paths.add(path)
+                return FileVisitResult.CONTINUE
+            }
+        }
+    )
+    return paths
+}

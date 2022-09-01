@@ -82,7 +82,7 @@ class DocumentCustomService(
      */
     override fun save(content: String, withId: Boolean): String {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        val (documentId, passage) = extractId(content) { it }
+        val (documentId, passage) = extractId(content)
         val tokens = preprocess(passage)
         val passageVector = predictor.predict(passage)
         // It is assumed that only uni-grams and bi-grams are used.
