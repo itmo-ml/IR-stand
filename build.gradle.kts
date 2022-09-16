@@ -29,8 +29,8 @@ dependencies {
     implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
     implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
-    implementation("ai.djl:api:0.18.0")
-    implementation("ai.djl.pytorch:pytorch-engine:0.18.0")
+    implementation("ai.djl:api:0.19.0")
+    implementation("ai.djl.pytorch:pytorch-engine:0.19.0")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
