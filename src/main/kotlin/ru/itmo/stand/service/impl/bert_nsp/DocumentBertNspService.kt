@@ -64,7 +64,7 @@ class DocumentBertNspService(
     }
 
     override fun search(query: String): List<String> {
-/*        val tokens = preprocess(query)
+        val tokens = preprocess(query)
         return tokens.asSequence()
                 .mapNotNull { invertedIndex[it] }
                 .reduce { m1, m2 ->
@@ -74,8 +74,8 @@ class DocumentBertNspService(
                 .toList()
                 .sortedByDescending { (_, score) -> score }
                 .take(10)
-                .map { (docId, _) -> docId }*/
-        //TODO
+                .map { (docId, _) -> docId }
+
         return emptyList();
     }
 
@@ -83,16 +83,13 @@ class DocumentBertNspService(
      * CLI command example: save -m BERT_NSP "Around 9 Million people live in London"
      */
     override fun save(content: String, withId: Boolean): String {
-        //if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        //val (documentId, passage) = extractId(content)
-        val passage = content;
-        val documentId = "10";
-        val tokens = preprocess(passage);
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
+        val (documentId, passage) = extractId(content)
 
+        val tokens = preprocess(passage);
 
         val scoreByTokens = tokens
                 .map { Pair(it, predictor.predict(concatNsp(it, passage))[0]) }
-
 
         scoreByTokens.forEach{ (token, score) ->
             invertedIndex.merge(token,
