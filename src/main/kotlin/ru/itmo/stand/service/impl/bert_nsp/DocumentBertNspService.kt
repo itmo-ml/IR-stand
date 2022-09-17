@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params
@@ -19,29 +20,49 @@ import ru.itmo.stand.util.toNgrams
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
+import kotlin.concurrent.withLock
 
 
 private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Float>>
 
 @Service
 class DocumentBertNspService(
-        bertNspTranslator: BertNspTranslator,
+        val bertNspTranslator: BertNspTranslator,
 ): DocumentService() {
 
     private val invertedIndexFile = Paths.get("${Params.BASE_PATH}/data/bert_nsp/inverted_index.bin").toFile()
     private lateinit var invertedIndex: InvertedIndexType
 
-    private val predictor = Criteria.builder()
-            .optApplication(Application.NLP.ANY)
-            .setTypes(String::class.java, FloatArray::class.java)
-            .optModelPath(Paths.get("${Params.BASE_PATH}/models/bert_nsp/bert.pt")) // search in local folder
-            .optTranslator(bertNspTranslator)
-            .optProgress(ProgressBar())
-            .build()
-            .loadModel()
-            .newPredictor(bertNspTranslator)
+    private lateinit var predictor: Predictor<String, FloatArray>
+    private val lock = ReentrantLock()
+
+    //model only need during indexing, no need to load it for search
+    private fun ensureModelLoaded() {
+
+        if(!this::predictor.isInitialized) {
+            lock.withLock {
+                if(!this::predictor.isInitialized) {
+                    try {
+                        this.predictor = Criteria.builder()
+                                .optApplication(Application.NLP.ANY)
+                                .setTypes(String::class.java, FloatArray::class.java)
+                                .optModelPath(Paths.get("${Params.BASE_PATH}/models/bert_nsp/bert.pt")) // search in local folder
+                                .optTranslator(bertNspTranslator)
+                                .optProgress(ProgressBar())
+                                .build()
+                                .loadModel()
+                                .newPredictor(bertNspTranslator)
+                    } catch (ex: Exception) {
+                        log.error("Failed to load bert nsp model", ex)
+                        throw ex;
+                    }
+                }
+            }
+        }
+    }
 
     @PostConstruct
     private fun readInvertedIndex() {
@@ -75,14 +96,14 @@ class DocumentBertNspService(
                 .sortedByDescending { (_, score) -> score }
                 .take(10)
                 .map { (docId, _) -> docId }
-
-        return emptyList();
     }
 
     /**
      * CLI command example: save -m BERT_NSP "Around 9 Million people live in London"
      */
     override fun save(content: String, withId: Boolean): String {
+        ensureModelLoaded();
+
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (documentId, passage) = extractId(content)
 

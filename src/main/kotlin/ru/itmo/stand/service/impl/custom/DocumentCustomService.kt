@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.Params
 import ru.itmo.stand.config.Params.BASE_PATH
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.dot
@@ -20,29 +21,48 @@ import ru.itmo.stand.util.toNgrams
 import java.nio.file.Paths
 import java.util.Collections.emptyList
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
+import kotlin.concurrent.withLock
 
 private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Double>>
 
 @Service
 class DocumentCustomService(
-    customTranslator: Translator<String, FloatArray>,
+    val customTranslator: Translator<String, FloatArray>,
 ) : DocumentService() {
 
-    private val predictor = Criteria.builder()
-        .optApplication(Application.NLP.TEXT_EMBEDDING)
-        .setTypes(String::class.java, FloatArray::class.java)
-        .optModelPath(Paths.get("$BASE_PATH/models/custom/bert.pt")) // search in local folder
-        .optTranslator(customTranslator)
-        .optProgress(ProgressBar())
-        .build()
-        .loadModel()
-        .newPredictor(customTranslator)
+    private lateinit var predictor:Predictor<String, FloatArray>
 
     private val invertedIndexFile = Paths.get("$BASE_PATH/data/custom/inverted_index.bin").toFile()
     private lateinit var invertedIndex: InvertedIndexType
+    private val lock = ReentrantLock()
 
+    //model only need during indexing, no need to load it for search
+    private fun ensureModelLoaded() {
+
+        if(!this::predictor.isInitialized) {
+            lock.withLock {
+                if(!this::predictor.isInitialized) {
+                    try {
+                        this.predictor = Criteria.builder()
+                                .optApplication(Application.NLP.TEXT_EMBEDDING)
+                                .setTypes(String::class.java, FloatArray::class.java)
+                                .optModelPath(Paths.get("$BASE_PATH/models/custom/bert.pt")) // search in local folder
+                                .optTranslator(customTranslator)
+                                .optProgress(ProgressBar())
+                                .build()
+                                .loadModel()
+                                .newPredictor(customTranslator)
+                    } catch (ex: Exception) {
+                        log.error("Failed to load custom bert model", ex)
+                        throw ex;
+                    }
+                }
+            }
+        }
+    }
     @PostConstruct
     private fun readInvertedIndex() {
         invertedIndexFile.parentFile.mkdirs()
@@ -81,6 +101,7 @@ class DocumentCustomService(
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
      */
     override fun save(content: String, withId: Boolean): String {
+        ensureModelLoaded()
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (documentId, passage) = extractId(content)
         val tokens = preprocess(passage)
