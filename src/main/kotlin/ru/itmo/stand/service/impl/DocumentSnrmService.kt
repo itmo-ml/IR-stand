@@ -38,6 +38,7 @@ class DocumentSnrmService(
             model = SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve")
         } catch (ex: Exception) {
             log.error("Could not load snrm model", ex)
+            throw  ex;
         }
     }
 
