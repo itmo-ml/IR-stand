@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl.bert_nsp
+package ru.itmo.stand.service.impl
 
 import ai.djl.Application
 import ai.djl.inference.Predictor
@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params
@@ -25,38 +24,37 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import kotlin.concurrent.withLock
 
+typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Float>>
 
-private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Float>>
+abstract class BaseBertService(
+        val translator: Translator<String, FloatArray>,
+) : DocumentService() {
 
-@Service
-class DocumentBertNspService(
-        val bertNspTranslator: BertNspTranslator,
-): DocumentService() {
+    protected lateinit var predictor: Predictor<String, FloatArray>
+    protected abstract var modelName: String
 
-    private val invertedIndexFile = Paths.get("${Params.BASE_PATH}/data/bert_nsp/inverted_index.bin").toFile()
-    private lateinit var invertedIndex: InvertedIndexType
-
-    private lateinit var predictor: Predictor<String, FloatArray>
+    private val invertedIndexFile = Paths.get("${Params.BASE_PATH}/data/$modelName/inverted_index.bin").toFile()
+    protected lateinit var invertedIndex: InvertedIndexType
     private val lock = ReentrantLock()
 
     //model only need during indexing, no need to load it for search
-    private fun ensureModelLoaded() {
+    protected fun ensureModelLoaded() {
 
-        if(!this::predictor.isInitialized) {
+        if (!this::predictor.isInitialized) {
             lock.withLock {
-                if(!this::predictor.isInitialized) {
+                if (!this::predictor.isInitialized) {
                     try {
                         this.predictor = Criteria.builder()
-                                .optApplication(Application.NLP.ANY)
+                                .optApplication(Application.NLP.TEXT_EMBEDDING)
                                 .setTypes(String::class.java, FloatArray::class.java)
-                                .optModelPath(Paths.get("${Params.BASE_PATH}/models/bert_nsp/bert.pt")) // search in local folder
-                                .optTranslator(bertNspTranslator)
+                                .optModelPath(Paths.get("${Params.BASE_PATH}/models/$modelName/bert.pt")) // search in local folder
+                                .optTranslator(translator)
                                 .optProgress(ProgressBar())
                                 .build()
                                 .loadModel()
-                                .newPredictor(bertNspTranslator)
+                                .newPredictor(translator)
                     } catch (ex: Exception) {
-                        log.error("Failed to load bert nsp model", ex)
+                        log.error("Failed to load custom bert model", ex)
                         throw ex;
                     }
                 }
@@ -77,8 +75,7 @@ class DocumentBertNspService(
         predictor.close()
     }
 
-    override val method: Method
-        get() = Method.BERT_NSP
+    abstract override val method: Method
 
     override fun find(id: String): String? {
         return invertedIndex.toString() // TODO: add impl for finding by id
@@ -99,36 +96,13 @@ class DocumentBertNspService(
     }
 
     /**
-     * CLI command example: save -m BERT_NSP "Around 9 Million people live in London"
+     * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
      */
-    override fun save(content: String, withId: Boolean): String {
-        ensureModelLoaded();
 
-        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        val (documentId, passage) = extractId(content)
-
-        val tokens = preprocess(passage);
-
-        val scoreByTokens = tokens
-                .map { Pair(it, predictor.predict(concatNsp(it, passage))[0]) }
-
-        scoreByTokens.forEach{ (token, score) ->
-            invertedIndex.merge(token,
-                ConcurrentHashMap(mapOf(documentId to score))) {
-                v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) }
-            }
-        }
-
-        log.info("Content is indexed (id={})", documentId)
-        return documentId
-    }
-
-    private fun concatNsp(token: String, passage: String): String {
-        return "$token $TokenSeparator $passage"
-    }
+    abstract override fun save(content: String, withId: Boolean): String
 
     /**
-     * CLI command example: save-in-batch -m BERT_NSP --with-id data/collection.air-subset.tsv
+     * CLI command example: save-in-batch -m CUSTOM --with-id data/collection.air-subset.tsv
      */
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         log.info("Total size: ${contents.size}")
@@ -142,15 +116,14 @@ class DocumentBertNspService(
         Collections.emptyList()
     }
 
-    private fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
+    protected fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
 
-    private fun preprocess(contents: List<String>): List<List<String>> = contents
+    protected fun preprocess(contents: List<String>): List<List<String>> = contents
             .map { it.lowercase() }
             .map { it.toNgrams() }
+
 
     companion object {
         const val BATCH_SIZE_DOCUMENTS = 10
     }
-
-
 }

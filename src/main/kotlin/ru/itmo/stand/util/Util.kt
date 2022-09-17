@@ -23,8 +23,8 @@ fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = w
     }
 }
 
-infix fun FloatArray.dot(other: FloatArray): Double {
-    var out = 0.0
+infix fun FloatArray.dot(other: FloatArray): Float {
+    var out = 0.0F
     for (i in indices) out += this[i] * other[i]
     return out
 }

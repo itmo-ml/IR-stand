@@ -30,17 +30,10 @@ class DocumentSnrmService(
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService() {
 
-    // TODO: use absolute path and move to props
-    private lateinit var model: SavedModelBundle
-
-    init {
-        try {
-            model = SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve")
-        } catch (ex: Exception) {
-            log.error("Could not load snrm model", ex)
-            throw  ex;
-        }
-    }
+    private val model = runCatching { SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve") }
+            .onSuccess { log.info("SNRM model is loaded") }
+            .onFailure { log.error("Could not load SNRM model", it) }
+            .getOrThrow()
 
     private val stopwords = Files.lines(Paths.get("$BASE_PATH/data/stopwords.txt")).toList().toSet()
     private val termToId = mutableMapOf("UNKNOWN" to 0).also {

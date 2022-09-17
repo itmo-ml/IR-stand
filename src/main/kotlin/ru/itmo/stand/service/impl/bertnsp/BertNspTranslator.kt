@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl.bert_nsp
+package ru.itmo.stand.service.impl.bertnsp
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
@@ -9,10 +9,9 @@ import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Params.BASE_PATH
-import ru.itmo.stand.util.softmax
+import ru.itmo.stand.util.*
 import java.nio.file.Paths
 import java.util.Locale
-import kotlin.math.exp
 
 @Service
 class BertNspTranslator : Translator<String, FloatArray> {
@@ -25,7 +24,7 @@ class BertNspTranslator : Translator<String, FloatArray> {
         vocabulary = DefaultVocabulary.builder()
             .optMinFrequency(1)
             .addFromTextFile(path)
-            .optUnknownToken("[UNK]")
+            .optUnknownToken(UNKNOWN_TOKEN)
             .build()
         tokenizer = BertTokenizer()
     }
@@ -33,10 +32,10 @@ class BertNspTranslator : Translator<String, FloatArray> {
     override fun processInput(ctx: TranslatorContext, input: String): NDList {
         val tokens = tokenizer.tokenize(input.lowercase(Locale.getDefault()))
 
-        var separatorIndex = tokens.indexOf(TokenSeparator);
-        tokens[separatorIndex] = SepToken;
-        tokens.add(0, ClsToken)
-        tokens.add(SepToken)
+        var separatorIndex = tokens.indexOf(TOKEN_SEPARATOR);
+        tokens[separatorIndex] = SEP_TOKEN;
+        tokens.add(0, CLS_TOKEN)
+        tokens.add(SEP_TOKEN)
 
         val indices = tokens?.stream()?.mapToLong(vocabulary::getIndex)?.toArray()
         val attentionMask = LongArray(tokens.size) { 1 }

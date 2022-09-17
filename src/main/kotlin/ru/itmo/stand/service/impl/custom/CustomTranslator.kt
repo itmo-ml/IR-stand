@@ -9,6 +9,9 @@ import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Params.BASE_PATH
+import ru.itmo.stand.util.CLS_TOKEN
+import ru.itmo.stand.util.SEP_TOKEN
+import ru.itmo.stand.util.UNKNOWN_TOKEN
 import java.nio.file.Paths
 import java.util.Locale
 
@@ -23,15 +26,15 @@ class CustomTranslator : Translator<String, FloatArray> {
         vocabulary = DefaultVocabulary.builder()
             .optMinFrequency(1)
             .addFromTextFile(path)
-            .optUnknownToken("[UNK]")
+            .optUnknownToken(UNKNOWN_TOKEN)
             .build()
         tokenizer = BertTokenizer()
     }
 
     override fun processInput(ctx: TranslatorContext, input: String): NDList {
         val tokens = tokenizer.tokenize(input.lowercase(Locale.getDefault()))
-        tokens.add(0, "[CLS]")
-        tokens.add("[SEP]")
+        tokens.add(0, CLS_TOKEN)
+        tokens.add(SEP_TOKEN)
         val indices = tokens?.stream()?.mapToLong(vocabulary::getIndex)?.toArray()
         val attentionMask = LongArray(tokens.size) { 1 }
 
