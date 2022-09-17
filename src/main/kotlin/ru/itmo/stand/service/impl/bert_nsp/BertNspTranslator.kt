@@ -9,6 +9,7 @@ import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Params.BASE_PATH
+import ru.itmo.stand.util.softmax
 import java.nio.file.Paths
 import java.util.Locale
 import kotlin.math.exp
@@ -40,15 +41,9 @@ class BertNspTranslator : Translator<String, FloatArray> {
         val indices = tokens?.stream()?.mapToLong(vocabulary::getIndex)?.toArray()
         val attentionMask = LongArray(tokens.size) { 1 }
 
-        //first sentence tokens is marked by 0, second sentence by 1
-        val tokenTypes = LongArray(tokens.size) { index ->
-            if (index <= separatorIndex) 0L else 1L
-        };
-
         val manager = ctx.ndManager
         val indicesArray = manager.create(indices)
         val attentionMaskArray = manager.create(attentionMask)
-        //val tokenTypesArray = manager.create(tokenTypes);
 
         // The order matters
         return NDList(indicesArray, attentionMaskArray)
@@ -56,12 +51,6 @@ class BertNspTranslator : Translator<String, FloatArray> {
 
     override fun processOutput(ctx: TranslatorContext?, list: NDList): FloatArray {
         return softmax(list[0].toFloatArray());
-    }
-
-
-    private fun softmax(nums: FloatArray): FloatArray {
-        val sum = nums.map { exp(it) }.sum()
-        return nums.map { exp(it)/sum }.toFloatArray()
     }
 
     override fun getBatchifier(): Batchifier? {
