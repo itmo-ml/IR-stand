@@ -12,6 +12,7 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Locale
+import kotlin.math.exp
 import kotlin.system.measureTimeMillis
 
 fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = when {
@@ -22,8 +23,8 @@ fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = w
     }
 }
 
-infix fun FloatArray.dot(other: FloatArray): Double {
-    var out = 0.0
+infix fun FloatArray.dot(other: FloatArray): Float {
+    var out = 0.0F
     for (i in indices) out += this[i] * other[i]
     return out
 }
@@ -58,4 +59,9 @@ fun walkDirectory(dirPath: Path): List<Path> {
         }
     )
     return paths
+}
+
+fun softmax(numbers: FloatArray): FloatArray {
+    val sum = numbers.map { exp(it) }.sum()
+    return numbers.map { exp(it) /sum }.toFloatArray()
 }

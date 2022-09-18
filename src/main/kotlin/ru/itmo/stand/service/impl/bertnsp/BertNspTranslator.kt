@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl.custom
+package ru.itmo.stand.service.impl.bertnsp
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
@@ -9,14 +9,12 @@ import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Params.BASE_PATH
-import ru.itmo.stand.util.CLS_TOKEN
-import ru.itmo.stand.util.SEP_TOKEN
-import ru.itmo.stand.util.UNKNOWN_TOKEN
+import ru.itmo.stand.util.*
 import java.nio.file.Paths
 import java.util.Locale
 
 @Service
-class CustomTranslator : Translator<String, FloatArray> {
+class BertNspTranslator : Translator<String, FloatArray> {
 
     private lateinit var vocabulary: Vocabulary
     private lateinit var tokenizer: BertTokenizer
@@ -33,8 +31,12 @@ class CustomTranslator : Translator<String, FloatArray> {
 
     override fun processInput(ctx: TranslatorContext, input: String): NDList {
         val tokens = tokenizer.tokenize(input.lowercase(Locale.getDefault()))
+
+        var separatorIndex = tokens.indexOf(TOKEN_SEPARATOR);
+        tokens[separatorIndex] = SEP_TOKEN;
         tokens.add(0, CLS_TOKEN)
         tokens.add(SEP_TOKEN)
+
         val indices = tokens?.stream()?.mapToLong(vocabulary::getIndex)?.toArray()
         val attentionMask = LongArray(tokens.size) { 1 }
 
@@ -47,7 +49,7 @@ class CustomTranslator : Translator<String, FloatArray> {
     }
 
     override fun processOutput(ctx: TranslatorContext?, list: NDList): FloatArray {
-        return list[0].mean(intArrayOf(0)).toFloatArray()
+        return softmax(list[0].toFloatArray());
     }
 
     override fun getBatchifier(): Batchifier? {

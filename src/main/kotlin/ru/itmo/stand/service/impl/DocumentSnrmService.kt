@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.Params.BASE_PATH
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
@@ -29,9 +30,12 @@ class DocumentSnrmService(
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService() {
 
-    // TODO: use absolute path and move to props
-    private val model = SavedModelBundle.load("src/main/resources/models/snrm/frozen", "serve")
-    private val stopwords = Files.lines(Paths.get("src/main/resources/data/stopwords.txt")).toList().toSet()
+    private val model = runCatching { SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve") }
+            .onSuccess { log.info("SNRM model is loaded") }
+            .onFailure { log.error("Could not load SNRM model", it) }
+            .getOrThrow()
+
+    private val stopwords = Files.lines(Paths.get("$BASE_PATH/data/stopwords.txt")).toList().toSet()
     private val termToId = mutableMapOf("UNKNOWN" to 0).also {
         var id = 1
         Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
