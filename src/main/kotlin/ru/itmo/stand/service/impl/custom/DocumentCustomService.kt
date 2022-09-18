@@ -1,49 +1,24 @@
 package ru.itmo.stand.service.impl.custom
 
-import ai.djl.Application
-import ai.djl.inference.Predictor
-import ai.djl.repository.zoo.Criteria
-import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
-import edu.stanford.nlp.io.IOUtils.readObjectFromFile
-import edu.stanford.nlp.io.IOUtils.writeObjectToFile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.Params
-import ru.itmo.stand.config.Params.BASE_PATH
-import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.dot
-import ru.itmo.stand.util.toNgrams
-import java.nio.file.Paths
-import java.util.Collections.emptyList
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantLock
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
-import kotlin.concurrent.withLock
-
-private typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Double>>
 
 @Service
 class DocumentCustomService(
-    val customTranslator: Translator<String, FloatArray>,
+    customTranslator: Translator<String, FloatArray>,
 ) : BaseBertService(customTranslator) {
 
     override val method: Method
         get() = Method.CUSTOM
 
-    override var modelName = "custom";
-
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
      */
     override fun save(content: String, withId: Boolean): String {
-        ensureModelLoaded()
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (documentId, passage) = extractId(content)
         val tokens = preprocess(passage)
