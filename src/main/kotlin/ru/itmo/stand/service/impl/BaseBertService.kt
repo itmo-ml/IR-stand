@@ -52,7 +52,6 @@ abstract class BaseBertService(
     @PreDestroy
     private fun writeInvertedIndex() {
         IOUtils.writeObjectToFile(invertedIndex, invertedIndexFile)
-        predictor.close()
     }
 
     abstract override val method: Method
