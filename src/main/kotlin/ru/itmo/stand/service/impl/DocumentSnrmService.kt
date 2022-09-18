@@ -30,16 +30,21 @@ class DocumentSnrmService(
     private val stanfordCoreNlp: StanfordCoreNLP,
 ) : DocumentService() {
 
-    private val model = runCatching { SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve") }
+    private val model by lazy {
+        runCatching { SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve") }
             .onSuccess { log.info("SNRM model is loaded") }
             .onFailure { log.error("Could not load SNRM model", it) }
             .getOrThrow()
-
-    private val stopwords = Files.lines(Paths.get("$BASE_PATH/data/stopwords.txt")).toList().toSet()
-    private val termToId = mutableMapOf("UNKNOWN" to 0).also {
-        var id = 1
-        Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
-    }.toMap()
+    }
+    private val stopwords by lazy {
+        Files.lines(Paths.get("$BASE_PATH/data/stopwords.txt")).toList().toSet()
+    }
+    private val termToId by lazy {
+        mutableMapOf("UNKNOWN" to 0).also {
+            var id = 1
+            Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
+        }.toMap()
+    }
 
     override val method: Method
         get() = Method.SNRM
