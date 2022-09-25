@@ -31,6 +31,7 @@ dependencies {
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("ai.djl:api:0.19.0")
     implementation("ai.djl.pytorch:pytorch-engine:0.19.0")
+    implementation("com.h2database:h2-mvstore:2.1.214")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
