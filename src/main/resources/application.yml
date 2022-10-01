@@ -1,0 +1,14 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+    lazy-initialization: true
+  data.mongodb:
+    database: document
+    auto-index-creation: true
+
+logging.level:
+  root: error
+  ru.itmo: info
+
+stand.elasticsearch.host-and-port: localhost:9200
