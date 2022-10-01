@@ -5,35 +5,44 @@ import ai.djl.inference.Predictor
 import ai.djl.repository.zoo.Criteria
 import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
-import edu.stanford.nlp.io.IOUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.h2.mvstore.MVMap
+import org.h2.mvstore.MVStore
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.Params.BASE_PATH
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.toNgrams
+import java.io.File
 import java.nio.file.Paths
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
-typealias InvertedIndexType = ConcurrentHashMap<String, ConcurrentHashMap<String, Float>>
+typealias KeyType = String
+typealias ValueType = ConcurrentHashMap<String, Float>
+typealias InvertedIndexType = MVMap<KeyType, ValueType>
 
 abstract class BaseBertService(
     private val translator: Translator<String, FloatArray>,
+    private val standProperties: StandProperties,
 ) : DocumentService() {
 
-    private val invertedIndexFile by lazy {
-        Paths.get("$BASE_PATH/data/${method.name.lowercase()}/inverted_index.bin").toFile()
+    private val invertedIndexStore by lazy {
+        val basePath = standProperties.app.basePath
+        val invertedIndexPath = "$basePath/data/${method.name.lowercase()}/inverted_index.dat"
+        File(invertedIndexPath).parentFile.mkdirs()
+        MVStore.open(invertedIndexPath)
     }
     protected val predictor: Predictor<String, FloatArray> by lazy {
+        val basePath = standProperties.app.basePath
         Criteria.builder()
             .optApplication(Application.NLP.TEXT_EMBEDDING)
             .setTypes(String::class.java, FloatArray::class.java)
-            .optModelPath(Paths.get("$BASE_PATH/models/${method.name.lowercase()}/bert.pt")) // search in local folder
+            .optModelPath(Paths.get("$basePath/models/${method.name.lowercase()}/bert.pt")) // search in local folder
             .optTranslator(translator)
             .optProgress(ProgressBar())
             .build()
@@ -44,14 +53,14 @@ abstract class BaseBertService(
 
     @PostConstruct
     private fun readInvertedIndex() {
-        invertedIndexFile.parentFile.mkdirs()
-        invertedIndex = runCatching { IOUtils.readObjectFromFile<InvertedIndexType>(invertedIndexFile) }
-            .getOrDefault(InvertedIndexType())
+        invertedIndex = runCatching { invertedIndexStore.openMap<KeyType, ValueType>("inverted_index") }
+            .onFailure { log.error("Could not load inverted index", it) }
+            .getOrThrow()
     }
 
     @PreDestroy
     private fun writeInvertedIndex() {
-        IOUtils.writeObjectToFile(invertedIndex, invertedIndexFile)
+        invertedIndexStore.close()
     }
 
     abstract override val method: Method
