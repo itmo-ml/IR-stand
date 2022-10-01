@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -23,6 +24,7 @@ import ru.itmo.stand.service.DocumentService
 import java.nio.file.Files
 import java.nio.file.Paths
 
+@Profile("!standalone")
 @Service
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
