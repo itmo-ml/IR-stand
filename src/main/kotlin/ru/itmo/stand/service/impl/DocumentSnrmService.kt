@@ -1,8 +1,6 @@
 package ru.itmo.stand.service.impl
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -12,32 +10,37 @@ import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.Params.BASE_PATH
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.content.model.ContentSnrm
 import ru.itmo.stand.content.repository.ContentSnrmRepository
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
+import java.nio.file.Files
+import java.nio.file.Paths
 
 @Service
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
+    private val standProperties: StandProperties,
 ) : DocumentService() {
 
     private val model by lazy {
-        runCatching { SavedModelBundle.load("$BASE_PATH/models/snrm/frozen", "serve") }
+        val basePath = standProperties.app.basePath
+        runCatching { SavedModelBundle.load("$basePath/models/snrm/frozen", "serve") }
             .onSuccess { log.info("SNRM model is loaded") }
             .onFailure { log.error("Could not load SNRM model", it) }
             .getOrThrow()
     }
     private val stopwords by lazy {
-        Files.lines(Paths.get("$BASE_PATH/data/stopwords.txt")).toList().toSet()
+        val basePath = standProperties.app.basePath
+        Files.lines(Paths.get("$basePath/data/stopwords.txt")).toList().toSet()
     }
     private val termToId by lazy {
         mutableMapOf("UNKNOWN" to 0).also {
