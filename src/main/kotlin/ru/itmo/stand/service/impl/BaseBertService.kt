@@ -97,7 +97,7 @@ abstract class BaseBertService(
 
     protected fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
 
-    protected fun preprocess(contents: List<String>): List<List<String>> = contents
+    protected open fun preprocess(contents: List<String>): List<List<String>> = contents
         .map { it.lowercase() }
         .map { it.toNgrams() }
 

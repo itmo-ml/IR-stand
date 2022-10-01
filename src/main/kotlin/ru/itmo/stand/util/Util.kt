@@ -37,6 +37,13 @@ fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
     return mutableListOf<String>().apply { while (shingleFilter.incrementToken()) add(attr.toString()) }
 }
 
+fun String.toTokens(): List<String> {
+    val reader = StringReader(this)
+    val standardTokenizer = StandardTokenizer().apply { setReader(reader) }
+    val attr = standardTokenizer.addAttribute(CharTermAttribute::class.java).also { standardTokenizer.reset() }
+    return mutableListOf<String>().apply { while (standardTokenizer.incrementToken()) add(attr.toString()) }
+}
+
 val vocabulary = emptyList<String>() // TODO: add vocabulary
 
 fun String.toSubWords(): List<String> {
