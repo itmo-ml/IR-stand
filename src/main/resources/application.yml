@@ -11,4 +11,7 @@ logging.level:
   root: error
   ru.itmo: info
 
-stand.elasticsearch.host-and-port: localhost:9200
+stand:
+  elasticsearch.host-and-port: localhost:9200
+  app:
+    base-path: "src/main/resources"

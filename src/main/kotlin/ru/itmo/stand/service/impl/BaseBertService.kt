@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.h2.mvstore.MVMap
 import org.h2.mvstore.MVStore
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.Params.BASE_PATH
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.toNgrams
 import java.io.File
@@ -28,18 +28,21 @@ typealias InvertedIndexType = MVMap<KeyType, ValueType>
 
 abstract class BaseBertService(
     private val translator: Translator<String, FloatArray>,
+    private val standProperties: StandProperties,
 ) : DocumentService() {
 
     private val invertedIndexStore by lazy {
-        val invertedIndexPath = "$BASE_PATH/data/${method.name.lowercase()}/inverted_index.dat"
+        val basePath = standProperties.app.basePath
+        val invertedIndexPath = "$basePath/data/${method.name.lowercase()}/inverted_index.dat"
         File(invertedIndexPath).parentFile.mkdirs()
         MVStore.open(invertedIndexPath)
     }
     protected val predictor: Predictor<String, FloatArray> by lazy {
+        val basePath = standProperties.app.basePath
         Criteria.builder()
             .optApplication(Application.NLP.TEXT_EMBEDDING)
             .setTypes(String::class.java, FloatArray::class.java)
-            .optModelPath(Paths.get("$BASE_PATH/models/${method.name.lowercase()}/bert.pt")) // search in local folder
+            .optModelPath(Paths.get("$basePath/models/${method.name.lowercase()}/bert.pt")) // search in local folder
             .optTranslator(translator)
             .optProgress(ProgressBar())
             .build()
