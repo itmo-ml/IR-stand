@@ -11,12 +11,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.h2.mvstore.MVMap
 import org.h2.mvstore.MVStore
+import org.springframework.beans.factory.annotation.Autowired
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.toNgrams
 import java.io.File
-import java.nio.file.Paths
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.PostConstruct
@@ -31,9 +31,12 @@ abstract class BaseBertService(
     private val standProperties: StandProperties,
 ) : DocumentService() {
 
+    @Autowired
+    private lateinit var standProperties: StandProperties
+
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
-        val invertedIndexPath = "$basePath/data/${method.name.lowercase()}/inverted_index.dat"
+        val invertedIndexPath = "$basePath/indexes/${method.name.lowercase()}/inverted_index.dat"
         File(invertedIndexPath).parentFile.mkdirs()
         MVStore.open(invertedIndexPath)
     }
@@ -42,7 +45,7 @@ abstract class BaseBertService(
         Criteria.builder()
             .optApplication(Application.NLP.TEXT_EMBEDDING)
             .setTypes(String::class.java, FloatArray::class.java)
-            .optModelPath(Paths.get("$basePath/models/${method.name.lowercase()}/bert.pt")) // search in local folder
+            .optModelUrls("$basePath/models/${method.name.lowercase()}/bert.pt")
             .optTranslator(translator)
             .optProgress(ProgressBar())
             .build()

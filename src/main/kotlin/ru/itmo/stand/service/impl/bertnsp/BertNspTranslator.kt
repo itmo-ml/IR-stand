@@ -39,7 +39,7 @@ class BertNspTranslator(
     override fun processInput(ctx: TranslatorContext, input: String): NDList {
         val tokens = tokenizer.tokenize(input.lowercase(Locale.getDefault()))
 
-        var separatorIndex = tokens.indexOf(TOKEN_SEPARATOR);
+        val separatorIndex = tokens.indexOf(TOKEN_SEPARATOR);
         tokens[separatorIndex] = SEP_TOKEN;
         tokens.add(0, CLS_TOKEN)
         tokens.add(SEP_TOKEN)
