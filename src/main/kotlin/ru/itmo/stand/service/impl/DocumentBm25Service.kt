@@ -1,6 +1,7 @@
 package ru.itmo.stand.service.impl
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
@@ -8,6 +9,7 @@ import ru.itmo.stand.index.model.DocumentBm25
 import ru.itmo.stand.index.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentService
 
+@Profile("!standalone")
 @Service
 class DocumentBm25Service(
     private val documentBm25Repository: DocumentBm25Repository,
