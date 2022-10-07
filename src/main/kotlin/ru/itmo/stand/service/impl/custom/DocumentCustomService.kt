@@ -30,10 +30,7 @@ class DocumentCustomService(
             .let { predictor.batchPredict(it.first).zip(it.first) + predictor.batchPredict(it.second).zip(it.second) }
 
         vectorByTokenPairs.forEach { (tokenVector, token) ->
-            invertedIndex.merge(
-                token,
-                ConcurrentHashMap(mapOf(documentId to (tokenVector dot passageVector)))
-            ) { v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) } }
+            invertedIndex.index(token, tokenVector dot passageVector, documentId)
         }
 
         log.info("Content is indexed (id={})", documentId)

@@ -2,6 +2,7 @@ package ru.itmo.stand.util
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.bert.WordpieceTokenizer
+import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
@@ -37,12 +38,10 @@ fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
     return mutableListOf<String>().apply { while (shingleFilter.incrementToken()) add(attr.toString()) }
 }
 
-fun String.toTokens(): List<String> {
-    val reader = StringReader(this)
-    val standardTokenizer = StandardTokenizer().apply { setReader(reader) }
-    val attr = standardTokenizer.addAttribute(CharTermAttribute::class.java).also { standardTokenizer.reset() }
-    return mutableListOf<String>().apply { while (standardTokenizer.incrementToken()) add(attr.toString()) }
-}
+fun String.toTokens(stanfordCoreNLP: StanfordCoreNLP) : List<String> = stanfordCoreNLP.processToCoreDocument(this)
+        .tokens()
+        .map { it.lemma().lowercase() }
+
 
 val vocabulary = emptyList<String>() // TODO: add vocabulary
 

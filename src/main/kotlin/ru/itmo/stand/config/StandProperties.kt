@@ -15,5 +15,11 @@ data class StandProperties(
 
     data class ApplicationProperties(
         val basePath: String,
+
+        val bertMultiToken: BertMultiToken
+    )
+
+    data class BertMultiToken(
+        val tokenBatchSize: Int
     )
 }

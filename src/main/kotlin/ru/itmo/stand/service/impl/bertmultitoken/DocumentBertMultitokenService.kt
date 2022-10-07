@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.impl.bertmultitoken
 
+import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.impl.BaseBertService
@@ -10,11 +11,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class DocumentBertMultiTokenService(
-        private val bertNspTranslator: BertNspTranslator
+        private val bertNspTranslator: BertNspTranslator,
+        private val stanfordCoreNlp: StanfordCoreNLP,
 ): BaseBertService(bertNspTranslator) {
 
-    //todo move to config
-    var tokenBatchSize = 10;
 
     override val method: Method
         get() = Method.BERT_MULTI_TOKEN
@@ -25,7 +25,7 @@ class DocumentBertMultiTokenService(
 
         val tokens = preprocess(passage);
 
-        val scores = tokens.windowed(tokenBatchSize, 1, true).flatMap { window ->
+        val scores = tokens.windowed(standProperties.app.bertMultiToken.tokenBatchSize, 1, true).flatMap { window ->
             val modelInput =  concatNsp(window.joinToString(" "), passage)
             val score = predictor.predict(concatNsp(modelInput, passage))[0]
             window.map { Pair(it, score) }
@@ -33,12 +33,7 @@ class DocumentBertMultiTokenService(
                 .groupBy   { it.first }
                 .mapValues { it.value.map { pair -> pair.second }.average().toFloat() }
 
-        scores.forEach{ (token, score) ->
-            invertedIndex.merge(
-                    token,
-                    ConcurrentHashMap(mapOf(documentId to score))
-            ) { v1, v2 -> v1.apply { if (!containsKey(documentId)) putAll(v2) } }
-        }
+        scores.forEach{ (token, score) -> invertedIndex.index(token, score, documentId)}
 
         log.info("Content is indexed (id={})", documentId)
         return documentId
@@ -50,7 +45,7 @@ class DocumentBertMultiTokenService(
 
     override fun preprocess(contents: List<String>): List<List<String>> = contents
             .map { it.lowercase() }
-            .map {it.toTokens()}
+            .map {it.toTokens(stanfordCoreNlp)}
 
 }
 
