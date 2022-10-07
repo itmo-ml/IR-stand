@@ -30,10 +30,7 @@ abstract class BaseBertService(
     private val translator: Translator<String, FloatArray>,
     private val standProperties: StandProperties,
 ) : DocumentService() {
-
-    @Autowired
-    private lateinit var standProperties: StandProperties
-
+    
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
         val invertedIndexPath = "$basePath/indexes/${method.name.lowercase()}/inverted_index.dat"
