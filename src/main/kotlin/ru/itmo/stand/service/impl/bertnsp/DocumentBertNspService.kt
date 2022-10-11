@@ -26,14 +26,7 @@ class DocumentBertNspService(
         val scoreByTokens = tokens
             .map { Pair(it, predictor.predict(concatNsp(it, passage))[0]) }
 
-        scoreByTokens.forEach { (token, score) ->
-            invertedIndex.merge(
-                token,
-                ConcurrentHashMap(mapOf(documentId to score))
-            ) { v1, v2 ->
-                v1.apply { if (!containsKey(documentId)) putAll(v2) }
-            }
-        }
+        scoreByTokens.forEach { (token, score) -> invertedIndex.index(token, score, documentId) }
 
         log.info("Content is indexed (id={})", documentId)
         return documentId

@@ -31,7 +31,7 @@ abstract class BaseBertService(
 ) : DocumentService() {
 
     @Autowired
-    private lateinit var standProperties: StandProperties
+    protected lateinit var standProperties: StandProperties
 
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
@@ -106,9 +106,14 @@ abstract class BaseBertService(
         Collections.emptyList()
     }
 
+    protected fun InvertedIndexType.index(token: String, score: Float, documentId: String) {
+        this.merge(token, ConcurrentHashMap(mapOf(documentId to score))) { v1, v2 ->
+            v1.apply { if (!containsKey(documentId)) putAll(v2) }
+        }
+    }
     protected fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
 
-    protected fun preprocess(contents: List<String>): List<List<String>> = contents
+    protected open fun preprocess(contents: List<String>): List<List<String>> = contents
         .map { it.lowercase() }
         .map { it.toNgrams() }
 

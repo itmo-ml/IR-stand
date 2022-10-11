@@ -15,3 +15,6 @@ stand:
   elasticsearch.host-and-port: localhost:9200
   app:
     base-path: "."
+
+    bert-multi-token:
+      token-batch-size: 10
