@@ -75,9 +75,9 @@ abstract class BaseBertService(
         val tokens = preprocess(query)
         return tokens.asSequence()
             .mapNotNull { invertedIndex[it] }
-            .reduce { m1, m2 ->
-                m2.forEach { (k, v) -> m1.merge(k, v) { v1, v2 -> v1.apply { v1 + v2 } } }
-                m1
+            .reduce { acc, scoreByDocIdMap ->
+                scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
+                acc
             }
             .toList()
             .sortedByDescending { (_, score) -> score }
@@ -111,6 +111,7 @@ abstract class BaseBertService(
             v1.apply { if (!containsKey(documentId)) putAll(v2) }
         }
     }
+
     protected fun preprocess(content: String): List<String> = preprocess(listOf(content))[0]
 
     protected open fun preprocess(contents: List<String>): List<List<String>> = contents
