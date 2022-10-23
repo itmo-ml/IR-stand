@@ -1,7 +1,7 @@
 """
 This module computes evaluation metrics for MSMARCO dataset on the ranking task.
 Command line:
-python msmarco_eval_ranking.py <path_to_reference_file> <path_to_candidate_file>
+python msmarco_eval_ranking.py <data/qrels.dev.small.tsv path_to_reference_file> <path_to_candidate_file>
 
 Creation Date : 06/12/2018
 Last Modified : 1/21/2019
@@ -164,19 +164,20 @@ def main():
     """Command line:
     python msmarco_eval_ranking.py <path_to_reference_file> <path_to_candidate_file>
     """
-
-    if len(sys.argv) == 3:
-        path_to_reference = sys.argv[1]
-        path_to_candidate = sys.argv[2]
-        metrics = compute_metrics_from_files(path_to_reference, path_to_candidate)
-        print('#####################')
-        for metric in sorted(metrics):
-            print('{}: {}'.format(metric, metrics[metric]))
-        print('#####################')
-
-    else:
-        print('Usage: msmarco_eval_ranking.py <reference ranking> <candidate ranking>')
-        exit()
+    print(compute_metrics_from_files("C:/Users/Artmee/IdeaProjects/IR-stand/collections/qrels.dev.small.tsv", "C:/Users/Artmee/IdeaProjects/IR-stand/collections/queriesForMRR.tsv"))
+    # if len(sys.argv) == 3:
+    #     path_to_reference = sys.argv[1]
+    #     path_to_candidate = sys.argv[2]
+    #     metrics = compute_metrics_from_files(path_to_reference, path_to_candidate)
+    #     print('#####################')
+    #     for metric in sorted(metrics):
+    #         print('{}: {}'.format(metric, metrics[metric]))
+    #     print('#####################')
+    #
+    # else:
+    #     print('Usage: msmarco_eval_ranking.py <reference ranking> <candidate ranking>')
+    #     exit()
     
 if __name__ == '__main__':
     main()
+

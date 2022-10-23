@@ -16,6 +16,7 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.toNgrams
+import java.io.BufferedReader
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -71,19 +72,82 @@ abstract class BaseBertService(
         return invertedIndex.toString() // TODO: add impl for finding by id
     }
 
-    override fun search(query: String): List<String> {
-        val tokens = preprocess(query)
-        return tokens.asSequence()
-            .mapNotNull { invertedIndex[it] }
-            .reduce { acc, scoreByDocIdMap ->
-                scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
-                acc
+    fun HashForQuery(): HashMap<Int, String> {
+        val bufferedReader: BufferedReader = File("collections/queries.air-subset.tsv").bufferedReader()
+        val inputString = bufferedReader.use { it.readText() }
+        val words = inputString.split("\r\n".toRegex())
+        val words2 = words.toList()
+
+        var map = HashMap<Int, String>()
+        for (k in words2) {
+            if (k == "") {
+                break
             }
-            .toList()
-            .sortedByDescending { (_, score) -> score }
-            .take(10)
-            .map { (docId, _) -> docId }
+            val d = k.split("\t")
+            map[d[0].toInt()] = d[1]
+        }
+        return map
     }
+
+
+    override fun search(query: String): List<String> {
+        var HashOfQueries = HashForQuery()
+        val KeysList: MutableList<Int> = mutableListOf();
+        val QueryList: MutableList<String> = mutableListOf();
+        val ResultingList = mutableListOf<String>();
+        var pressF: MutableList<String> = mutableListOf()
+        for ((keyq, query1) in HashOfQueries) {
+            if (keyq == 535142) { //по какой то причине падает на 1061472 id 535142
+//                var a = 10
+                break
+            }
+            QueryList.add(query1)
+            KeysList.add(keyq)
+            val tokens = preprocess(query1)
+            val cdf = (tokens.asSequence()
+                .mapNotNull { invertedIndex[it] }
+                .reduce { m1, m2 ->
+                    m2.forEach { (k, v) -> m1.merge(k, v) { v1, v2 -> v1.apply { v1 + v2 } } }
+                    m1
+                }
+                .toList()
+                .sortedByDescending { (_, score) -> score }
+                .take(10)
+                .map { (docId, _) -> docId })
+
+            var counterZ = 0
+            for (i in cdf) {
+                pressF.add(keyq.toString().replace("[", "").replace("]", "") + "\t"+ "\t" + i.toString() + "\t" +counterZ)
+                counterZ +=1
+            }
+          }
+
+        File("collections/queriesForMRR.tsv").bufferedWriter().use { out ->
+
+            for (i in pressF) {
+            out.write(i)
+            out.write("\n")
+            }
+        }
+
+        val returningList = listOf<String>("finish")
+
+        return returningList
+
+
+//    override fun search(query: String): List<String> {
+//        val tokens = preprocess(query)
+//         return tokens.asSequence()
+//             .mapNotNull { invertedIndex[it] }
+//             .reduce { acc, scoreByDocIdMap ->
+//                 scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
+//                 acc
+//             }
+//             .toList()
+//             .sortedByDescending { (_, score) -> score }
+//             .take(10)
+//             .map { (docId, _) -> docId }
+//     }
 
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
