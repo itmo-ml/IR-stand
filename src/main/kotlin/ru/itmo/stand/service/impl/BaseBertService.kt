@@ -97,23 +97,20 @@ abstract class BaseBertService(
         val ResultingList = mutableListOf<String>();
         var pressF: MutableList<String> = mutableListOf()
         for ((keyq, query1) in HashOfQueries) {
-            if (keyq == 535142) { //по какой то причине падает на 1061472 id 535142
-//                var a = 10
-                break
-            }
             QueryList.add(query1)
             KeysList.add(keyq)
             val tokens = preprocess(query1)
-            val cdf = (tokens.asSequence()
+            val cdf = (tokens //.asSequence()
                 .mapNotNull { invertedIndex[it] }
-                .reduce { m1, m2 ->
+                .takeIf { it.isNotEmpty() }
+                ?.reduce { m1, m2 ->
                     m2.forEach { (k, v) -> m1.merge(k, v) { v1, v2 -> v1.apply { v1 + v2 } } }
                     m1
                 }
-                .toList()
-                .sortedByDescending { (_, score) -> score }
-                .take(10)
-                .map { (docId, _) -> docId })
+                ?.toList()
+                ?.sortedByDescending { (_, score) -> score }
+                ?.take(10)
+                ?.map { (docId, _) -> docId }) ?: emptyList()
 
             var counterZ = 0
             for (i in cdf) {
@@ -134,6 +131,7 @@ abstract class BaseBertService(
 
         return returningList
 
+    }
 
 //    override fun search(query: String): List<String> {
 //        val tokens = preprocess(query)
