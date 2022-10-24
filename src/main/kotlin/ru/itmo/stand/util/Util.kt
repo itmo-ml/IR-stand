@@ -71,3 +71,39 @@ fun softmax(numbers: FloatArray): FloatArray {
     val sum = numbers.map { exp(it) }.sum()
     return numbers.map { exp(it) /sum }.toFloatArray()
 }
+
+
+
+//for token1, token2, token3, token4, token5
+//and size == 3 should return:
+//        token1, token2
+//token1, token2, token3,
+//token2, token3, token4,
+//token3, token4, token5
+//token4, token5
+// ie each token should appear in the middle of the window
+
+fun <T> List<T>.customWindowed(size: Int): List<List<T>> {
+
+    if(size % 2 == 0) {
+        throw IllegalArgumentException("Size value should be odd")
+    }
+    val sideTokensCount = (size - 1) / 2;
+    val partialWindowSize = sideTokensCount + 1
+    if(this.size <= sideTokensCount + 1) {
+        return arrayListOf(this)
+    }
+    val result = ArrayList<List<T>>()
+    for(index in 0 until sideTokensCount) {
+        result.add(this.subList(0, partialWindowSize + index))
+    }
+    for(index in sideTokensCount until this.size - sideTokensCount) {
+        result.add(this.subList(index - sideTokensCount, index + sideTokensCount + 1))
+    }
+    for(index in this.size - size + 1 until this.size - sideTokensCount) {
+        result.add(this.subList(index, this.size))
+    }
+    return result
+}
+
+

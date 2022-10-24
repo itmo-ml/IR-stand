@@ -17,4 +17,4 @@ stand:
     base-path: "."
 
     bert-multi-token:
-      token-batch-size: 10
+      token-batch-size: 5
