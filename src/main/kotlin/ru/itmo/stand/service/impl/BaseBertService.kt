@@ -44,7 +44,7 @@ abstract class BaseBertService(
         Criteria.builder()
             .optApplication(Application.NLP.TEXT_EMBEDDING)
             .setTypes(String::class.java, FloatArray::class.java)
-            .optModelUrls("$basePath/models/${method.name.lowercase()}/bert.pt")
+            .optModelUrls("$basePath/models/${method.name.lowercase()}/distilbert.pt")
             .optTranslator(translator)
             .optProgress(ProgressBar())
             .build()
