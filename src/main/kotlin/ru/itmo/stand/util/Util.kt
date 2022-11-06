@@ -7,6 +7,8 @@ import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import java.io.StringReader
+import java.lang.Integer.min
+import java.lang.Math.max
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -70,4 +72,38 @@ fun walkDirectory(dirPath: Path): List<Path> {
 fun softmax(numbers: FloatArray): FloatArray {
     val sum = numbers.map { exp(it) }.sum()
     return numbers.map { exp(it) /sum }.toFloatArray()
+}
+
+
+
+/**
+ * For n tokens and size = m,
+ * should return slices where each slice with len = m
+ * and each token appear in the middle of the window.
+ */
+fun <T> List<T>.createContexts(size: Int): List<List<T>> {
+
+    throwIf(size % 2 == 0, IllegalArgumentException("Size value should be odd"))
+    throwIf(size <= 0, IllegalArgumentException("Size value should be greater than zero"))
+    throwIf(size > this.size, IllegalArgumentException("Size value cannot be greater than List size"))
+    val sideTokensCount = (size - 1) / 2;
+    val partialWindowSize = sideTokensCount + 1
+    if(this.size <= sideTokensCount + 1) {
+        return arrayListOf(this)
+    }
+    val result = ArrayList<List<T>>()
+    for(index in 0 until sideTokensCount) {
+        result.add(this.subList(0, partialWindowSize + index))
+    }
+    for(index in sideTokensCount until this.size - sideTokensCount) {
+        result.add(this.subList(index - sideTokensCount, index + sideTokensCount + 1))
+    }
+    for(index in this.size - size + 1 until this.size - sideTokensCount) {
+        result.add(this.subList(index, this.size))
+    }
+    return result
+}
+
+fun throwIf(condition: Boolean, ex: Exception) {
+    if(condition) throw ex;
 }

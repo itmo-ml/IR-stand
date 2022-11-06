@@ -6,6 +6,7 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.service.impl.bertnsp.BertNspTranslator
 import ru.itmo.stand.util.TOKEN_SEPARATOR
+import ru.itmo.stand.util.createContexts
 import ru.itmo.stand.util.toTokens
 import java.util.concurrent.ConcurrentHashMap
 
@@ -25,7 +26,7 @@ class DocumentBertMultiTokenService(
 
         val tokens = preprocess(passage);
 
-        val scores = tokens.windowed(standProperties.app.bertMultiToken.tokenBatchSize, 1, true).flatMap { window ->
+        val scores = tokens.createContexts(standProperties.app.bertMultiToken.tokenBatchSize).flatMap { window ->
             val modelInput =  concatNsp(window.joinToString(" "), passage)
             val score = predictor.predict(concatNsp(modelInput, passage))[0]
             window.map { Pair(it, score) }
