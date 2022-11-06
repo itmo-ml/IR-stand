@@ -7,6 +7,8 @@ import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import java.io.StringReader
+import java.lang.Integer.min
+import java.lang.Math.max
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -74,20 +76,16 @@ fun softmax(numbers: FloatArray): FloatArray {
 
 
 
-//for token1, token2, token3, token4, token5
-//and size == 3 should return:
-//        token1, token2
-//token1, token2, token3,
-//token2, token3, token4,
-//token3, token4, token5
-//token4, token5
-// ie each token should appear in the middle of the window
+/**
+ * For n tokens and size = m,
+ * should return slices where each slice with len = m
+ * and each token appear in the middle of the window.
+ */
+fun <T> List<T>.createContexts(size: Int): List<List<T>> {
 
-fun <T> List<T>.customWindowed(size: Int): List<List<T>> {
-
-    if(size % 2 == 0) {
-        throw IllegalArgumentException("Size value should be odd")
-    }
+    throwIf(size % 2 == 0, IllegalArgumentException("Size value should be odd"))
+    throwIf(size <= 0, IllegalArgumentException("Size value should be greater than zero"))
+    throwIf(size > this.size, IllegalArgumentException("Size value cannot be greater than List size"))
     val sideTokensCount = (size - 1) / 2;
     val partialWindowSize = sideTokensCount + 1
     if(this.size <= sideTokensCount + 1) {
@@ -106,4 +104,6 @@ fun <T> List<T>.customWindowed(size: Int): List<List<T>> {
     return result
 }
 
-
+fun throwIf(condition: Boolean, ex: Exception) {
+    if(condition) throw ex;
+}
