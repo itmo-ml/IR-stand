@@ -71,14 +71,14 @@ abstract class BaseBertService(
         return invertedIndex.toString() // TODO: add impl for finding by id
     }
 
-    fun getQueryByIdMap(): Map<Int, String> = File("collections/queries.air-subset.tsv").bufferedReader()
+    fun getQueryByIdMap(): Map<Int, String> = File("${standProperties.app.basePath}/collections/queries.air-subset.tsv").bufferedReader()
         .use { it.readLines() }
         .filter { it != "" }
         .map { it.split("\t") }
         .associate { it[0].toInt() to it[1] }
 
     override fun search(query: String): List<String> {
-        //val basePath = standProperties.app.basePath
+        val basePath = standProperties.app.basePath
         var getQueryByIdMap = getQueryByIdMap()
         var docQueryPosForMRR: MutableList<String> = mutableListOf()
         for ((queryId, query) in getQueryByIdMap) {
@@ -93,25 +93,19 @@ abstract class BaseBertService(
                 ?.toList()
                 ?.sortedByDescending { (_, score) -> score }
                 ?.take(10)
-                ?.map { (docId, _) -> docId })
-                //?.mapIndexed { (index, docId) -> formatMrr(docId, queryId, index)})
+                ?.map { (docId, _) -> docId }
+                ?.mapIndexed { index, docId -> formatMrr(docId, queryId, index)})
                 ?: emptyList()
 
-            //docQueryPosForMRR.addALL(cdf)
+            docQueryPosForMRR.addAll(cdf)
 
-            var counterZ = 0
-            for (i in cdf) {
-                docQueryPosForMRR.add(queryId.toString().replace("[", "").replace("]", "") + "\t"+ "\t" + i.toString() + "\t" +counterZ)
-                counterZ +=1
-            }
           }
 
         //File("$basePath/collections/${method.name.lowercase()}/queriesForMRR.tsv").bufferedWriter().use { out ->
-        File("collections/queriesForMRR.tsv").bufferedWriter().use { out ->
+        File("$basePath/collections/queriesForMRR.tsv").bufferedWriter().use { out ->
 
             for (i in docQueryPosForMRR) {
                 out.appendLine(i)
-            //out.appendLine("\n")
             }
         }
 
@@ -134,16 +128,17 @@ abstract class BaseBertService(
 //            .map { (docId, _) -> docId }
 //    }
 
-    fun formatMrr(docId: Int, queryId: Int, index: Int): List<String>{
-        var docQueryPosForMRR: MutableList<String> = mutableListOf()
-         docQueryPosForMRR.add(
-            queryId.toString().replace("[", "")
-                .replace("]", "") +
-                    "\t" + "\t"
-                    + docId.toString() +
-                    "\t" + index);
+    fun formatMrr(docId: String, queryId: Int, index: Int): String {
 
-         return docQueryPosForMRR
+        return buildString {
+        append(queryId)
+        append("\t\t")
+        append(docId)
+        append("\t")
+        append(index)
+    }
+
+
 
     }
     /**
