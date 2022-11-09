@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.util.formatBytesToReadable
+import java.io.File
 
 abstract class DocumentService {
 
@@ -23,7 +24,7 @@ abstract class DocumentService {
 
     abstract fun find(id: String): String?
 
-    abstract fun search(query: String): List<String>
+    abstract fun search(queries: File, format: Format): List<String>
 
     abstract fun save(content: String, withId: Boolean): String
 

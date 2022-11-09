@@ -21,6 +21,8 @@ import ru.itmo.stand.content.repository.ContentSnrmRepository
 import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.Format
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -56,8 +58,8 @@ class DocumentSnrmService(
 
     override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
 
-    override fun search(query: String): List<String> {
-        val queryVector = preprocess(listOf(query), PreprocessingType.QUERY)[0]
+    override fun search(queries: File, format: Format): List<String> {
+        val queryVector = preprocess(listOf(queries.readLines().single()), PreprocessingType.QUERY)[0]
         val documents = mutableListOf<DocumentSnrm>()
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(queryVector)
         findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))

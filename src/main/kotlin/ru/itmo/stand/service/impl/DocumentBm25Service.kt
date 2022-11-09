@@ -8,6 +8,8 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.index.model.DocumentBm25
 import ru.itmo.stand.index.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.Format
+import java.io.File
 
 @Profile("!standalone")
 @Service
@@ -21,8 +23,8 @@ class DocumentBm25Service(
 
     override fun find(id: String): String? = documentBm25Repository.findByIdOrNull(id)?.content
 
-    override fun search(query: String): List<String> {
-        val processedQuery = preprocess(query)
+    override fun search(queries: File, format: Format): List<String> {
+        val processedQuery = preprocess(queries.readLines().single())
         return documentBm25Repository.findByRepresentation(processedQuery)
             .map { it.id ?: throwDocIdNotFoundEx() }
     }

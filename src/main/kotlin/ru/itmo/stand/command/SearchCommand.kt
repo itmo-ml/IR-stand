@@ -6,7 +6,10 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.Format.JUST_QUERY
 import ru.itmo.stand.util.measureTimeSeconds
+import java.io.File
 
 @Component
 @Command(
@@ -17,18 +20,21 @@ import ru.itmo.stand.util.measureTimeSeconds
 class SearchCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
 
     @Parameters(
-        paramLabel = "query",
+        paramLabel = "queries file",
         arity = "1",
-        description = ["Query to find relevant documents. Return their IDs."]
+        description = ["File with content of queries to search relevant documents."]
     )
-    private lateinit var query: String
+    private lateinit var queries: File
 
     @Option(names = ["-m", "-method"], required = true)
     private lateinit var method: Method
 
+    @Option(names = ["-f", "-format"])
+    private var format: Format = JUST_QUERY
+
     override fun run() {
         val latencyInSeconds = measureTimeSeconds {
-            println(documentServicesByMethod[method]!!.search(query).ifEmpty { "Documents not found." })
+            println(documentServicesByMethod[method]!!.search(queries, format).ifEmpty { "Documents not found." })
         }
         println("Latency: $latencyInSeconds seconds")
     }
