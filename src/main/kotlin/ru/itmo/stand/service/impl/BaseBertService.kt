@@ -82,7 +82,7 @@ abstract class BaseBertService(
             val queryByIdMap = getQueryByIdMap(queries)
             val outputLines = mutableListOf<String>()
             for ((queryId, query) in queryByIdMap) {
-                val docsTopList = searchByQuery(query).mapIndexed { rank, docId -> formatMrr(queryId, docId, rank) }
+                val docsTopList = searchByQuery(query).mapIndexed { index, docId -> formatMrr(queryId, docId, index + 1) }
                 outputLines.addAll(docsTopList)
             }
             val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/queriesForMRR.tsv"
