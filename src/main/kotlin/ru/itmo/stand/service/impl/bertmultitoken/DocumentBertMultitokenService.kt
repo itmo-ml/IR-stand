@@ -9,13 +9,14 @@ import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.service.impl.bertnsp.BertNspTranslator
 import ru.itmo.stand.util.TOKEN_SEPARATOR
 import ru.itmo.stand.util.createContexts
+import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.toTokens
 
 @Service
 class DocumentBertMultiTokenService(
-        private val bertNspTranslator: BertNspTranslator,
-        private val stanfordCoreNlp: StanfordCoreNLP,
-): BaseBertService(bertNspTranslator) {
+    private val stanfordCoreNlp: StanfordCoreNLP,
+    bertNspTranslator: BertNspTranslator,
+) : BaseBertService(bertNspTranslator) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -29,14 +30,14 @@ class DocumentBertMultiTokenService(
         val tokens = preprocess(passage);
 
         val scores = tokens.createContexts(standProperties.app.bertMultiToken.tokenBatchSize).flatMap { window ->
-            val modelInput =  concatNsp(window.joinToString(" "), passage)
+            val modelInput = concatNsp(window.joinToString(" "), passage)
             val score = predictor.predict(concatNsp(modelInput, passage))[0]
             window.map { Pair(it, score) }
         }
-                .groupBy   { it.first }
-                .mapValues { it.value.map { pair -> pair.second }.average().toFloat() }
+            .groupBy { it.first }
+            .mapValues { it.value.map { pair -> pair.second }.average().toFloat() }
 
-        scores.forEach{ (token, score) -> invertedIndex.index(token, score, documentId)}
+        scores.forEach { (token, score) -> invertedIndex.index(token, score, documentId) }
 
         log.info("Content is indexed (id={})", documentId)
         return documentId
@@ -47,8 +48,7 @@ class DocumentBertMultiTokenService(
     }
 
     override fun preprocess(contents: List<String>): List<List<String>> = contents
-            .map { it.lowercase() }
-            .map {it.toTokens(stanfordCoreNlp)}
-
+        .map { it.lowercase() }
+        .map { it.toTokens(stanfordCoreNlp) }
 }
 

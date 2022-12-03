@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.dot
+import ru.itmo.stand.util.extractId
 
 @Service
 class DocumentCustomService(

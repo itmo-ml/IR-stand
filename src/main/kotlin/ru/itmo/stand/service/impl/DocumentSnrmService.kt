@@ -25,6 +25,8 @@ import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.Format
 import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.util.extractId
+import ru.itmo.stand.util.throwDocIdNotFoundEx
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
