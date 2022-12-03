@@ -5,6 +5,7 @@ import ai.djl.inference.Predictor
 import ai.djl.repository.zoo.Criteria
 import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
+import edu.stanford.nlp.naturalli.ClauseSplitter.log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -16,8 +17,8 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.Format
-import ru.itmo.stand.service.Format.MS_MARCO
 import ru.itmo.stand.service.Format.JUST_QUERY
+import ru.itmo.stand.service.Format.MS_MARCO
 import ru.itmo.stand.service.format.formatMrr
 import ru.itmo.stand.util.createPath
 import ru.itmo.stand.util.toNgrams
@@ -33,7 +34,7 @@ typealias InvertedIndexType = MVMap<KeyType, ValueType>
 
 abstract class BaseBertService(
     private val translator: Translator<String, FloatArray>,
-) : DocumentService() {
+) : DocumentService {
 
     @Autowired
     protected lateinit var standProperties: StandProperties
@@ -128,6 +129,10 @@ abstract class BaseBertService(
                 launch { save(channel.receive(), withId) }
             }
         Collections.emptyList()
+    }
+
+    override fun getFootprint(): String {
+        TODO("Not yet implemented")
     }
 
     protected fun InvertedIndexType.index(token: String, score: Float, documentId: String) {

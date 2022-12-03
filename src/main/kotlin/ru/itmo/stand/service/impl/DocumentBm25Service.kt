@@ -1,6 +1,8 @@
 package ru.itmo.stand.service.impl
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -9,14 +11,18 @@ import ru.itmo.stand.index.model.DocumentBm25
 import ru.itmo.stand.index.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
 import java.io.File
 
 @Profile("!standalone")
 @Service
 class DocumentBm25Service(
+    private val elasticsearchIndexFootprintFinder: ElasticsearchIndexFootprintFinder,
     private val documentBm25Repository: DocumentBm25Repository,
     private val stanfordCoreNlp: StanfordCoreNLP,
-) : DocumentService() {
+) : DocumentService {
+
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override val method: Method
         get() = Method.BM25
@@ -48,6 +54,8 @@ class DocumentBm25Service(
 
         return emptyList()
     }
+
+    override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     private fun preprocess(content: String) =
         stanfordCoreNlp.processToCoreDocument(content)

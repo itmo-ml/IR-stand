@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -22,6 +24,7 @@ import ru.itmo.stand.index.model.DocumentSnrm
 import ru.itmo.stand.index.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -29,11 +32,14 @@ import java.nio.file.Paths
 @Profile("!standalone")
 @Service
 class DocumentSnrmService(
+    private val elasticsearchIndexFootprintFinder: ElasticsearchIndexFootprintFinder,
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val standProperties: StandProperties,
-) : DocumentService() {
+) : DocumentService {
+
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val model by lazy {
         val basePath = standProperties.app.basePath
@@ -105,7 +111,6 @@ class DocumentSnrmService(
         }
     }
 
-
     override fun save(content: String, withId: Boolean): String {
         val (externalId, passage) = extractId(content, withId)
         val documentVector = preprocess(listOf(passage), PreprocessingType.DOCUMENT)[0]
@@ -163,6 +168,8 @@ class DocumentSnrmService(
 
         emptyList()
     }
+
+    override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
         QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),

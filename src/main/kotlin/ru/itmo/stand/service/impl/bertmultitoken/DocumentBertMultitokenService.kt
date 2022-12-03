@@ -1,6 +1,8 @@
 package ru.itmo.stand.service.impl.bertmultitoken
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.impl.BaseBertService
@@ -8,7 +10,6 @@ import ru.itmo.stand.service.impl.bertnsp.BertNspTranslator
 import ru.itmo.stand.util.TOKEN_SEPARATOR
 import ru.itmo.stand.util.createContexts
 import ru.itmo.stand.util.toTokens
-import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class DocumentBertMultiTokenService(
@@ -16,6 +17,7 @@ class DocumentBertMultiTokenService(
         private val stanfordCoreNlp: StanfordCoreNLP,
 ): BaseBertService(bertNspTranslator) {
 
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override val method: Method
         get() = Method.BERT_MULTI_TOKEN
