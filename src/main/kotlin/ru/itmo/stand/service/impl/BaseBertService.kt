@@ -15,6 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.Format.MS_MARCO
+import ru.itmo.stand.service.Format.JUST_QUERY
+import ru.itmo.stand.service.format.formatMrr
+import ru.itmo.stand.util.createPath
 import ru.itmo.stand.util.toNgrams
 import java.io.File
 import java.util.Collections
@@ -36,7 +41,7 @@ abstract class BaseBertService(
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
         val invertedIndexPath = "$basePath/indexes/${method.name.lowercase()}/inverted_index.dat"
-        File(invertedIndexPath).parentFile.mkdirs()
+        File(invertedIndexPath).createPath()
         MVStore.open(invertedIndexPath)
     }
     protected val predictor: Predictor<String, FloatArray> by lazy {
@@ -71,19 +76,38 @@ abstract class BaseBertService(
         return invertedIndex.toString() // TODO: add impl for finding by id
     }
 
-    override fun search(query: String): List<String> {
-        val tokens = preprocess(query)
-        return tokens.asSequence()
-            .mapNotNull { invertedIndex[it] }
-            .reduce { acc, scoreByDocIdMap ->
-                scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
-                acc
+    override fun search(queries: File, format: Format): List<String> = when (format) {
+        JUST_QUERY -> searchByQuery(queries.readLines().single())
+        MS_MARCO -> {
+            val queryByIdMap = getQueryByIdMap(queries)
+            val outputLines = mutableListOf<String>()
+            for ((queryId, query) in queryByIdMap) {
+                val docsTopList = searchByQuery(query).mapIndexed { index, docId -> formatMrr(queryId, docId, index + 1) }
+                outputLines.addAll(docsTopList)
             }
-            .toList()
-            .sortedByDescending { (_, score) -> score }
-            .take(10)
-            .map { (docId, _) -> docId }
+            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/queriesForMRR.tsv"
+            File(outputPath).createPath().bufferedWriter()
+                .use { output -> outputLines.forEach { line -> output.appendLine(line) } }
+            listOf("See output in $outputPath")
+        }
     }
+
+    private fun searchByQuery(query: String): List<String> = preprocess(query).asSequence()
+        .mapNotNull { invertedIndex[it] }
+        .reduceOrNull { acc, scoreByDocIdMap ->
+            scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
+            acc
+        }
+        ?.toList()
+        ?.sortedByDescending { (_, score) -> score }
+        ?.take(10)
+        ?.map { (docId, _) -> docId } ?: emptyList()
+
+    private fun getQueryByIdMap(queries: File): Map<Int, String> = queries.bufferedReader()
+        .use { it.readLines() }
+        .filter { it != "" }
+        .map { it.split("\t") }
+        .associate { it[0].toInt() to it[1] }
 
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"

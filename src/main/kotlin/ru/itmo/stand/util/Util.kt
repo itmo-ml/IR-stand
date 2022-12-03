@@ -6,9 +6,8 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
+import java.io.File
 import java.io.StringReader
-import java.lang.Integer.min
-import java.lang.Math.max
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -74,8 +73,6 @@ fun softmax(numbers: FloatArray): FloatArray {
     return numbers.map { exp(it) /sum }.toFloatArray()
 }
 
-
-
 /**
  * For n tokens and size = m,
  * should return slices where each slice with len = m
@@ -107,3 +104,5 @@ fun <T> List<T>.createContexts(size: Int): List<List<T>> {
 fun throwIf(condition: Boolean, ex: Exception) {
     if(condition) throw ex;
 }
+
+fun File.createPath(): File = this.apply { parentFile.mkdirs() }
