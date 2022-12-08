@@ -1,18 +1,16 @@
 package ru.itmo.stand.service.impl.custom
 
-import ai.djl.translate.Translator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.service.bert.BertTranslator
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.extractId
 
 @Service
-class DocumentCustomService(
-    customTranslator: Translator<String, FloatArray>,
-) : BaseBertService(customTranslator) {
+class DocumentCustomService(bertTranslator: BertTranslator) : BaseBertService(bertTranslator) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 

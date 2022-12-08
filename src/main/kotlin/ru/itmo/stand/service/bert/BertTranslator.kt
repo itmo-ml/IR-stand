@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl.custom
+package ru.itmo.stand.service.bert
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
@@ -16,7 +16,7 @@ import java.nio.file.Paths
 import java.util.Locale
 
 @Service
-class CustomTranslator(
+class BertTranslator(
     private val standProperties: StandProperties,
 ) : Translator<String, FloatArray> {
 

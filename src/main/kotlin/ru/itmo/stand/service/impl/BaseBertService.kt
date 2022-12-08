@@ -19,6 +19,7 @@ import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.Format
 import ru.itmo.stand.service.Format.JUST_QUERY
 import ru.itmo.stand.service.Format.MS_MARCO
+import ru.itmo.stand.service.bert.BertModelLoader
 import ru.itmo.stand.service.format.formatMrr
 import ru.itmo.stand.util.createPath
 import ru.itmo.stand.util.toNgrams
@@ -39,6 +40,9 @@ abstract class BaseBertService(
     @Autowired
     protected lateinit var standProperties: StandProperties
 
+    @Autowired
+    private lateinit var bertModelLoader: BertModelLoader
+
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
         val invertedIndexPath = "$basePath/indexes/${method.name.lowercase()}/inverted_index.dat"
@@ -46,16 +50,7 @@ abstract class BaseBertService(
         MVStore.open(invertedIndexPath)
     }
     protected val predictor: Predictor<String, FloatArray> by lazy {
-        val basePath = standProperties.app.basePath
-        Criteria.builder()
-            .optApplication(Application.NLP.TEXT_EMBEDDING)
-            .setTypes(String::class.java, FloatArray::class.java)
-            .optModelUrls("$basePath/models/${method.name.lowercase()}/distilbert.pt")
-            .optTranslator(translator)
-            .optProgress(ProgressBar())
-            .build()
-            .loadModel()
-            .newPredictor(translator)
+        bertModelLoader.load().newPredictor(translator)
     }
     protected lateinit var invertedIndex: InvertedIndexType
 

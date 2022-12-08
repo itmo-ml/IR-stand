@@ -1,4 +1,4 @@
-package ru.itmo.stand.service.impl.bertnsp
+package ru.itmo.stand.service.bert
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
