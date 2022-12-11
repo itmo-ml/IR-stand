@@ -34,13 +34,12 @@ fun String.toSubWords(): List<String> {
 fun <T> List<T>.createContexts(size: Int): List<List<T>> {
     require(size % 2 != 0) { "Size value should be odd" }
     require(size > 0) { "Size value should be greater than zero" }
-    require(size <= this.size) { "Size value cannot be greater than List size" }
-    val sideTokensCount = (size - 1) / 2;
+    val sideTokensCount = (size - 1) / 2
     val partialWindowSize = sideTokensCount + 1
     if (this.size <= sideTokensCount + 1) {
         return arrayListOf(this)
     }
-    val result = ArrayList<List<T>>()
+    val result = mutableListOf<List<T>>()
     for (index in 0 until sideTokensCount) {
         result.add(this.subList(0, partialWindowSize + index))
     }
