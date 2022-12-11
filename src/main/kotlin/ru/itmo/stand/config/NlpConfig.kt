@@ -9,7 +9,7 @@ import java.util.*
 @Configuration
 class NlpConfig {
 
-    private val log = LoggerFactory.getLogger(NlpConfig::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Bean
     fun stanfordCoreNlp(): StanfordCoreNLP {
