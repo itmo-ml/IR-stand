@@ -1,13 +1,14 @@
 package ru.itmo.stand.service.preprocessing
 
 import org.springframework.stereotype.Service
-import ru.itmo.stand.util.createContexts
+import ru.itmo.stand.util.Window
+import ru.itmo.stand.util.createWindows
 
 @Service
-class ContextSplitter : Preprocessor<ContextSplitter.Input, List<List<String>>> {
+class ContextSplitter : Preprocessor<ContextSplitter.Input, List<Window>> {
 
-    override fun preprocess(input: Input): List<List<String>> {
-        return input.content.createContexts(input.windowSize)
+    override fun preprocess(input: Input): List<Window> {
+        return input.content.createWindows(input.windowSize)
     }
 
     data class Input(

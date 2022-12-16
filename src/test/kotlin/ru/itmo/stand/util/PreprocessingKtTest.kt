@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test
 class PreprocessingKtTest {
 
     @Nested
-    inner class CreateContexts {
+    inner class CreateWindows {
         private val tokens = ("Some sentence that is used in tests " +
             "to check the correctness of the function").split(" ")
 
         @Test
         fun `should throw when even size is passed`() {
             val actualEx = assertThrows(IllegalArgumentException::class.java) {
-                tokens.createContexts(2)
+                tokens.createWindows(2)
             }
             assertEquals("Size value should be odd", actualEx.message)
         }
@@ -22,21 +22,21 @@ class PreprocessingKtTest {
         @Test
         fun `should throw when negative size is passed`() {
             val actualEx = assertThrows(IllegalArgumentException::class.java) {
-                tokens.createContexts(-1)
+                tokens.createWindows(-1)
             }
             assertEquals("Size value should be greater than zero", actualEx.message)
         }
 
         @Test
         fun `should return one window when list size is less or equal to partial window size`() {
-            val actualWhenListSizeLessThanPartialWindowSize = tokens.createContexts(29)
-            val actualWhenListSizeEqualToPartialWindowSize = tokens.createContexts(27)
-            assertEquals(tokens, actualWhenListSizeLessThanPartialWindowSize[0])
-            assertEquals(tokens, actualWhenListSizeEqualToPartialWindowSize[0])
+            val actualWhenListSizeLessThanPartialWindowSize = tokens.createWindows(29)
+            val actualWhenListSizeEqualToPartialWindowSize = tokens.createWindows(27)
+            assertEquals(Window(content = tokens), actualWhenListSizeLessThanPartialWindowSize[0])
+            assertEquals(Window(content = tokens), actualWhenListSizeEqualToPartialWindowSize[0])
         }
 
         // @Test FIXME
-        // fun `should return only partial contexts`() {
+        // fun `should return only partial windows`() {
         /* Try something like that:
         1. (0 until sideTokensCount)
             .takeWhile { index -> (partialWindowSize + index) <= this.size }
@@ -45,31 +45,31 @@ class PreprocessingKtTest {
             .filter { it >=0 }
             .forEach { index -> result.add(this.subList(index, this.size)) }
          */
-        // val contexts = tokens.createContexts(25)
-        // println(contexts)
+        // val windows = tokens.createWindows(25)
+        // println(windows)
         // }
 
         @Test
-        fun `should returns partial and full contexts`() {
-            val contexts = tokens.createContexts(5)
+        fun `should returns partial and full windows`() {
+            val windows = tokens.createWindows(5)
             assertEquals(
                 listOf(
-                    listOf("Some", "sentence", "that"),
-                    listOf("Some", "sentence", "that", "is"),
-                    listOf("Some", "sentence", "that", "is", "used"),
-                    listOf("sentence", "that", "is", "used", "in"),
-                    listOf("that", "is", "used", "in", "tests"),
-                    listOf("is", "used", "in", "tests", "to"),
-                    listOf("used", "in", "tests", "to", "check"),
-                    listOf("in", "tests", "to", "check", "the"),
-                    listOf("tests", "to", "check", "the", "correctness"),
-                    listOf("to", "check", "the", "correctness", "of"),
-                    listOf("check", "the", "correctness", "of", "the"),
-                    listOf("the", "correctness", "of", "the", "function"),
-                    listOf("correctness", "of", "the", "function"),
-                    listOf("of", "the", "function"),
+                    Window("Some", listOf("Some", "sentence", "that")),
+                    Window("sentence", listOf("Some", "sentence", "that", "is")),
+                    Window("that", listOf("Some", "sentence", "that", "is", "used")),
+                    Window("is", listOf("sentence", "that", "is", "used", "in")),
+                    Window("used", listOf("that", "is", "used", "in", "tests")),
+                    Window("in", listOf("is", "used", "in", "tests", "to")),
+                    Window("tests", listOf("used", "in", "tests", "to", "check")),
+                    Window("to", listOf("in", "tests", "to", "check", "the")),
+                    Window("check", listOf("tests", "to", "check", "the", "correctness")),
+                    Window("the", listOf("to", "check", "the", "correctness", "of")),
+                    Window("correctness", listOf("check", "the", "correctness", "of", "the")),
+                    Window("of", listOf("the", "correctness", "of", "the", "function")),
+                    Window("the", listOf("correctness", "of", "the", "function")),
+                    Window("function", listOf("of", "the", "function")),
                 ),
-                contexts,
+                windows,
             )
         }
     }
