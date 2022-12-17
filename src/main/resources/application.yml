@@ -4,7 +4,7 @@ spring:
     banner-mode: off
     lazy-initialization: true
   data.mongodb:
-    database: document
+    database: ir-stand
     auto-index-creation: true
 
 logging.level:

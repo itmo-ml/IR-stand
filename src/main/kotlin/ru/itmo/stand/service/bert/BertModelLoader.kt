@@ -1,6 +1,7 @@
 package ru.itmo.stand.service.bert
 
 import ai.djl.Application
+import ai.djl.inference.Predictor
 import ai.djl.repository.zoo.Criteria
 import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
@@ -26,4 +27,5 @@ class BertModelLoader(
     }
 
     fun load(): ZooModel<String, FloatArray> = model
+    fun defaultPredictor(): Predictor<String, FloatArray> = model.newPredictor()
 }
