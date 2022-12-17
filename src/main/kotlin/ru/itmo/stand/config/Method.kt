@@ -8,5 +8,6 @@ enum class Method(val indexName: String) {
     SNRM(DocumentSnrm.DOCUMENT_SNRM),
     CUSTOM("TODO"), // TODO: add index name
     BERT_NSP("bert_nsp_prediction"),
-    BERT_MULTI_TOKEN("bert_multi_token")
+    BERT_MULTI_TOKEN("bert_multi_token"),
+    NEIGHBOURS("TODO"),
 }
