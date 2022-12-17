@@ -7,11 +7,11 @@ import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.storage.elasticsearch.model.DocumentBm25
 import ru.itmo.stand.storage.elasticsearch.repository.DocumentBm25Repository
-import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.model.Format
-import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx
 import java.io.File
@@ -38,17 +38,19 @@ class DocumentBm25Service(
     }
 
     override fun save(content: String, withId: Boolean): String {
-        val (externalId, passage) = extractId(content, withId);
-        val processedModel = DocumentBm25(content = passage, representation = preprocess(passage), externalId = externalId)
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
+        val (externalId, passage) = extractId(content)
+        val processedModel = DocumentBm25(content = passage, representation = preprocess(passage), externalId = externalId.toLong())
         return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         log.info("Total size: ${contents.size}")
         for (chunk in contents.chunked(1000)) {
             val processedModels = chunk.map {
-                val (externalId, passage) = extractId(it, withId);
-                DocumentBm25(content = it, representation = preprocess(passage), externalId = externalId)
+                val (externalId, passage) = extractId(it)
+                DocumentBm25(content = it, representation = preprocess(passage), externalId = externalId.toLong())
             }
             documentBm25Repository.saveAll(processedModels)
             log.info("Index now holds ${documentBm25Repository.count()} documents")

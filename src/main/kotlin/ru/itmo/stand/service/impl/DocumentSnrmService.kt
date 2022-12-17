@@ -114,13 +114,14 @@ class DocumentSnrmService(
     }
 
     override fun save(content: String, withId: Boolean): String {
-        val (externalId, passage) = extractId(content, withId)
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
+        val (externalId, passage) = extractId(content)
         val documentVector = preprocess(listOf(passage), PreprocessingType.DOCUMENT)[0]
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(documentVector)
 
         val documentSnrm = documentSnrmRepository.save(
             DocumentSnrm(
-                externalId = externalId,
+                externalId = externalId.toLong(),
                 representation = latentTerms,
                 weights = weights,
             )
@@ -131,13 +132,14 @@ class DocumentSnrmService(
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         log.info("Total size: ${contents.size}")
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {
-                val idsAndDocuments = chunk.map { extractId(it, withId) }
-                val ids = idsAndDocuments.map { it.first }
-                val documents = idsAndDocuments.map { it.second }
+                val idsAndDocuments = chunk.map { extractId(it) }
+                val ids = idsAndDocuments.map { it.id }
+                val documents = idsAndDocuments.map { it.content }
                 val documentVectors = preprocess(documents, PreprocessingType.DOCUMENT)
                 val latentTermsAndWeightsPairs = documentVectors.map { retrieveLatentTermsAndWeights(it) }
 
@@ -145,7 +147,7 @@ class DocumentSnrmService(
                     val latentTermsAndWeightsPair = latentTermsAndWeightsPairs[idx]
                     Pair(
                         DocumentSnrm(
-                            externalId = ids[idx],
+                            externalId = ids[idx].toLong(),
                             representation = latentTermsAndWeightsPair.first,
                             weights = latentTermsAndWeightsPair.second,
                         ),
