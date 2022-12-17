@@ -18,12 +18,12 @@ import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.content.model.ContentSnrm
-import ru.itmo.stand.content.repository.ContentSnrmRepository
-import ru.itmo.stand.index.model.DocumentSnrm
-import ru.itmo.stand.index.repository.DocumentSnrmRepository
+import ru.itmo.stand.storage.mongodb.model.ContentSnrm
+import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
+import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
+import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx

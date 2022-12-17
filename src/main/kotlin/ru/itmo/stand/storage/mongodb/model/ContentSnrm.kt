@@ -1,4 +1,4 @@
-package ru.itmo.stand.content.model
+package ru.itmo.stand.storage.mongodb.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed

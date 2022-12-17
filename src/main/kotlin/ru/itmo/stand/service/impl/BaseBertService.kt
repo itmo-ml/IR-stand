@@ -1,9 +1,6 @@
 package ru.itmo.stand.service.impl
 
-import ai.djl.Application
 import ai.djl.inference.Predictor
-import ai.djl.repository.zoo.Criteria
-import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
 import edu.stanford.nlp.naturalli.ClauseSplitter.log
 import kotlinx.coroutines.Dispatchers
@@ -16,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.Format
-import ru.itmo.stand.service.Format.JUST_QUERY
-import ru.itmo.stand.service.Format.MS_MARCO
+import ru.itmo.stand.service.model.Format
+import ru.itmo.stand.service.model.Format.JUST_QUERY
+import ru.itmo.stand.service.model.Format.MS_MARCO
 import ru.itmo.stand.service.bert.BertModelLoader
 import ru.itmo.stand.service.format.formatMrr
 import ru.itmo.stand.util.createPath

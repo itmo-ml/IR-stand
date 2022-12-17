@@ -1,7 +1,5 @@
 package ru.itmo.stand.command
 
-import java.io.File
-import java.nio.file.Files
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -9,6 +7,8 @@ import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
+import java.io.File
+import java.nio.file.Files
 
 @Component
 @Command(

@@ -1,6 +1,7 @@
 package ru.itmo.stand.service
 
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.service.model.Format
 import java.io.File
 
 interface DocumentService {

@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.index.model.DocumentBm25
-import ru.itmo.stand.index.repository.DocumentBm25Repository
+import ru.itmo.stand.storage.elasticsearch.model.DocumentBm25
+import ru.itmo.stand.storage.elasticsearch.repository.DocumentBm25Repository
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx

@@ -1,10 +1,10 @@
-package ru.itmo.stand.index.repository
+package ru.itmo.stand.storage.elasticsearch.repository
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.elasticsearch.annotations.Query
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
-import ru.itmo.stand.index.model.DocumentSnrm
+import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
 
 interface DocumentSnrmRepository : ElasticsearchRepository<DocumentSnrm, String> {
 

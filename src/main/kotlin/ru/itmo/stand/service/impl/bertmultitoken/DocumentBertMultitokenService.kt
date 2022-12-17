@@ -5,8 +5,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.service.bert.BertNspTranslator
+import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.TOKEN_SEPARATOR
 import ru.itmo.stand.util.createWindows
 import ru.itmo.stand.util.extractId

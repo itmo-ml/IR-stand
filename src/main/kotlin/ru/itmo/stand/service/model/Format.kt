@@ -1,4 +1,4 @@
-package ru.itmo.stand.service
+package ru.itmo.stand.service.model
 
 enum class Format {
     JUST_QUERY,

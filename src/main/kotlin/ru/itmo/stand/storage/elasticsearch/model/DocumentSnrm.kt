@@ -1,10 +1,10 @@
-package ru.itmo.stand.index.model
+package ru.itmo.stand.storage.elasticsearch.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
-import ru.itmo.stand.index.model.DocumentSnrm.Companion.DOCUMENT_SNRM
+import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm.Companion.DOCUMENT_SNRM
 
 @Document(indexName = DOCUMENT_SNRM)
 data class DocumentSnrm(
