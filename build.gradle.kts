@@ -24,10 +24,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
-    implementation("info.picocli:picocli-spring-boot-starter:4.6.3")
+    implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("ai.djl:api:0.19.0")
     implementation("ai.djl.pytorch:pytorch-engine:0.19.0")
