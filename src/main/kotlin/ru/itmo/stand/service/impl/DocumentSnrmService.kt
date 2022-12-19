@@ -64,7 +64,7 @@ class DocumentSnrmService(
     override val method: Method
         get() = Method.SNRM
 
-    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
+    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id).block()?.content
 
     override fun search(queries: File, format: Format): List<String> {
         val queryVector = preprocess(listOf(queries.readLines().single()), PreprocessingType.QUERY)[0]
