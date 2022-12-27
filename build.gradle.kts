@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.7.21"
     kotlin("plugin.spring") version "1.7.21"
     kotlin("kapt") version "1.7.21"
+    id("me.champeau.jmh") version "0.6.8"
 }
 
 group = "ru.itmo"
@@ -48,4 +49,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+jmh {
+    zip64.set(true) // is used for big archives (more than 65535 entries)
 }
