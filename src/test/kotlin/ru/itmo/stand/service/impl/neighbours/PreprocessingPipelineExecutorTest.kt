@@ -4,11 +4,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ru.itmo.stand.config.NlpConfig.Companion.ANNOTATORS
-import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.config.StandProperties.ApplicationProperties
-import ru.itmo.stand.config.StandProperties.BertMultiToken
-import ru.itmo.stand.config.StandProperties.ElasticsearchProperties
-import ru.itmo.stand.config.StandProperties.NeighboursAlgorithm
+import ru.itmo.stand.fixtures.standProperties
 import ru.itmo.stand.service.preprocessing.ContextSplitter
 import ru.itmo.stand.service.preprocessing.StopWordRemover
 import ru.itmo.stand.service.preprocessing.Tokenizer
@@ -18,10 +14,7 @@ import java.util.Properties
 class PreprocessingPipelineExecutorTest {
 
     private val preprocessingPipelineExecutor = PreprocessingPipelineExecutor(
-        StandProperties(
-            ElasticsearchProperties("localhost:9200"),
-            ApplicationProperties(".", BertMultiToken(5), NeighboursAlgorithm(5))
-        ),
+        standProperties(),
         ContextSplitter(),
         StopWordRemover(),
         Tokenizer(StanfordCoreNLP(Properties().apply { setProperty("annotators", ANNOTATORS) }))
