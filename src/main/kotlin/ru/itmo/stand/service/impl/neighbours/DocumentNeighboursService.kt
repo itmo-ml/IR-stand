@@ -24,6 +24,7 @@ class DocumentNeighboursService(
     }
 
     override fun save(content: String, withId: Boolean): String {
+        contextualizedVectorCreator.create(extractId(content))
         TODO("Not yet implemented")
     }
 

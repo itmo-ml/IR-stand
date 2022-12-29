@@ -20,7 +20,7 @@ class ContextualizedVectorCreator(
         }
     }
 
-    private fun create(document: Document) {
+    fun create(document: Document) {
         preprocessingPipelineExecutor.execute(document.content).forEach { window ->
             val embedding = embeddingCalculator.calculate(window)
             reactiveMongoTemplate.insert(

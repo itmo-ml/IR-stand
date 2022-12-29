@@ -1,6 +1,9 @@
 package ru.itmo.stand.util
 
+import ai.djl.util.ClassLoaderUtils
 import java.io.File
+import java.io.InputStream
+import java.net.URL
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,3 +25,8 @@ fun walkDirectory(dirPath: Path): List<Path> {
     )
     return paths
 }
+
+fun getResource(name: String): URL = ClassLoaderUtils.getResource(name)
+    ?: error("Resource not found in classpath: $name")
+
+fun getResourceAsStream(name: String): InputStream = ClassLoaderUtils.getResourceAsStream(name)
