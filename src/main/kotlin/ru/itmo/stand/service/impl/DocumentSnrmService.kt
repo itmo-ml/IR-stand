@@ -25,8 +25,10 @@ import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.service.preprocessing.StopWordRemover
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx
+import ru.itmo.stand.util.toTokens
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -37,6 +39,7 @@ class DocumentSnrmService(
     private val elasticsearchIndexFootprintFinder: ElasticsearchIndexFootprintFinder,
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
+    private val stopWordRemover: StopWordRemover,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val standProperties: StandProperties,
 ) : DocumentService {
@@ -49,10 +52,6 @@ class DocumentSnrmService(
             .onSuccess { log.info("SNRM model is loaded") }
             .onFailure { log.error("Could not load SNRM model", it) }
             .getOrThrow()
-    }
-    private val stopwords by lazy {
-        val basePath = standProperties.app.basePath
-        Files.lines(Paths.get("$basePath/data/stopwords.txt")).toList().toSet()
     }
     private val termToId by lazy {
         mutableMapOf("UNKNOWN" to 0).also {
@@ -185,15 +184,11 @@ class DocumentSnrmService(
         val sess = model.session()
 
         // tokenization
-        val tokens: List<List<String>> = contents.map {
-            stanfordCoreNlp.processToCoreDocument(it)
-                .tokens()
-                .map { it.lemma().lowercase() }
-        }
+        val tokensList: List<List<String>> = contents.map { it.toTokens(stanfordCoreNlp) }
 
         // form term id list
-        val termIds: List<MutableList<Int>> = tokens.map {
-            val temp = it.filter { !stopwords.contains(it) }
+        val termIds: List<MutableList<Int>> = tokensList.map { tokens ->
+            val temp = stopWordRemover.preprocess(tokens)
                 .map { if (termToId.containsKey(it)) termToId[it]!! else termToId["UNKNOWN"]!! }
                 .toMutableList()
             // fill until max doc length or trim for it

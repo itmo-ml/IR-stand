@@ -54,13 +54,7 @@ open class StopWordRemoverBenchmark {
     @Benchmark
     fun removeManually(): List<String> {
         val allWords = data.split(" ").toMutableList()
-        val result = mutableListOf<String>()
-        for (word in allWords) {
-            if (!stopWords.contains(word)) {
-                result.add(word)
-            }
-        }
-        return result
+        return allWords.filter { !stopWords.contains(it) }
     }
 
     @Benchmark
