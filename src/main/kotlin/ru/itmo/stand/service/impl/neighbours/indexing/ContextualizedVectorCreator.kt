@@ -2,7 +2,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.stereotype.Service
-import ru.itmo.stand.service.impl.neighbours.EmbeddingCalculator
+import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.storage.mongodb.model.neighbours.ContextualizedVector
@@ -10,8 +10,8 @@ import ru.itmo.stand.storage.mongodb.model.neighbours.ContextualizedVector
 @Service
 class ContextualizedVectorCreator(
     private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
+    private val bertEmbeddingCalculator: BertEmbeddingCalculator,
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
-    private val embeddingCalculator: EmbeddingCalculator,
 ) {
 
     fun create(documents: Collection<Document>) {
@@ -21,15 +21,16 @@ class ContextualizedVectorCreator(
     }
 
     fun create(document: Document) {
-        preprocessingPipelineExecutor.execute(document.content).forEach { window ->
-            val embedding = embeddingCalculator.calculate(window)
-            reactiveMongoTemplate.insert(
-                ContextualizedVector(
-                    token = window.middleToken,
-                    documentId = document.id,
-                    vector = embedding
-                )
-            ).subscribe()
+        val windows = preprocessingPipelineExecutor.execute(document.content)
+        val embeddingByMiddleTokenPairs = bertEmbeddingCalculator.calculate(windows.map { it.convertContentToString() })
+            .zip(windows) { embedding, window -> Pair(window.middleToken, embedding) }
+        val vectors = embeddingByMiddleTokenPairs.map { (middleToken, embedding) ->
+            ContextualizedVector(
+                token = middleToken,
+                documentId = document.id,
+                vector = embedding,
+            )
         }
+        reactiveMongoTemplate.insert(vectors, ContextualizedVector::class.java).subscribe()
     }
 }
