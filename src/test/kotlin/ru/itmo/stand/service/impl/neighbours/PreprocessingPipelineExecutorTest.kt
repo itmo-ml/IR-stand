@@ -1,24 +1,13 @@
 package ru.itmo.stand.service.impl.neighbours
 
-import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import ru.itmo.stand.config.NlpConfig.Companion.ANNOTATORS
-import ru.itmo.stand.fixtures.standProperties
-import ru.itmo.stand.service.preprocessing.ContextSplitter
-import ru.itmo.stand.service.preprocessing.StopWordRemover
-import ru.itmo.stand.service.preprocessing.Tokenizer
+import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
 import ru.itmo.stand.util.Window
-import java.util.Properties
 
 class PreprocessingPipelineExecutorTest {
 
-    private val preprocessingPipelineExecutor = PreprocessingPipelineExecutor(
-        standProperties(),
-        ContextSplitter(),
-        StopWordRemover(),
-        Tokenizer(StanfordCoreNLP(Properties().apply { setProperty("annotators", ANNOTATORS) }))
-    )
+    private val preprocessingPipelineExecutor = preprocessingPipelineExecutor()
 
     @Test
     fun `should convert to lemmas, remove stop words and convert to windows`() {
