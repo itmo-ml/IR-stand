@@ -6,13 +6,16 @@ import ru.itmo.stand.fixtures.standProperties
 
 class BertEmbeddingCalculatorTest {
 
-    private val embeddingCalculator = BertEmbeddingCalculator(BertModelLoader(standProperties(), BertTranslator()))
+    private val embeddingCalculator = BertEmbeddingCalculator(
+        BertModelLoader(DefaultBertTranslator(), standProperties()),
+        BertTranslator(),
+    )
 
     @Test
     fun `should return same result for batch mode`() {
-        val content1 = "test 1"
-        val content2 = "test 2"
-        val content3 = "test 3"
+        val content1 = listOf("test", "1")
+        val content2 = listOf("test", "2")
+        val content3 = listOf("test", "3")
         val vector1 = embeddingCalculator.calculate(content1)
         val vector2 = embeddingCalculator.calculate(content2)
         val vector3 = embeddingCalculator.calculate(content3)

@@ -47,7 +47,7 @@ abstract class BaseBertService(
         MVStore.open(invertedIndexPath)
     }
     protected val predictor: Predictor<String, FloatArray> by lazy {
-        bertModelLoader.load().newPredictor(translator)
+        bertModelLoader.defaultModel().newPredictor(translator)
     }
     protected lateinit var invertedIndex: InvertedIndexType
 
