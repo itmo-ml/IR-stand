@@ -30,9 +30,12 @@ dependencies {
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.1")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
-    implementation("ai.djl:api:0.19.0")
-    implementation("ai.djl.pytorch:pytorch-engine:0.19.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
+
+    // djl
+    implementation(platform("ai.djl:bom:${findProperty("djlVersion")}"))
+    implementation("ai.djl:api")
+    implementation("ai.djl.pytorch:pytorch-engine")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -52,5 +55,9 @@ tasks.withType<Test> {
 }
 
 jmh {
+    includes.set(listOf(".*")) // include pattern (regular expression) for benchmarks to be executed
+    warmupIterations.set(2) // Number of warmup iterations to do.
+    iterations.set(2) // Number of measurement iterations to do.
+    fork.set(2) // How many times to forks a single benchmark. Use 0 to disable forking altogether
     zip64.set(true) // is used for big archives (more than 65535 entries)
 }
