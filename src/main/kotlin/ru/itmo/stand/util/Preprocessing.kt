@@ -55,4 +55,6 @@ fun List<String>.createWindows(size: Int): List<Window> {
 data class Window internal constructor(
     val middleToken: String = "UNKNOWN",
     val content: List<String>,
-)
+) {
+    fun convertContentToString() = content.joinToString(" ")
+}

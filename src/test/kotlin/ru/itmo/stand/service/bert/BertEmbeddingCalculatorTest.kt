@@ -8,22 +8,19 @@ class BertEmbeddingCalculatorTest {
 
     private val embeddingCalculator = BertEmbeddingCalculator(
         BertModelLoader(DefaultBertTranslator(), standProperties()),
-        BertTranslator(),
     )
 
     @Test
     fun `should return same result for batch mode`() {
-        val content1 = listOf("test", "1")
-        val content2 = listOf("test", "2")
-        val content3 = listOf("test", "3")
+        val content1 = "test 1"
+        val content2 = "test 2 3"
+        val content3 = "test 3 4 5"
         val vector1 = embeddingCalculator.calculate(content1)
         val vector2 = embeddingCalculator.calculate(content2)
         val vector3 = embeddingCalculator.calculate(content3)
 
-        val embeddingsBatch = embeddingCalculator.calculate(listOf(content1, content2, content3))
+        val embeddingsBatch = embeddingCalculator.calculate(arrayOf(content1, content2, content3))
 
-        assertThat(embeddingsBatch)
-            .usingRecursiveComparison()
-            .isEqualTo(listOf(vector1, vector2, vector3))
+        assertThat(embeddingsBatch).isEqualTo(arrayOf(vector1, vector2, vector3))
     }
 }

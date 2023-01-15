@@ -1,6 +1,7 @@
 package ru.itmo.stand.service.bert
 
 import ai.djl.Application
+import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
 import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
@@ -14,7 +15,7 @@ class BertModelLoader(
     val standProperties: StandProperties,
 ) {
 
-    private val defaultModel: ZooModel<String, FloatArray> by lazy {
+    private val deprecatedModel: ZooModel<String, FloatArray> by lazy {
         val basePath = standProperties.app.basePath
         Criteria.builder()
             .optApplication(Application.NLP.TEXT_EMBEDDING)
@@ -26,7 +27,22 @@ class BertModelLoader(
             .loadModel()
     }
 
-    fun defaultModel(): ZooModel<String, FloatArray> = defaultModel
+    @Deprecated("Loading from a file is not preferred. Also this method does not support padding batching")
+    fun deprecatedModel(): ZooModel<String, FloatArray> = deprecatedModel
+
+    private val defaultModel by lazy {
+        Criteria.builder()
+            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
+            .optEngine("PyTorch")
+            .optArgument("padding", "true")
+            .optArgument("normalize", "false")
+            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .build()
+            .loadModel()
+    }
+
+    fun defaultModel(): ZooModel<Array<String>, Array<FloatArray>> = defaultModel
 
     final inline fun <reified I, reified O> loadModel(translator: Translator<I, O>): ZooModel<I, O> =
         Criteria.builder()
