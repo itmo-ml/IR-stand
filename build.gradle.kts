@@ -15,6 +15,7 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") } // djl nightly snapshots
 }
 
 dependencies {
@@ -36,6 +37,7 @@ dependencies {
     implementation(platform("ai.djl:bom:${findProperty("djlVersion")}"))
     implementation("ai.djl:api")
     implementation("ai.djl.pytorch:pytorch-engine")
+    implementation("ai.djl.huggingface:tokenizers")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

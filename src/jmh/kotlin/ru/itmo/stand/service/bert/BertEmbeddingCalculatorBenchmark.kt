@@ -1,5 +1,8 @@
 package ru.itmo.stand.service.bert
 
+import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
+import ai.djl.repository.zoo.Criteria
+import ai.djl.repository.zoo.ZooModel
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
@@ -24,6 +27,18 @@ open class BertEmbeddingCalculatorBenchmark {
         "blood vessels and glands.")
         .let { preprocessingPipelineExecutor().execute(it) }
         .map { it.content }
+    private inline fun <reified I, reified O> loadModel(): ZooModel<I, O> =
+        Criteria.builder()
+            .setTypes(I::class.java, O::class.java)
+            .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
+            .optEngine("PyTorch")
+            .optArgument("padding", "true")
+            .optArgument("normalize", "false")
+            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .build()
+            .loadModel()
+
+    private val huggingfacePredictor = loadModel<Array<String>, Array<FloatArray>>().newPredictor()
 
     @Benchmark
     fun calculateOneByOne(): List<FloatArray> {
@@ -53,5 +68,10 @@ open class BertEmbeddingCalculatorBenchmark {
             result += predictor.batchPredict(batch)
         }
         return result
+    }
+
+    @Benchmark
+    fun calculateInPaddingBatch(): Array<FloatArray> {
+        return huggingfacePredictor.predict(contents.map { it.joinToString(" ") }.toTypedArray())
     }
 }
