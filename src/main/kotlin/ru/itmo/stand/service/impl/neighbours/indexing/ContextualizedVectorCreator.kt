@@ -23,9 +23,9 @@ class ContextualizedVectorCreator(
 
     fun create(document: Document) {
         val windows = preprocessingPipelineExecutor.execute(document.content)
-        val embeddingByMiddleTokenPairs =
-            bertEmbeddingCalculator.calculate(windows.map { it.convertContentToString() }.toTypedArray())
-                .zip(windows) { embedding, window -> Pair(window.middleToken, embedding) }
+        val contents = windows.map { it.convertContentToString() }.toTypedArray()
+        val embeddingByMiddleTokenPairs = bertEmbeddingCalculator.calculate(contents)
+            .zip(windows) { embedding, window -> window.middleToken to embedding }
         val vectors = embeddingByMiddleTokenPairs.map { (middleToken, embedding) ->
             ContextualizedVector(
                 token = middleToken,
