@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
+import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.insert
 import org.springframework.stereotype.Service
@@ -15,8 +16,11 @@ class ContextualizedVectorCreator(
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
 ) {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun create(documents: Collection<Document>) {
-        for (document in documents) {
+        for ((index, document) in documents.withIndex()) {
+            if (index % 1000 == 0) log.info("Vectors created: {}", index)
             create(document)
         }
     }
