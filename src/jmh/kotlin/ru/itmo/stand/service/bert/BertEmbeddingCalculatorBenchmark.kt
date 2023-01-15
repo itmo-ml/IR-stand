@@ -8,14 +8,14 @@ import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
 import org.openjdk.jmh.annotations.Scope
 import org.openjdk.jmh.annotations.State
+import ru.itmo.stand.fixtures.bertModelLoader
 import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
-import ru.itmo.stand.fixtures.standProperties
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 open class BertEmbeddingCalculatorBenchmark {
 
-    private val bertModelLoader = BertModelLoader(DefaultBertTranslator(), standProperties())
+    private val bertModelLoader = bertModelLoader()
     private val predictor = bertModelLoader.loadModel(BertTranslator()).newPredictor()
     private val contents = ("Definition of Central nervous system (CNS) Central nervous system (CNS): " +
         "The central nervous system is that part of the nervous system that consists " +

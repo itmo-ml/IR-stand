@@ -1,6 +1,7 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.insert
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
@@ -32,6 +33,6 @@ class ContextualizedVectorCreator(
                 vector = embedding,
             )
         }
-        reactiveMongoTemplate.insert(vectors, ContextualizedVector::class.java).subscribe()
+        reactiveMongoTemplate.insert<ContextualizedVector>(vectors).subscribe()
     }
 }
