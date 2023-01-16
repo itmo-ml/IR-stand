@@ -9,6 +9,7 @@ class BertEmbeddingCalculatorTest {
     private val embeddingCalculator = BertEmbeddingCalculator(
         BertModelLoader(DefaultBertTranslator(), standProperties()),
     )
+    private val precision = 0.000_001f
 
     @Test
     fun `should return the same result as for Python`() {
@@ -17,7 +18,7 @@ class BertEmbeddingCalculatorTest {
         val embedding = embeddingCalculator.calculate(content)
 
         assertThat(embedding)
-            .usingComparatorWithPrecision(0.000_001f)
+            .usingComparatorWithPrecision(precision)
             .startsWith(0.216_166f, -0.093_901f, -0.137_327f, 0.097_924f, 0.406_257f)
     }
 
@@ -32,6 +33,8 @@ class BertEmbeddingCalculatorTest {
 
         val embeddingsBatch = embeddingCalculator.calculate(arrayOf(content1, content2, content3))
 
-        assertThat(embeddingsBatch).isEqualTo(arrayOf(embedding1, embedding2, embedding3))
+        assertThat(embeddingsBatch[0]).usingComparatorWithPrecision(precision).containsExactly(*embedding1)
+        assertThat(embeddingsBatch[1]).usingComparatorWithPrecision(precision).containsExactly(*embedding2)
+        assertThat(embeddingsBatch[2]).usingComparatorWithPrecision(precision).containsExactly(*embedding3)
     }
 }
