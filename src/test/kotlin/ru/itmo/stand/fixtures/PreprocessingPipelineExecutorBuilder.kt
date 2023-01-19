@@ -8,5 +8,6 @@ fun preprocessingPipelineExecutor(): PreprocessingPipelineExecutor = Preprocessi
     standProperties(),
     ContextSplitter(),
     StopWordRemover(),
+    textCleaner(),
     tokenizer(),
 )

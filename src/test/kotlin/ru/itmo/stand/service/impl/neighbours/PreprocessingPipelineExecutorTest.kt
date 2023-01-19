@@ -11,7 +11,7 @@ class PreprocessingPipelineExecutorTest {
 
     @Test
     fun `should convert to lemmas, remove stop words and convert to windows`() {
-        val result = preprocessingPipelineExecutor.execute("The quick brown fox jumps over the lazy dog")
+        val result = preprocessingPipelineExecutor.execute("The quick brown fox .jumps ,over ^the :lazy #dog!!!")
 
         assertEquals(
             listOf(
