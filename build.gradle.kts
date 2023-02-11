@@ -25,13 +25,14 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-
+    implementation("com.github.haifengl:smile-core:3.0.0")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.1")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
+
+    implementation("com.github.haifengl:smile-kotlin:3.0.0")
 
     // djl
     implementation(platform("ai.djl:bom:${findProperty("djlVersion")}"))

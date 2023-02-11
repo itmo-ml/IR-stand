@@ -7,7 +7,7 @@ class BertEmbeddingCalculator(private val bertModelLoader: BertModelLoader) {
 
     private val predictor by lazy { bertModelLoader.defaultModel().newPredictor() }
 
-    fun calculate(content: String): FloatArray = predictor.predict(arrayOf(content)).first()
+    fun calculate(content: String): DoubleArray = predictor.predict(arrayOf(content)).first()
 
-    fun calculate(contents: Array<String>): Array<FloatArray> = predictor.predict(contents)
+    fun calculate(contents: Array<String>): Array<DoubleArray> = predictor.predict(contents)
 }

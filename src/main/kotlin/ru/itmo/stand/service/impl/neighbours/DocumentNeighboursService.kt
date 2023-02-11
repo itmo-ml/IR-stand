@@ -3,16 +3,19 @@ package ru.itmo.stand.service.impl.neighbours
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
+import smile.clustering.XMeans
 import java.io.File
 
 @Service
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
-    private val luceneService: LuceneService
+    private val luceneService: LuceneService,
+    private val embeddingCalculator: BertEmbeddingCalculator
 ) : DocumentService {
     override val method: Method
         get() = Method.NEIGHBOURS
@@ -35,12 +38,24 @@ class DocumentNeighboursService(
 
         windowedTokenCreator.create(contents.map { extractId(it) })
 
+        val clusterSizes = mutableListOf<Int>()
         luceneService.iterateTokens().forEach {
-            println(it.first)
-            println(it.second.size)
-            println(it.second[0])
+            val embeddings = embeddingCalculator.calculate(
+                it.second.map { it.window }.toTypedArray()
+            )
+
+            val clusterModel = XMeans.fit(embeddings, 16)
+
+            //Already got centroids, cool
+            val centroids = clusterModel.centroids;
+
+            clusterSizes.add(clusterModel.k)
         }
-        TODO("Not yet implemented")
+
+        val meanClusters = clusterSizes.average()
+        println("average cluster size is $meanClusters")
+
+        return emptyList()
     }
 
     override fun getFootprint(): String {
