@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
+import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
 import java.io.File
@@ -11,6 +12,7 @@ import java.io.File
 @Service
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
+    private val luceneService: LuceneService
 ) : DocumentService {
     override val method: Method
         get() = Method.NEIGHBOURS
@@ -29,7 +31,15 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+        luceneService.clearIndex()
+
         windowedTokenCreator.create(contents.map { extractId(it) })
+
+        luceneService.iterateTokens().forEach {
+            println(it.first)
+            println(it.second.size)
+            println(it.second[0])
+        }
         TODO("Not yet implemented")
     }
 

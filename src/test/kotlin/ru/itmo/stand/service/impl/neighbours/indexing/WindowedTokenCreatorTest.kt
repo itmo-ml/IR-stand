@@ -12,7 +12,7 @@ import reactor.core.Disposable
 import reactor.core.publisher.Flux
 import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.storage.mongodb.model.neighbours.WindowedToken
+import ru.itmo.stand.service.lucene.WindowedToken
 
 class WindowedTokenCreatorTest {
 

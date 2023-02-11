@@ -1,17 +1,17 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.insert
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
+import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.storage.mongodb.model.neighbours.WindowedToken
+import ru.itmo.stand.service.lucene.WindowedToken
 
 @Service
 class WindowedTokenCreator(
     private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
-    private val reactiveMongoTemplate: ReactiveMongoTemplate,
+    private val luceneService: LuceneService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -21,6 +21,7 @@ class WindowedTokenCreator(
             if (index % 1000 == 0) log.info("Vectors created: {}", index)
             create(document)
         }
+        luceneService.completeIndexing()
     }
 
     fun create(document: Document) {
@@ -32,6 +33,6 @@ class WindowedTokenCreator(
                 window = it.convertContentToString(),
             )
         }
-        reactiveMongoTemplate.insert<WindowedToken>(windowedTokens).subscribe()
+        luceneService.saveInBatch(windowedTokens)
     }
 }
