@@ -44,14 +44,15 @@ class LuceneService (
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-        documents.forEach() {
+        val docs = documents.map() {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
             doc.add(TextField(CONTENT, it.content, Field.Store.YES))
             doc.add(StoredField(DOC_ID, it.documentId))
-
-            writer.addDocument(doc)
+            doc
         }
+
+        writer.addDocuments(docs)
 
     }
 
@@ -61,9 +62,10 @@ class LuceneService (
         val grouping = createGrouping()
         var offset = 0
         return sequence {
+            val searcher = IndexSearcher(DirectoryReader.open(indexDir))
             do {
                 val searchResult: TopGroups<BytesRef> = grouping
-                    .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
+                    .search(searcher, MatchAllDocsQuery(), 0, 100)
 
                 val yieldResult = searchResult.groups.map {
                     val key = it.groupValue.utf8ToString()
@@ -111,7 +113,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 100
+        const val GROUPING_LIMIT = 5
 
     }
 }
