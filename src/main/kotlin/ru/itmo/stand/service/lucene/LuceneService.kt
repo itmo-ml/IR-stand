@@ -46,23 +46,26 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-        documents.forEach() {
+        val docs = documents.map() {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
             doc.add(TextField(CONTENT, it.content, Field.Store.YES))
             doc.add(StoredField(DOC_ID, it.documentId))
-
-            writer.addDocument(doc)
+            doc
         }
+
+        writer.addDocuments(docs)
+
     }
 
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
         val searcher = IndexSearcher(DirectoryReader.open(indexDir))
         var offset = 0
         return sequence {
+            val searcher = IndexSearcher(DirectoryReader.open(indexDir))
             do {
-                val searchResult: TopGroups<BytesRef> = createGrouping()
-                    .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
+                val searchResult: TopGroups<BytesRef> = grouping
+                    .search(searcher, MatchAllDocsQuery(), 0, 100)
 
                 val yieldResult = searchResult.groups.map {
                     val key = it.groupValue.utf8ToString()
@@ -110,6 +113,7 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 50
+        const val GROUPING_LIMIT = 5
+
     }
 }
