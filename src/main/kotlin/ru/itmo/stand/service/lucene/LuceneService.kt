@@ -42,15 +42,6 @@ class LuceneService (
 
     private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
 
-
-
-    companion object {
-        const val TOKEN_FIELD= "token"
-        const val WINDOW_FIELD = "window"
-        const val DOC_FIELD = "docId"
-        const val GROUP_LIMIT = 2_000_000
-    }
-
     fun save(w: WindowedToken) {
         saveInBatch(listOf(w))
     }
@@ -71,16 +62,12 @@ class LuceneService (
 
     fun iterateTokens(): Sequence<Pair<String, List<WindowedToken>>> {
 
-        var groupping = createGrouping()
-        
-        //TODO MOVE TO CONFIG ???
-        var offset = 0;
-        var limit = 50;
-
+        val grouping = createGrouping()
+        var offset = 0
         return sequence {
             do {
-                val searchResult: TopGroups<BytesRef> = groupping
-                    .search(searcher, MatchAllDocsQuery(), offset, limit)
+                val searchResult: TopGroups<BytesRef> = grouping
+                    .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
                 val yieldResult = searchResult.groups.map {
                     val token = it.groupValue.utf8ToString()
@@ -93,9 +80,9 @@ class LuceneService (
                     token to windows
                 }
                 yieldAll(yieldResult)
-                offset += searchResult.totalHitCount
+                offset += GROUPING_LIMIT
 
-            } while(searchResult.totalHitCount > 0)
+            } while(searchResult.groups.isNotEmpty())
         }
     }
 
@@ -121,5 +108,14 @@ class LuceneService (
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
         return groupingSearch
+    }
+
+    companion object {
+        const val TOKEN_FIELD= "token"
+        const val WINDOW_FIELD = "window"
+        const val DOC_FIELD = "docId"
+        const val GROUP_LIMIT = 2_000_000
+        const val GROUPING_LIMIT = 100
+
     }
 }

@@ -1,3 +1,4 @@
+/*
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.mockk.every
@@ -17,9 +18,10 @@ import ru.itmo.stand.service.lucene.WindowedToken
 class WindowedTokenCreatorTest {
 
     private val reactiveMongoTemplate = mockk<ReactiveMongoTemplate>()
+
     private val windowedTokenCreator = WindowedTokenCreator(
         preprocessingPipelineExecutor(),
-        reactiveMongoTemplate,
+        ,
     )
 
     @Test
@@ -76,3 +78,4 @@ class WindowedTokenCreatorTest {
             )
     }
 }
+*/

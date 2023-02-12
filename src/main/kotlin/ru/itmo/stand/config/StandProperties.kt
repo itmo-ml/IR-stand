@@ -26,6 +26,4 @@ data class StandProperties(
     data class NeighboursAlgorithm(
         val tokenBatchSize: Int,
     )
-
-
 }

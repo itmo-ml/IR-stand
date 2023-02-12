@@ -32,7 +32,7 @@ class BertModelLoader(
 
     private val defaultModel by lazy {
         Criteria.builder()
-            .setTypes(Array<String>::class.java, Array<DoubleArray>::class.java)
+            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
             .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
             .optEngine("PyTorch")
             .optArgument("padding", "true")
@@ -42,7 +42,7 @@ class BertModelLoader(
             .loadModel()
     }
 
-    fun defaultModel(): ZooModel<Array<String>, Array<DoubleArray>> = defaultModel
+    fun defaultModel(): ZooModel<Array<String>, Array<FloatArray>> = defaultModel
 
     final inline fun <reified I, reified O> loadModel(translator: Translator<I, O>): ZooModel<I, O> =
         Criteria.builder()
