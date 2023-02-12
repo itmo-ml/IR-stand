@@ -8,6 +8,7 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
+import ru.itmo.stand.util.toDoubleArray
 import smile.clustering.XMeans
 import java.io.File
 
@@ -44,7 +45,7 @@ class DocumentNeighboursService(
                 it.second.map { it.window }.toTypedArray()
             )
 
-            val clusterModel = XMeans.fit(embeddings, 16)
+            val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
 
             //Already got centroids, cool
             val centroids = clusterModel.centroids;
