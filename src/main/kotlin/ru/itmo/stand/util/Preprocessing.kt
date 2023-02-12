@@ -31,24 +31,30 @@ fun String.toSubWords(): List<String> {
  * should return slices where each slice with len = m
  * and each token appear in the middle of the window.
  */
-fun <T> List<T>.createContexts(size: Int): List<List<T>> {
+fun List<String>.createWindows(size: Int): List<Window> {
     require(size % 2 != 0) { "Size value should be odd" }
     require(size > 0) { "Size value should be greater than zero" }
-    require(size <= this.size) { "Size value cannot be greater than List size" }
-    val sideTokensCount = (size - 1) / 2;
+    val sideTokensCount = (size - 1) / 2
     val partialWindowSize = sideTokensCount + 1
     if (this.size <= sideTokensCount + 1) {
-        return arrayListOf(this)
+        return arrayListOf(Window(content = this))
     }
-    val result = ArrayList<List<T>>()
+    val result = mutableListOf<Window>()
     for (index in 0 until sideTokensCount) {
-        result.add(this.subList(0, partialWindowSize + index))
+        result.add(Window(this[index], this.subList(0, partialWindowSize + index)))
     }
     for (index in sideTokensCount until this.size - sideTokensCount) {
-        result.add(this.subList(index - sideTokensCount, index + sideTokensCount + 1))
+        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1)))
     }
     for (index in this.size - size + 1 until this.size - sideTokensCount) {
-        result.add(this.subList(index, this.size))
+        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size)))
     }
     return result
+}
+
+data class Window internal constructor(
+    val middleToken: String = "UNKNOWN",
+    val content: List<String>,
+) {
+    fun convertContentToString() = content.joinToString(" ")
 }

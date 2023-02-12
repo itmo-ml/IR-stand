@@ -18,15 +18,17 @@ import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.content.model.ContentSnrm
-import ru.itmo.stand.content.repository.ContentSnrmRepository
-import ru.itmo.stand.index.model.DocumentSnrm
-import ru.itmo.stand.index.repository.DocumentSnrmRepository
+import ru.itmo.stand.storage.mongodb.model.ContentSnrm
+import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
+import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
+import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.Format
+import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.service.preprocessing.StopWordRemover
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx
+import ru.itmo.stand.util.toTokens
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -37,6 +39,7 @@ class DocumentSnrmService(
     private val elasticsearchIndexFootprintFinder: ElasticsearchIndexFootprintFinder,
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
+    private val stopWordRemover: StopWordRemover,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val standProperties: StandProperties,
 ) : DocumentService {
@@ -50,10 +53,6 @@ class DocumentSnrmService(
             .onFailure { log.error("Could not load SNRM model", it) }
             .getOrThrow()
     }
-    private val stopwords by lazy {
-        val basePath = standProperties.app.basePath
-        Files.lines(Paths.get("$basePath/data/stopwords.txt")).toList().toSet()
-    }
     private val termToId by lazy {
         mutableMapOf("UNKNOWN" to 0).also {
             var id = 1
@@ -64,7 +63,7 @@ class DocumentSnrmService(
     override val method: Method
         get() = Method.SNRM
 
-    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
+    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id).block()?.content
 
     override fun search(queries: File, format: Format): List<String> {
         val queryVector = preprocess(listOf(queries.readLines().single()), PreprocessingType.QUERY)[0]
@@ -114,13 +113,14 @@ class DocumentSnrmService(
     }
 
     override fun save(content: String, withId: Boolean): String {
-        val (externalId, passage) = extractId(content, withId)
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
+        val (externalId, passage) = extractId(content)
         val documentVector = preprocess(listOf(passage), PreprocessingType.DOCUMENT)[0]
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(documentVector)
 
         val documentSnrm = documentSnrmRepository.save(
             DocumentSnrm(
-                externalId = externalId,
+                externalId = externalId.toLong(),
                 representation = latentTerms,
                 weights = weights,
             )
@@ -131,13 +131,14 @@ class DocumentSnrmService(
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+        if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         log.info("Total size: ${contents.size}")
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {
-                val idsAndDocuments = chunk.map { extractId(it, withId) }
-                val ids = idsAndDocuments.map { it.first }
-                val documents = idsAndDocuments.map { it.second }
+                val idsAndDocuments = chunk.map { extractId(it) }
+                val ids = idsAndDocuments.map { it.id }
+                val documents = idsAndDocuments.map { it.content }
                 val documentVectors = preprocess(documents, PreprocessingType.DOCUMENT)
                 val latentTermsAndWeightsPairs = documentVectors.map { retrieveLatentTermsAndWeights(it) }
 
@@ -145,7 +146,7 @@ class DocumentSnrmService(
                     val latentTermsAndWeightsPair = latentTermsAndWeightsPairs[idx]
                     Pair(
                         DocumentSnrm(
-                            externalId = ids[idx],
+                            externalId = ids[idx].toLong(),
                             representation = latentTermsAndWeightsPair.first,
                             weights = latentTermsAndWeightsPair.second,
                         ),
@@ -183,15 +184,11 @@ class DocumentSnrmService(
         val sess = model.session()
 
         // tokenization
-        val tokens: List<List<String>> = contents.map {
-            stanfordCoreNlp.processToCoreDocument(it)
-                .tokens()
-                .map { it.lemma().lowercase() }
-        }
+        val tokensList: List<List<String>> = contents.map { it.toTokens(stanfordCoreNlp) }
 
         // form term id list
-        val termIds: List<MutableList<Int>> = tokens.map {
-            val temp = it.filter { !stopwords.contains(it) }
+        val termIds: List<MutableList<Int>> = tokensList.map { tokens ->
+            val temp = stopWordRemover.preprocess(tokens)
                 .map { if (termToId.containsKey(it)) termToId[it]!! else termToId["UNKNOWN"]!! }
                 .toMutableList()
             // fill until max doc length or trim for it

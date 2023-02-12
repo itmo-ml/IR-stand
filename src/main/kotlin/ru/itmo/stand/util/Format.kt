@@ -9,3 +9,11 @@ fun Long.formatBytesToReadable(locale: Locale = Locale.getDefault()): String = w
         String.format(locale, "%.1f %siB", this.toDouble() / (1L shl z * 10), " KMGTPE"[z])
     }
 }
+
+fun formatMrr(queryId: Int, docId: String, rank: Int): String = buildString {
+    append(queryId)
+    append("\t\t")
+    append(docId)
+    append("\t")
+    append(rank)
+}

@@ -87,3 +87,7 @@ nb-configuration.xml
 ## Other
 ##############################
 tools/.ipynb_checkpoints/
+indexes/
+collections/
+outputs/
+models/

@@ -1,11 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.1"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.spring") version "1.7.10"
-    kotlin("kapt") version "1.7.10"
+    id("org.springframework.boot") version "2.7.6"
+    id("io.spring.dependency-management") version "1.1.0"
+    kotlin("jvm") version "1.7.21"
+    kotlin("plugin.spring") version "1.7.21"
+    kotlin("kapt") version "1.7.21"
+    id("me.champeau.jmh") version "0.6.8"
 }
 
 group = "ru.itmo"
@@ -14,29 +15,36 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") } // djl nightly snapshots
 }
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework:spring-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("com.github.haifengl:smile-core:3.0.0")
+    implementation("com.github.haifengl:smile-kotlin:3.0.0")
+    implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
-    implementation("info.picocli:picocli-spring-boot-starter:4.6.3")
-
-    implementation("edu.stanford.nlp:stanford-corenlp:4.4.0")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.4.0:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
-    implementation("ai.djl:api:0.19.0")
-    implementation("ai.djl.pytorch:pytorch-engine:0.19.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
+
+    // djl
+    implementation(platform("ai.djl:bom:${findProperty("djlVersion")}"))
+    implementation("ai.djl:api")
+    implementation("ai.djl.pytorch:pytorch-engine")
+    implementation("ai.djl.huggingface:tokenizers")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.mockk:mockk:${findProperty("mockkVersion")}")
 }
 
 tasks.withType<KotlinCompile> {
@@ -48,4 +56,12 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+jmh {
+    includes.set(listOf(".*")) // include pattern (regular expression) for benchmarks to be executed
+    warmupIterations.set(2) // Number of warmup iterations to do.
+    iterations.set(2) // Number of measurement iterations to do.
+    fork.set(2) // How many times to forks a single benchmark. Use 0 to disable forking altogether
+    zip64.set(true) // is used for big archives (more than 65535 entries)
 }

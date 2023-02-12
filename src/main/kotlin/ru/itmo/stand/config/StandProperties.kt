@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(value = "stand")
 data class StandProperties(
     val elasticsearch: ElasticsearchProperties,
-    val app: ApplicationProperties,
+    val app: ApplicationProperties
 ) {
     data class ElasticsearchProperties(
         val hostAndPort: String,
@@ -15,11 +15,15 @@ data class StandProperties(
 
     data class ApplicationProperties(
         val basePath: String,
-
-        val bertMultiToken: BertMultiToken
+        val bertMultiToken: BertMultiToken,
+        val neighboursAlgorithm: NeighboursAlgorithm,
     )
 
     data class BertMultiToken(
-        val tokenBatchSize: Int
+        val tokenBatchSize: Int,
+    )
+
+    data class NeighboursAlgorithm(
+        val tokenBatchSize: Int,
     )
 }

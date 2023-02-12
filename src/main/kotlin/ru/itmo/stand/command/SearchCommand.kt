@@ -6,8 +6,8 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.Format
-import ru.itmo.stand.service.Format.JUST_QUERY
+import ru.itmo.stand.service.model.Format
+import ru.itmo.stand.service.model.Format.JUST_QUERY
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
 

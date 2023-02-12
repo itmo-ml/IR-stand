@@ -4,17 +4,18 @@ spring:
     banner-mode: off
     lazy-initialization: true
   data.mongodb:
-    database: document
+    database: ir-stand
     auto-index-creation: true
 
 logging.level:
-  root: error
+  root: warn
   ru.itmo: info
 
 stand:
   elasticsearch.host-and-port: localhost:9200
   app:
     base-path: "."
-
+    neighbours-algorithm:
+      token-batch-size: 5
     bert-multi-token:
       token-batch-size: 5

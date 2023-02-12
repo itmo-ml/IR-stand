@@ -5,10 +5,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.service.bert.BertNspTranslator
+import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.TOKEN_SEPARATOR
-import ru.itmo.stand.util.createContexts
+import ru.itmo.stand.util.createWindows
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.toTokens
 
@@ -29,10 +29,10 @@ class DocumentBertMultiTokenService(
 
         val tokens = preprocess(passage);
 
-        val scores = tokens.createContexts(standProperties.app.bertMultiToken.tokenBatchSize).flatMap { window ->
-            val modelInput = concatNsp(window.joinToString(" "), passage)
+        val scores = tokens.createWindows(standProperties.app.bertMultiToken.tokenBatchSize).flatMap { window ->
+            val modelInput = concatNsp(window.content.joinToString(" "), passage)
             val score = predictor.predict(concatNsp(modelInput, passage))[0]
-            window.map { Pair(it, score) }
+            window.content.map { Pair(it, score) }
         }
             .groupBy { it.first }
             .mapValues { it.value.map { pair -> pair.second }.average().toFloat() }
