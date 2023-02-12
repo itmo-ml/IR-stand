@@ -12,3 +12,12 @@ fun softmax(numbers: FloatArray): FloatArray {
     val sum = numbers.map { exp(it) }.sum()
     return numbers.map { exp(it) / sum }.toFloatArray()
 }
+
+
+fun FloatArray.toDoubleArray(): DoubleArray {
+    return this.map { it.toDouble() }.toDoubleArray()
+}
+
+fun Array<FloatArray>.toDoubleArray(): Array<DoubleArray> {
+    return this.map { it.toDoubleArray() }.toTypedArray()
+}

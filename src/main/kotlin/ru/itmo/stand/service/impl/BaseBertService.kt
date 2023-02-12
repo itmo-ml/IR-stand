@@ -17,8 +17,8 @@ import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.model.Format.JUST_QUERY
 import ru.itmo.stand.service.model.Format.MS_MARCO
 import ru.itmo.stand.service.bert.BertModelLoader
-import ru.itmo.stand.service.format.formatMrr
 import ru.itmo.stand.util.createPath
+import ru.itmo.stand.util.formatMrr
 import ru.itmo.stand.util.toNgrams
 import java.io.File
 import java.util.Collections

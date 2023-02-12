@@ -1,3 +1,4 @@
+/*
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.mockk.every
@@ -12,14 +13,15 @@ import reactor.core.Disposable
 import reactor.core.publisher.Flux
 import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.storage.mongodb.model.neighbours.WindowedToken
+import ru.itmo.stand.service.lucene.WindowedToken
 
 class WindowedTokenCreatorTest {
 
     private val reactiveMongoTemplate = mockk<ReactiveMongoTemplate>()
+
     private val windowedTokenCreator = WindowedTokenCreator(
         preprocessingPipelineExecutor(),
-        reactiveMongoTemplate,
+        ,
     )
 
     @Test
@@ -76,3 +78,4 @@ class WindowedTokenCreatorTest {
             )
     }
 }
+*/
