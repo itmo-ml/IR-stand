@@ -4,9 +4,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.insert
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
+import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.service.lucene.WindowedToken
 
 @Service
 class WindowedTokenCreator(
@@ -27,10 +27,10 @@ class WindowedTokenCreator(
     fun create(document: Document) {
         val windows = preprocessingPipelineExecutor.execute(document.content)
         val windowedTokens = windows.map {
-            WindowedToken(
-                token = it.middleToken,
+            LuceneDocument(
+                groupKey = it.middleToken,
                 documentId = document.id,
-                window = it.convertContentToString(),
+                content = it.convertContentToString(),
             )
         }
         luceneService.saveInBatch(windowedTokens)
