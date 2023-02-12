@@ -62,10 +62,10 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         val searcher = IndexSearcher(DirectoryReader.open(indexDir))
         var offset = 0
         return sequence {
-            val searcher = IndexSearcher(DirectoryReader.open(indexDir))
+
             do {
-                val searchResult: TopGroups<BytesRef> = grouping
-                    .search(searcher, MatchAllDocsQuery(), 0, 100)
+                val searchResult: TopGroups<BytesRef> = createGrouping()
+                    .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
                 val yieldResult = searchResult.groups.map {
                     val key = it.groupValue.utf8ToString()
