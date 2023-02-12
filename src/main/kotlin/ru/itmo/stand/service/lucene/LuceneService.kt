@@ -33,30 +33,26 @@ class LuceneService (
     private val analyzer = StandardAnalyzer()
     private val indexWriterConfig = IndexWriterConfig(analyzer)
 
-    private val indexDir by lazy {
-        val indexPath = Paths.get("${standProperties.app.basePath}/indexes/lucene")
-        FSDirectory.open(indexPath)
-    }
+    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene"))
 
     private val writer = IndexWriter(indexDir, indexWriterConfig)
 
     private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
 
-    fun save(w: WindowedToken) {
-        saveInBatch(listOf(w))
+    fun save(window: WindowedToken) {
+        saveInBatch(listOf(window))
     }
 
-    fun saveInBatch(w: List<WindowedToken>) {
-        val documents = w.map {
+    fun saveInBatch(windows: List<WindowedToken>) {
+        windows.forEach() {
             val doc = Document()
             doc.add(SortedDocValuesField(TOKEN_FIELD, BytesRef(it.token)))
             doc.add(TextField(WINDOW_FIELD, it.window, Field.Store.YES))
             doc.add(StoredField(DOC_FIELD, it.documentId))
 
-            doc
+            writer.addDocument(doc)
         }
 
-        writer.addDocuments(documents)
     }
 
 

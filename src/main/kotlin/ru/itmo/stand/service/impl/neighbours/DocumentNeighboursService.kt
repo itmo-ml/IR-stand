@@ -35,8 +35,6 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
-        luceneService.clearIndex()
-
         windowedTokenCreator.create(contents.map { extractId(it) })
 
         val clusterSizes = mutableListOf<Int>()
