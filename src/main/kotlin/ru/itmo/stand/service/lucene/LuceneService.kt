@@ -39,16 +39,16 @@ class LuceneService (
 
     private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
 
-    fun save(window: WindowedToken) {
-        saveInBatch(listOf(window))
+    fun save(document: LuceneDocument) {
+        saveInBatch(listOf(document))
     }
 
-    fun saveInBatch(windows: List<WindowedToken>) {
-        windows.forEach() {
+    fun saveInBatch(documents: List<LuceneDocument>) {
+        documents.forEach() {
             val doc = Document()
-            doc.add(SortedDocValuesField(TOKEN_FIELD, BytesRef(it.token)))
-            doc.add(TextField(WINDOW_FIELD, it.window, Field.Store.YES))
-            doc.add(StoredField(DOC_FIELD, it.documentId))
+            doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
+            doc.add(TextField(CONTENT, it.content, Field.Store.YES))
+            doc.add(StoredField(DOC_ID, it.documentId))
 
             writer.addDocument(doc)
         }
@@ -56,7 +56,7 @@ class LuceneService (
     }
 
 
-    fun iterateTokens(): Sequence<Pair<String, List<WindowedToken>>> {
+    fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
 
         val grouping = createGrouping()
         var offset = 0
@@ -66,14 +66,14 @@ class LuceneService (
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
                 val yieldResult = searchResult.groups.map {
-                    val token = it.groupValue.utf8ToString()
-                    val windows = it.scoreDocs.map { doc ->
+                    val key = it.groupValue.utf8ToString()
+                    val documents = it.scoreDocs.map { doc ->
                         val fields = searcher.doc(doc.doc)
-                        val window = fields.get(WINDOW_FIELD)
-                        val docId = fields.get(DOC_FIELD)
-                        WindowedToken(token, docId, window)
+                        val content = fields.get(CONTENT)
+                        val docId = fields.get(DOC_ID)
+                        LuceneDocument(key, docId, content)
                     }
-                    token to windows
+                    key to documents
                 }
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
@@ -99,7 +99,7 @@ class LuceneService (
     }
 
     private fun createGrouping(): GroupingSearch {
-        val groupingSearch = GroupingSearch(TOKEN_FIELD)
+        val groupingSearch = GroupingSearch(GROUPING_KEY)
         groupingSearch.setAllGroups(true)
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
@@ -107,9 +107,9 @@ class LuceneService (
     }
 
     companion object {
-        const val TOKEN_FIELD= "token"
-        const val WINDOW_FIELD = "window"
-        const val DOC_FIELD = "docId"
+        const val GROUPING_KEY= "groupingKey"
+        const val CONTENT = "content"
+        const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
         const val GROUPING_LIMIT = 100
 

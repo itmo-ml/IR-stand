@@ -40,7 +40,7 @@ class DocumentNeighboursService(
         val clusterSizes = mutableListOf<Int>()
         luceneService.iterateTokens().forEach {
             val embeddings = embeddingCalculator.calculate(
-                it.second.map { it.window }.toTypedArray()
+                it.second.map { it.content }.toTypedArray()
             )
 
             val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
