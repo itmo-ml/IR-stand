@@ -58,11 +58,11 @@ class LuceneService (
 
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
 
-        val grouping = createGrouping()
         var offset = 0
         return sequence {
+
             do {
-                val searchResult: TopGroups<BytesRef> = grouping
+                val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
                 val yieldResult = searchResult.groups.map {
@@ -103,6 +103,8 @@ class LuceneService (
         groupingSearch.setAllGroups(true)
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
+        groupingSearch.setGroupSort(Sort.INDEXORDER)
+        groupingSearch.setSortWithinGroup(Sort.INDEXORDER)
         return groupingSearch
     }
 
@@ -111,7 +113,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 100
+        const val GROUPING_LIMIT = 50
 
     }
 }
