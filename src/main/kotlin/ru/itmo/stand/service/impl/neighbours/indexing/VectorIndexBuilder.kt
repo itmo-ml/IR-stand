@@ -4,6 +4,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.lucene.LuceneDocument
@@ -15,20 +16,23 @@ import java.util.concurrent.atomic.AtomicInteger
 class VectorIndexBuilder(
     private val embeddingCalculator: BertEmbeddingCalculator
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
 
 
     fun indexDocuments(documents: Sequence<Pair<String, List<LuceneDocument>>>): Int {
 
+        log.info("starting vector indexing")
         val sem = Semaphore(MAX_CONCURRENCY)
 
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
-
+        val windowsCount = AtomicInteger(0)
         runBlocking {
             documents.forEach {
                 launch {
                     sem.withPermit {
+                        windowsCount.addAndGet(it.second.size)
                         val k = process(it)
                         clusterSizes.addAndGet(k)
                         counter.incrementAndGet()
@@ -36,6 +40,10 @@ class VectorIndexBuilder(
                 }
             }
         }
+        log.info("token count: ${counter.get()}")
+        log.info("cluster sizes: ${clusterSizes.get()}")
+        log.info("windows count: ${windowsCount.get()}")
+        log.info("mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
         return (clusterSizes.get() / counter.get())
     }
 
@@ -45,7 +53,6 @@ class VectorIndexBuilder(
         )
 
         val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
-
         val centroids = clusterModel.centroids;
 
         return clusterModel.k;

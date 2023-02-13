@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
@@ -20,6 +21,9 @@ class DocumentNeighboursService(
     private val embeddingCalculator: BertEmbeddingCalculator,
     private val vectorIndexBuilder: VectorIndexBuilder
 ) : DocumentService {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override val method: Method
         get() = Method.NEIGHBOURS
 
@@ -41,7 +45,7 @@ class DocumentNeighboursService(
 
         val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
-        println("mean cluster size is $meanClusters")
+        log.info("mean cluster size is $meanClusters")
 
         return emptyList()
     }
