@@ -48,10 +48,13 @@ class VectorIndexBuilder(
     }
 
     private fun process(token :Pair<String, List<LuceneDocument>>): Int {
-        val embeddings = embeddingCalculator.calculate(
-            token.second.map { it.content }.toTypedArray()
-        )
 
+        val embeddings = token.second.chunked(BERT_BATCH_SIZE)
+            .flatMap {
+                embeddingCalculator.calculate(it.map { it.content }.toTypedArray())
+                    .asIterable()
+            }.toTypedArray()
+        
         val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
         val centroids = clusterModel.centroids;
 
@@ -60,6 +63,7 @@ class VectorIndexBuilder(
 
     companion object {
         const val MAX_CONCURRENCY = 10;
+        const val BERT_BATCH_SIZE = 1000;
     }
 
 }
