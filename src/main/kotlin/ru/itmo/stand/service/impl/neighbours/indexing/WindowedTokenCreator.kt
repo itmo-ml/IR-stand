@@ -18,7 +18,7 @@ class WindowedTokenCreator(
 
     fun create(documents: Collection<Document>) {
         for ((index, document) in documents.withIndex()) {
-            if (index % 1 == 0) log.info("Vectors created: {}", index)
+            if (index % 1000 == 0) log.info("Vectors created: {}", index)
             create(document)
         }
         luceneService.completeIndexing()
