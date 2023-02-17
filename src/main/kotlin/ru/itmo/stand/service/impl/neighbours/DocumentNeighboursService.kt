@@ -41,11 +41,21 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
-        windowedTokenCreator.create(contents.map { extractId(it) })
+        windowedTokenCreator.create(contents.map { extractId(it) }.asSequence())
 
         val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
         log.info("mean cluster size is $meanClusters")
+
+        return emptyList()
+    }
+
+    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
+        windowedTokenCreator.create(contents.map { extractId(it) })
+
+        //val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
+
+        //log.info("mean cluster size is $meanClusters")
 
         return emptyList()
     }

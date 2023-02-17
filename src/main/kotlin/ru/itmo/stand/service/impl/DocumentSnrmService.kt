@@ -174,6 +174,10 @@ class DocumentSnrmService(
         emptyList()
     }
 
+    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
+        TODO("Not yet implemented")
+    }
+
     override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
