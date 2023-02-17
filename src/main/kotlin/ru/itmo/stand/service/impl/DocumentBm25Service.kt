@@ -59,6 +59,10 @@ class DocumentBm25Service(
         return emptyList()
     }
 
+    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
+        TODO("Not yet implemented")
+    }
+
     override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     private fun preprocess(content: String) =
