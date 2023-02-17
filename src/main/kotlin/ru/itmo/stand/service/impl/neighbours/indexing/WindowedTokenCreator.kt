@@ -15,7 +15,7 @@ class WindowedTokenCreator(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun create(documents: Collection<Document>) {
+    fun create(documents: Sequence<Document>) {
         for ((index, document) in documents.withIndex()) {
             if (index % 1000 == 0) log.info("Vectors created: {}", index)
             create(document)
