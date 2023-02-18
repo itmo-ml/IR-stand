@@ -44,9 +44,8 @@ class SaveStreamCommand(private val documentServicesByMethod: Map<Method, Docume
 
     override fun run() {
         val contents = Paths.get(contentFile.path)
-            .bufferedReader()
-            .lines()
-            .asSequence()
+            .bufferedReader(bufferSize = 512 * 1024)
+            .lineSequence()
 
 
         val seconds = measureTimeSeconds {
