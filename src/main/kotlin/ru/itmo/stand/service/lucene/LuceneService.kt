@@ -64,19 +64,24 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         return sequence {
 
             do {
+                log.info("start search")
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
+
+                log.info("got search results")
                 val yieldResult = searchResult.groups.map {
                     val key = it.groupValue.utf8ToString()
+
                     val documents = it.scoreDocs.map { doc ->
-                        val fields = searcher.doc(doc.doc)
+                        val fields = searcher.doc(doc.doc, setOf(DOC_ID, CONTENT))
                         val content = fields.get(CONTENT)
                         val docId = fields.get(DOC_ID)
                         LuceneDocument(key, docId, content)
                     }
                     key to documents
                 }
+                log.info("batch returned")
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
             } while (searchResult.groups.isNotEmpty())
@@ -100,11 +105,13 @@ class LuceneService(standProperties: StandProperties) : Closeable {
 
     private fun createGrouping(): GroupingSearch {
         val groupingSearch = GroupingSearch(GROUPING_KEY)
-        groupingSearch.setAllGroups(true)
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
         groupingSearch.setGroupSort(Sort.INDEXORDER)
         groupingSearch.setSortWithinGroup(Sort.INDEXORDER)
+        groupingSearch.setIncludeMaxScore(false)
+        groupingSearch.setAllGroupHeads(false)
+        groupingSearch.disableCaching()
         return groupingSearch
     }
 
