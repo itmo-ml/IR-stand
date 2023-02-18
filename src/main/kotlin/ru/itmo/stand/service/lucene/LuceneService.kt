@@ -20,6 +20,7 @@ import org.apache.lucene.search.grouping.TopGroups
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import java.io.Closeable
@@ -38,6 +39,7 @@ class LuceneService (
     private val writer = IndexWriter(indexDir, indexWriterConfig)
 
     private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
+    private val log = LoggerFactory.getLogger(javaClass)
 
     fun save(document: LuceneDocument) {
         saveInBatch(listOf(document))
@@ -63,19 +65,24 @@ class LuceneService (
         return sequence {
 
             do {
+                log.info("start search")
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
+
+                log.info("got search results")
                 val yieldResult = searchResult.groups.map {
                     val key = it.groupValue.utf8ToString()
+
                     val documents = it.scoreDocs.map { doc ->
-                        val fields = searcher.doc(doc.doc)
+                        val fields = searcher.doc(doc.doc, setOf(DOC_ID, CONTENT))
                         val content = fields.get(CONTENT)
                         val docId = fields.get(DOC_ID)
                         LuceneDocument(key, docId, content)
                     }
                     key to documents
                 }
+                log.info("batch returned")
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
 
@@ -101,11 +108,13 @@ class LuceneService (
 
     private fun createGrouping(): GroupingSearch {
         val groupingSearch = GroupingSearch(GROUPING_KEY)
-        groupingSearch.setAllGroups(true)
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
         groupingSearch.setGroupSort(Sort.INDEXORDER)
         groupingSearch.setSortWithinGroup(Sort.INDEXORDER)
+        groupingSearch.setIncludeMaxScore(false)
+        groupingSearch.setAllGroupHeads(false)
+        groupingSearch.disableCaching()
         return groupingSearch
     }
 
@@ -114,7 +123,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 50
+        const val GROUPING_LIMIT = 5
 
     }
 }
