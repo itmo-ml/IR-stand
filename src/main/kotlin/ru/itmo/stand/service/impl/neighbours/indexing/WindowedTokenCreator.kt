@@ -1,11 +1,18 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
+import edu.stanford.nlp.naturalli.ClauseSplitter
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
+import ru.itmo.stand.util.processParallel
+import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class WindowedTokenCreator(
@@ -16,11 +23,13 @@ class WindowedTokenCreator(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun create(documents: Sequence<Document>) {
-        for ((index, document) in documents.withIndex()) {
-            if (index % 1000 == 0) log.info("Vectors created: {}", index)
-            create(document)
+
+        processParallel(documents, MAX_CONCURRENCY) {
+            create(it)
         }
+
         luceneService.completeIndexing()
+
     }
 
     fun create(document: Document) {
@@ -33,5 +42,9 @@ class WindowedTokenCreator(
             )
         }
         luceneService.saveInBatch(windowedTokens)
+    }
+
+    companion object {
+        const val MAX_CONCURRENCY = 10;
     }
 }

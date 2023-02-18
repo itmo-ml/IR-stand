@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours
 
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
@@ -40,22 +41,22 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String>  {
         windowedTokenCreator.create(contents.map { extractId(it) }.asSequence())
 
         val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
         log.info("mean cluster size is $meanClusters")
 
-        return emptyList()
+         return emptyList()
     }
 
-    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
+    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String>  {
         windowedTokenCreator.create(contents.map { extractId(it) })
 
-        //val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
+        val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
-        //log.info("mean cluster size is $meanClusters")
+        log.info("mean cluster size is $meanClusters")
 
         return emptyList()
     }
