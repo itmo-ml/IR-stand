@@ -11,6 +11,7 @@ private val log = LoggerFactory.getLogger("processParallel")
 
 fun <T> processParallel(data: Sequence<T>, numWorkers: Int, action: (T) -> Unit) = runBlocking(Dispatchers.Default) {
     data
+        .onEachIndexed{index, _ -> if (index % 1 == 0) log.info("Elements processed: {}", index)}
         .chunked(numWorkers)
         .map {chunk -> chunk.map { launch { action(it) }}}
         .forEach { it.joinAll() }
