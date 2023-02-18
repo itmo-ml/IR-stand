@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.lucene.LuceneDocument
+import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
 import smile.clustering.XMeans
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,23 +24,17 @@ class VectorIndexBuilder(
     fun indexDocuments(documents: Sequence<Pair<String, List<LuceneDocument>>>): Int {
 
         log.info("starting vector indexing")
-        val sem = Semaphore(MAX_CONCURRENCY)
-
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
-        runBlocking {
-            documents.forEach {
-                launch {
-                    sem.withPermit {
-                        windowsCount.addAndGet(it.second.size)
-                        val k = process(it)
-                        clusterSizes.addAndGet(k)
-                        counter.incrementAndGet()
-                    }
-                }
-            }
+
+        processParallel(documents, MAX_CONCURRENCY) {
+            windowsCount.addAndGet(it.second.size)
+            val k = process(it)
+            clusterSizes.addAndGet(k)
+            counter.incrementAndGet()
         }
+
         log.info("token count: ${counter.get()}")
         log.info("cluster sizes: ${clusterSizes.get()}")
         log.info("windows count: ${windowsCount.get()}")
@@ -62,8 +57,8 @@ class VectorIndexBuilder(
     }
 
     companion object {
-        const val MAX_CONCURRENCY = 10;
-        const val BERT_BATCH_SIZE = 1000;
+        const val MAX_CONCURRENCY = 4;
+        const val BERT_BATCH_SIZE = 10000;
     }
 
 }
