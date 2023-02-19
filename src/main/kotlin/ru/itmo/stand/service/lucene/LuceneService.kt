@@ -71,17 +71,23 @@ class LuceneService (
 
 
                 log.info("got search results")
-                val yieldResult = searchResult.groups.map {
-                    val key = it.groupValue.utf8ToString()
 
-                    val documents = it.scoreDocs.map { doc ->
-                        val fields = searcher.doc(doc.doc, setOf(DOC_ID, CONTENT))
-                        val content = fields.get(CONTENT)
-                        val docId = fields.get(DOC_ID)
-                        LuceneDocument(key, docId, content)
-                    }
-                    key to documents
+                val yieldResult = runBlocking(Dispatchers.Default) {
+                    searchResult.groups.map {
+                        async {
+                            val key = it.groupValue.utf8ToString()
+
+                            val documents = it.scoreDocs.map { doc ->
+                                val fields = searcher.doc(doc.doc, setOf(DOC_ID, CONTENT))
+                                val content = fields.get(CONTENT)
+                                val docId = fields.get(DOC_ID)
+                                LuceneDocument(key, docId, content)
+                            }
+                            key to documents
+                        }
+                    }.awaitAll()
                 }
+
                 log.info("batch returned")
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
@@ -123,7 +129,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 5
+        const val GROUPING_LIMIT = 20
 
     }
 }
