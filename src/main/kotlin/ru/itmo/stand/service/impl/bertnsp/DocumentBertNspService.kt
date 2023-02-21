@@ -36,10 +36,6 @@ class DocumentBertNspService(
         return documentId
     }
 
-    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
-        TODO("Not yet implemented")
-    }
-
     private fun concatNsp(token: String, passage: String): String {
         return "$token $TOKEN_SEPARATOR $passage"
     }
