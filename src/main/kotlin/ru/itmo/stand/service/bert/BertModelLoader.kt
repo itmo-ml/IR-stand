@@ -8,6 +8,7 @@ import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
+import java.nio.file.Paths
 
 @Service
 class BertModelLoader(
@@ -43,6 +44,24 @@ class BertModelLoader(
     }
 
     fun defaultModel(): ZooModel<Array<String>, Array<FloatArray>> = defaultModel
+
+    private val tinyModel by lazy {
+        val basePath = standProperties.app.basePath
+
+        Criteria.builder()
+            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .optModelName("prajjwal1/bert-tiny")
+            .optModelPath(Paths.get("$basePath/models/bert-tiny"))
+            .optEngine("PyTorch")
+            .optArgument("padding", "true")
+            .optArgument("normalize", "false")
+            .optArgument("pooling", "cls")
+            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .build()
+            .loadModel()
+    }
+    fun tinyModel(): ZooModel<Array<String>, Array<FloatArray>> = tinyModel
+
 
     final inline fun <reified I, reified O> loadModel(translator: Translator<I, O>): ZooModel<I, O> =
         Criteria.builder()
