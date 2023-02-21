@@ -29,19 +29,14 @@ class LuceneService (
 ) : Closeable {
 
     private val analyzer = StandardAnalyzer()
-    private val indexWriterConfig = run {
-        val config = IndexWriterConfig(analyzer)
-        config.codec = Lucene87Codec(Lucene87Codec.Mode.BEST_COMPRESSION)
-        config.similarity = BooleanSimilarity()
-        config
-    }
-
+    private val indexWriterConfig = IndexWriterConfig(analyzer)
 
     private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene_unmerged"))
 
     private val writer by lazy {IndexWriter(indexDir, indexWriterConfig)}
 
     private val searcher by lazy {IndexSearcher(DirectoryReader.open(indexDir))}
+
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun save(document: LuceneDocument) {
@@ -68,8 +63,6 @@ class LuceneService (
             do {
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
-
-
 
                 val yieldResult = runBlocking(Dispatchers.Default) {
                     searchResult.groups.map {
@@ -101,7 +94,7 @@ class LuceneService (
     }
 
     fun completeIndexing() {
-        //writer.forceMerge(1, true)
+        writer.forceMerge(1, true)
         writer.commit()
     }
 
