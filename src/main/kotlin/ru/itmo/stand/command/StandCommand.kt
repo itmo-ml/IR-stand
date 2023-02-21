@@ -13,8 +13,7 @@ import picocli.CommandLine.Command
         FindCommand::class,
         SearchCommand::class,
         SaveCommand::class,
-        SaveInBatchCommand::class,
-        SaveStreamCommand::class
+        SaveInBatchCommand::class
     ],
 )
 class StandCommand

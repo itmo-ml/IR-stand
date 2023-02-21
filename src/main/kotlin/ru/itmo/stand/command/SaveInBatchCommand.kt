@@ -5,10 +5,13 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.bufferedReader
 
 @Component
 @Command(
@@ -16,7 +19,9 @@ import java.nio.file.Files
     mixinStandardHelpOptions = true,
     description = ["Save the documents and return their IDs."],
 )
-class SaveInBatchCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
+class SaveInBatchCommand(
+    private val documentServicesByMethod: Map<Method, DocumentService>,
+    private val standProperties: StandProperties) : Runnable {
 
     @Parameters(
         paramLabel = "documents file",
@@ -39,7 +44,10 @@ class SaveInBatchCommand(private val documentServicesByMethod: Map<Method, Docum
     private var withId: Boolean = false
 
     override fun run() {
-        val contents = Files.lines(contentFile.toPath()).toList()
+        val contents = Paths.get(contentFile.path)
+            .bufferedReader(bufferSize = standProperties.app.fileLoadBufferSizeMb * 1024)
+            .lineSequence()
+
         val seconds = measureTimeSeconds {
             println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
         }

@@ -111,10 +111,9 @@ abstract class BaseBertService(
     /**
      * CLI command example: save-in-batch -m CUSTOM --with-id data/collection.air-subset.tsv
      */
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
-        log.info("Total size: ${contents.size}")
+    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         val channel = Channel<String>(BATCH_SIZE_DOCUMENTS)
-        contents.asSequence()
+        contents
             .onEachIndexed { index, _ -> if (index % 10 == 0) log.info("Indexing is started for $index passages") }
             .forEach { content ->
                 channel.send(content)

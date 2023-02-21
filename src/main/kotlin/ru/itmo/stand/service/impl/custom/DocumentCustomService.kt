@@ -42,8 +42,5 @@ class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertSer
         return documentId
     }
 
-    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
-        TODO("Not yet implemented")
-    }
 
 }
