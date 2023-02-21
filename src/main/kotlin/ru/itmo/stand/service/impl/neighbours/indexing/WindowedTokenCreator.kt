@@ -23,13 +23,11 @@ class WindowedTokenCreator(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun create(documents: Sequence<Document>) {
-
-        processParallel(documents, MAX_CONCURRENCY) {
+        processParallel(documents, MAX_CONCURRENCY, log) {
             create(it)
         }
 
         luceneService.completeIndexing()
-
     }
 
     fun create(document: Document) {

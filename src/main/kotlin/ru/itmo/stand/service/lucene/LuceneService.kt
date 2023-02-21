@@ -67,8 +67,6 @@ class LuceneService(standProperties: StandProperties) : Closeable {
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
-
-
                 val yieldResult = runBlocking(Dispatchers.Default) {
                     searchResult.groups.map {
                         async {
@@ -97,7 +95,7 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun completeIndexing() {
-        //writer.forceMerge(1, true)
+        writer.forceMerge(1, true)
         writer.commit()
     }
 
