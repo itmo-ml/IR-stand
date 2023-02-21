@@ -53,8 +53,5 @@ class DocumentBertMultiTokenService(
         .map { it.lowercase() }
         .map { it.toTokens(stanfordCoreNlp) }
 
-    override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String> {
-        TODO("Not yet implemented")
-    }
 }
 

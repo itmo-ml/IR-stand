@@ -17,6 +17,7 @@ data class StandProperties(
         val basePath: String,
         val bertMultiToken: BertMultiToken,
         val neighboursAlgorithm: NeighboursAlgorithm,
+        val fileLoadBufferSizeMb: Int
     )
 
     data class BertMultiToken(
