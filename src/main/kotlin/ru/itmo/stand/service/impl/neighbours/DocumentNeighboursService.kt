@@ -52,7 +52,7 @@ class DocumentNeighboursService(
     }
 
     override fun saveStream(contents: Sequence<String>, withId: Boolean): List<String>  {
-        windowedTokenCreator.create(contents.map { extractId(it) })
+        //windowedTokenCreator.create(contents.map { extractId(it) })
 
         val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 

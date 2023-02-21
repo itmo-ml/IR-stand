@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.util.processParallel
+import ru.itmo.stand.util.processParallelQueue
 import ru.itmo.stand.util.toDoubleArray
 import smile.clustering.XMeans
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,7 +29,15 @@ class VectorIndexBuilder(
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
 
-        processParallel(documents, MAX_CONCURRENCY) {
+/*        for((index, doc) in documents.withIndex()) {
+            windowsCount.addAndGet(doc.second.size)
+            if(index % 1000 == 0) log.info("Vectors processed: {}", index)
+            val k = process(doc)
+            clusterSizes.addAndGet(k)
+            counter.incrementAndGet()
+        }*/
+
+        processParallelQueue(documents, MAX_CONCURRENCY, log) {
             windowsCount.addAndGet(it.second.size)
             val k = process(it)
             clusterSizes.addAndGet(k)
@@ -49,8 +58,13 @@ class VectorIndexBuilder(
                 embeddingCalculator.calculate(it.map { it.content }.toTypedArray())
                     .asIterable()
             }.toTypedArray()
-        
-        val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
+
+        val doubleEmb = embeddings.toDoubleArray()
+
+
+        val clusterModel = XMeans.fit(doubleEmb, 16)
+        log.info("{} got centroids {}", token.first, clusterModel.k)
+
         val centroids = clusterModel.centroids;
 
         return clusterModel.k;
@@ -58,7 +72,7 @@ class VectorIndexBuilder(
 
     companion object {
         const val MAX_CONCURRENCY = 4;
-        const val BERT_BATCH_SIZE = 10000;
+        const val BERT_BATCH_SIZE = 500;
     }
 
 }
