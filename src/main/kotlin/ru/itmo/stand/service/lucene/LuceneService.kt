@@ -1,11 +1,11 @@
 package ru.itmo.stand.service.lucene
 
+import kotlinx.coroutines.*
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.codecs.lucene87.Lucene87Codec
 import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
 import org.apache.lucene.document.SortedDocValuesField
 import org.apache.lucene.document.StoredField
-import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
@@ -14,6 +14,7 @@ import org.apache.lucene.search.MatchAllDocsQuery
 import org.apache.lucene.search.Sort
 import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.search.grouping.TopGroups
+import org.apache.lucene.search.similarities.BooleanSimilarity
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.BytesRef
 import org.slf4j.LoggerFactory
@@ -46,15 +47,14 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-        val docs = documents.map() {
+
+        documents.forEach {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
-            doc.add(TextField(CONTENT, it.content, Field.Store.YES))
+            doc.add(StoredField(CONTENT, it.content))
             doc.add(StoredField(DOC_ID, it.documentId))
-            doc
+            writer.addDocument(doc)
         }
-
-        writer.addDocuments(docs)
 
     }
 
@@ -64,12 +64,10 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         return sequence {
 
             do {
-                log.info("start search")
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
 
-                log.info("got search results")
 
                 val yieldResult = runBlocking(Dispatchers.Default) {
                     searchResult.groups.map {
@@ -87,7 +85,6 @@ class LuceneService(standProperties: StandProperties) : Closeable {
                     }.awaitAll()
                 }
 
-                log.info("batch returned")
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
             } while (searchResult.groups.isNotEmpty())
@@ -100,7 +97,7 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun completeIndexing() {
-        writer.forceMerge(1, true)
+        //writer.forceMerge(1, true)
         writer.commit()
     }
 
@@ -126,7 +123,7 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 20
+        const val GROUPING_LIMIT = 10
 
     }
 }
