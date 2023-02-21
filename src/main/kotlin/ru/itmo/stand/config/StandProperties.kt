@@ -25,5 +25,6 @@ data class StandProperties @ConstructorBinding constructor(
 
     data class NeighboursAlgorithm(
         val tokenBatchSize: Int,
+        val bertModelType: BertModelType
     )
 }

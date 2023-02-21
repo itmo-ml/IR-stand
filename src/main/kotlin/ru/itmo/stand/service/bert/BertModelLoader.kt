@@ -7,6 +7,7 @@ import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
 import ai.djl.translate.Translator
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.BertModelType
 import ru.itmo.stand.config.StandProperties
 import java.nio.file.Paths
 
@@ -43,8 +44,6 @@ class BertModelLoader(
             .loadModel()
     }
 
-    fun defaultModel(): ZooModel<Array<String>, Array<FloatArray>> = defaultModel
-
     private val tinyModel by lazy {
         val basePath = standProperties.app.basePath
 
@@ -60,8 +59,18 @@ class BertModelLoader(
             .build()
             .loadModel()
     }
-    fun tinyModel(): ZooModel<Array<String>, Array<FloatArray>> = tinyModel
 
+    private val models = mapOf(
+        BertModelType.BASE to defaultModel,
+        BertModelType.TINY to tinyModel
+    )
+
+    fun loadModel(type: BertModelType): ZooModel<Array<String>, Array<FloatArray>> {
+        if(!models.containsKey(type)) {
+            throw IllegalArgumentException(type.name)
+        }
+        return models[type]!!
+    }
 
     final inline fun <reified I, reified O> loadModel(translator: Translator<I, O>): ZooModel<I, O> =
         Criteria.builder()
