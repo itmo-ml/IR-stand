@@ -55,21 +55,22 @@ class BertModelLoader(
             .optArgument("padding", "true")
             .optArgument("normalize", "false")
             .optArgument("pooling", "cls")
+            .optArgument("maxLength", "20")
             .optTranslatorFactory(TextEmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }
 
     private val models = mapOf(
-        BertModelType.BASE to defaultModel,
-        BertModelType.TINY to tinyModel
+        BertModelType.BASE to lazy {defaultModel},
+        BertModelType.TINY to lazy {tinyModel}
     )
 
     fun loadModel(type: BertModelType): ZooModel<Array<String>, Array<FloatArray>> {
         if(!models.containsKey(type)) {
             throw IllegalArgumentException(type.name)
         }
-        return models[type]!!
+        return models[type]!!.value
     }
 
     final inline fun <reified I, reified O> loadModel(translator: Translator<I, O>): ZooModel<I, O> =

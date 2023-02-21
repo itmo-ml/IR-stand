@@ -54,7 +54,7 @@ class VectorIndexBuilder(
 
 
         val clusterModel = XMeans.fit(doubleEmb, 16)
-        log.info("{} got centroids {}", token.first, clusterModel.k)
+        //log.info("{} got centroids {}", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids;
 
@@ -62,8 +62,8 @@ class VectorIndexBuilder(
     }
 
     companion object {
-        const val MAX_CONCURRENCY = 4;
-        const val BERT_BATCH_SIZE = 500;
+        const val MAX_CONCURRENCY = 10;
+        const val BERT_BATCH_SIZE = 10000;
     }
 
 }
