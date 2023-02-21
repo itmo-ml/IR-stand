@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory
 
 fun <T> processParallel(data: Sequence<T>, numWorkers: Int, log: Logger,  action: (T) -> Unit) = runBlocking(Dispatchers.Default) {
     data
+        .onEachIndexed { index, _ ->  if (index % 10 == 0) log.info("Elements processed: {}", index)}
         .chunked(numWorkers)
         .mapIndexed { index, chunk ->
             chunk.map {
                 launch {
-                    if (index % 1000 == 0) log.info("Elements processed: {}", index)
                     action(it)
                 }
             }
