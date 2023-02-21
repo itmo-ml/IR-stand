@@ -1,24 +1,21 @@
 package ru.itmo.stand.service.lucene
 
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.codecs.lucene87.Lucene87Codec
 import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
 import org.apache.lucene.document.SortedDocValuesField
 import org.apache.lucene.document.StoredField
-import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
-import org.apache.lucene.search.FieldDoc
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.MatchAllDocsQuery
 import org.apache.lucene.search.Sort
 import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.search.grouping.TopGroups
+import org.apache.lucene.search.similarities.BooleanSimilarity
 import org.apache.lucene.store.FSDirectory
-import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -32,13 +29,19 @@ class LuceneService (
 ) : Closeable {
 
     private val analyzer = StandardAnalyzer()
-    private val indexWriterConfig = IndexWriterConfig(analyzer)
+    private val indexWriterConfig = run {
+        val config = IndexWriterConfig(analyzer)
+        config.codec = Lucene87Codec(Lucene87Codec.Mode.BEST_COMPRESSION)
+        config.similarity = BooleanSimilarity()
+        config
+    }
 
-    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene"))
 
-    private val writer = IndexWriter(indexDir, indexWriterConfig)
+    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene_unmerged"))
 
-    private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
+    private val writer by lazy {IndexWriter(indexDir, indexWriterConfig)}
+
+    private val searcher by lazy {IndexSearcher(DirectoryReader.open(indexDir))}
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun save(document: LuceneDocument) {
@@ -46,31 +49,27 @@ class LuceneService (
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-        val docs = documents.map() {
+
+        documents.forEach {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
-            doc.add(TextField(CONTENT, it.content, Field.Store.YES))
+            doc.add(StoredField(CONTENT, it.content))
             doc.add(StoredField(DOC_ID, it.documentId))
-            doc
+            writer.addDocument(doc)
         }
-
-        writer.addDocuments(docs)
 
     }
 
 
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
-
         var offset = 0
         return sequence {
 
             do {
-                log.info("start search")
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
 
-                log.info("got search results")
 
                 val yieldResult = runBlocking(Dispatchers.Default) {
                     searchResult.groups.map {
@@ -88,7 +87,6 @@ class LuceneService (
                     }.awaitAll()
                 }
 
-                log.info("batch returned")
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
 
@@ -103,7 +101,7 @@ class LuceneService (
     }
 
     fun completeIndexing() {
-        writer.forceMerge(1, true)
+        //writer.forceMerge(1, true)
         writer.commit()
     }
 
@@ -129,7 +127,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 20
+        const val GROUPING_LIMIT = 10
 
     }
 }
