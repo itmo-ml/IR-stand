@@ -18,5 +18,6 @@ stand:
     file-load-buffer-size-mb: 512
     neighbours-algorithm:
       token-batch-size: 5
+      bert-model-type: TINY
     bert-multi-token:
       token-batch-size: 5
