@@ -31,7 +31,7 @@ class LuceneService (
     private val analyzer = StandardAnalyzer()
     private val indexWriterConfig = IndexWriterConfig(analyzer)
 
-    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene_unmerged"))
+    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene"))
 
     private val writer by lazy {IndexWriter(indexDir, indexWriterConfig)}
 
@@ -120,7 +120,7 @@ class LuceneService (
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 100
+        const val GROUPING_LIMIT = 10
 
     }
 }
