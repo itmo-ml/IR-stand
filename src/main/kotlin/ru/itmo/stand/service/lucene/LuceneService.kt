@@ -121,7 +121,7 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 100
+        const val GROUPING_LIMIT = 10
 
     }
 }
