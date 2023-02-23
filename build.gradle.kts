@@ -28,8 +28,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("com.github.haifengl:smile-core:3.0.0")
-    implementation("com.github.haifengl:smile-kotlin:3.0.0")
+    implementation("com.github.haifengl:smile-core:${findProperty("smileVersion")}")
+    implementation("com.github.haifengl:smile-kotlin:${findProperty("smileVersion")}")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
     implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}")
