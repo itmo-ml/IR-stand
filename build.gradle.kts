@@ -29,8 +29,8 @@ dependencies {
     implementation("com.github.haifengl:smile-kotlin:3.0.0")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}")
+    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 
