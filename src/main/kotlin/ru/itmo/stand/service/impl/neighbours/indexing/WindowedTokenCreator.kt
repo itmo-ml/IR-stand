@@ -12,35 +12,44 @@ import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
+import ru.itmo.stand.service.sqlite.SqliteDocument
+import ru.itmo.stand.service.sqlite.SqliteService
 import ru.itmo.stand.util.processParallel
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class WindowedTokenCreator(
     private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
-    private val luceneService: LuceneService
+    //private val luceneService: LuceneService,
+    private val sqliteService: SqliteService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun create(documents: Sequence<Document>) {
-        processParallel(documents, MAX_CONCURRENCY, log) {
+/*        processParallel(documents, MAX_CONCURRENCY, log) {
             create(it)
+        }*/
+
+        for((index, doc) in documents.withIndex()) {
+            if(index % 100 == 0) log.info("Documents processed: {}", index)
+            create(doc)
         }
 
-        luceneService.completeIndexing()
+        sqliteService.completeIndexing()
+        //luceneService.completeIndexing()
     }
 
     fun create(document: Document) {
         val windows = preprocessingPipelineExecutor.execute(document.content)
         val windowedTokens = windows.map {
-            LuceneDocument(
+            SqliteDocument(
                 groupKey = it.middleToken,
                 documentId = document.id,
                 content = it.convertContentToString(),
             )
         }
-        luceneService.saveInBatch(windowedTokens)
+        sqliteService.saveInBatch(windowedTokens)
     }
 
     companion object {

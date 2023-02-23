@@ -40,6 +40,9 @@ dependencies {
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
 
+
+    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
+
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
