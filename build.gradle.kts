@@ -72,3 +72,14 @@ jmh {
 ktlint {
     version.set("0.48.2")
 }
+
+githook {
+    hooks {
+        register("pre-commit") {
+            task = "--continue --parallel ktlintFormat"
+        }
+        register("pre-push") {
+            task = "--continue --parallel ktlintCheck"
+        }
+    }
+}
