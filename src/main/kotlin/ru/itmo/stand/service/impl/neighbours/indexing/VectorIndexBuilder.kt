@@ -1,9 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
@@ -15,14 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
-    private val embeddingCalculator: BertEmbeddingCalculator
+    private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-
-
     fun indexDocuments(documents: Sequence<Pair<String, List<LuceneDocument>>>): Int {
-
         log.info("starting vector indexing")
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
@@ -42,8 +35,7 @@ class VectorIndexBuilder(
         return (clusterSizes.get() / counter.get())
     }
 
-    private fun process(token :Pair<String, List<LuceneDocument>>): Int {
-
+    private fun process(token: Pair<String, List<LuceneDocument>>): Int {
         val embeddings = token.second.chunked(BERT_BATCH_SIZE)
             .flatMap {
                 embeddingCalculator.calculate(it.map { it.content }.toTypedArray())
@@ -52,18 +44,16 @@ class VectorIndexBuilder(
 
         val doubleEmb = embeddings.toDoubleArray()
 
-
         val clusterModel = XMeans.fit(doubleEmb, 16)
-        //log.info("{} got centroids {}", token.first, clusterModel.k)
+        // log.info("{} got centroids {}", token.first, clusterModel.k)
 
-        val centroids = clusterModel.centroids;
+        val centroids = clusterModel.centroids
 
-        return clusterModel.k;
+        return clusterModel.k
     }
 
     companion object {
-        const val MAX_CONCURRENCY = 10;
-        const val BERT_BATCH_SIZE = 10000;
+        const val MAX_CONCURRENCY = 10
+        const val BERT_BATCH_SIZE = 10000
     }
-
 }

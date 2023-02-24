@@ -9,7 +9,6 @@ import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.bufferedReader
 
@@ -21,7 +20,8 @@ import kotlin.io.path.bufferedReader
 )
 class SaveInBatchCommand(
     private val documentServicesByMethod: Map<Method, DocumentService>,
-    private val standProperties: StandProperties) : Runnable {
+    private val standProperties: StandProperties,
+) : Runnable {
 
     @Parameters(
         paramLabel = "documents file",

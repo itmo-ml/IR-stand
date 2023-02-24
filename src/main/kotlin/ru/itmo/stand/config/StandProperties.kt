@@ -16,7 +16,7 @@ data class StandProperties @ConstructorBinding constructor(
         val basePath: String,
         val bertMultiToken: BertMultiToken,
         val neighboursAlgorithm: NeighboursAlgorithm,
-        val fileLoadBufferSizeMb: Int
+        val fileLoadBufferSizeMb: Int,
     )
 
     data class BertMultiToken(
@@ -25,6 +25,6 @@ data class StandProperties @ConstructorBinding constructor(
 
     data class NeighboursAlgorithm(
         val tokenBatchSize: Int,
-        val bertModelType: BertModelType
+        val bertModelType: BertModelType,
     )
 }

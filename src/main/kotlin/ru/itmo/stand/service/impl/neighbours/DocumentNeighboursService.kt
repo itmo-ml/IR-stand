@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours
 
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
@@ -11,8 +10,6 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
-import ru.itmo.stand.util.toDoubleArray
-import smile.clustering.XMeans
 import java.io.File
 
 @Service
@@ -20,7 +17,7 @@ class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
     private val luceneService: LuceneService,
     private val embeddingCalculator: BertEmbeddingCalculator,
-    private val vectorIndexBuilder: VectorIndexBuilder
+    private val vectorIndexBuilder: VectorIndexBuilder,
 ) : DocumentService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -41,8 +38,8 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String>  {
-        //windowedTokenCreator.create(contents.map { extractId(it) })
+    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
+        // windowedTokenCreator.create(contents.map { extractId(it) })
 
         val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
@@ -50,7 +47,6 @@ class DocumentNeighboursService(
 
         return emptyList()
     }
-
 
     override fun getFootprint(): String {
         TODO("Not yet implemented")

@@ -173,7 +173,6 @@ class DocumentSnrmService(
         emptyList()
     }
 
-
     override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
