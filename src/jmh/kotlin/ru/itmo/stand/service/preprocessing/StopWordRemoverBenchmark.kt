@@ -35,14 +35,16 @@ open class StopWordRemoverBenchmark {
     fun setup() {
         val stopWordsPath = "src/main/resources/data/stopwords.txt"
         stopWords = Files.lines(Paths.get(stopWordsPath)).toList().toSet()
-        data = ("Definition of Central nervous system (CNS) Central nervous system (CNS): " +
-            "The central nervous system is that part of the nervous system that consists " +
-            "of the brain and spinal cord. The central nervous system (CNS) is one of the " +
-            "two major divisions of the nervous system. " +
-            "The other is the peripheral nervous system (PNS) which is outside the brain and spinal cord. " +
-            "The peripheral nervous system (PNS) connects the central nervous system (CNS) " +
-            "to sensory organs (such as the eye and ear), other organs of the body, muscles, " +
-            "blood vessels and glands.").lowercase()
+        data = (
+            "Definition of Central nervous system (CNS) Central nervous system (CNS): " +
+                "The central nervous system is that part of the nervous system that consists " +
+                "of the brain and spinal cord. The central nervous system (CNS) is one of the " +
+                "two major divisions of the nervous system. " +
+                "The other is the peripheral nervous system (PNS) which is outside the brain and spinal cord. " +
+                "The peripheral nervous system (PNS) connects the central nervous system (CNS) " +
+                "to sensory organs (such as the eye and ear), other organs of the body, muscles, " +
+                "blood vessels and glands."
+            ).lowercase()
         // Lucene classes
         tokenizer = StandardTokenizer()
         stopWordSet = CharArraySet(stopWords.size, true)

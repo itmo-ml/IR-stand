@@ -34,8 +34,8 @@ class BertNspTranslator : Translator<String, FloatArray> {
     override fun processInput(ctx: TranslatorContext, input: String): NDList {
         val tokens = tokenizer.tokenize(input.lowercase(Locale.getDefault()))
 
-        val separatorIndex = tokens.indexOf(TOKEN_SEPARATOR);
-        tokens[separatorIndex] = SEP_TOKEN;
+        val separatorIndex = tokens.indexOf(TOKEN_SEPARATOR)
+        tokens[separatorIndex] = SEP_TOKEN
         tokens.add(0, CLS_TOKEN)
         tokens.add(SEP_TOKEN)
 
@@ -51,7 +51,7 @@ class BertNspTranslator : Translator<String, FloatArray> {
     }
 
     override fun processOutput(ctx: TranslatorContext?, list: NDList): FloatArray {
-        return softmax(list[0].toFloatArray());
+        return softmax(list[0].toFloatArray())
     }
 
     override fun getBatchifier(): Batchifier? {

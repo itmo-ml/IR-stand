@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.bert.BertModelLoader
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.model.Format.JUST_QUERY
 import ru.itmo.stand.service.model.Format.MS_MARCO
-import ru.itmo.stand.service.bert.BertModelLoader
 import ru.itmo.stand.util.createPath
 import ru.itmo.stand.util.formatMrr
 import ru.itmo.stand.util.toNgrams

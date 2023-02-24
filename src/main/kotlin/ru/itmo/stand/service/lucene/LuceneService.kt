@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.lucene
 
-import kotlinx.coroutines.yield
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -8,17 +7,14 @@ import org.apache.lucene.document.SortedDocValuesField
 import org.apache.lucene.document.StoredField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
-import org.apache.lucene.search.FieldDoc
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.MatchAllDocsQuery
 import org.apache.lucene.search.Sort
 import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.search.grouping.TopGroups
 import org.apache.lucene.store.FSDirectory
-import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
@@ -26,8 +22,8 @@ import java.io.Closeable
 import java.nio.file.Paths
 
 @Service
-class LuceneService (
-    private val standProperties: StandProperties
+class LuceneService(
+    private val standProperties: StandProperties,
 ) : Closeable {
 
     private val analyzer = StandardAnalyzer()
@@ -52,15 +48,11 @@ class LuceneService (
 
             writer.addDocument(doc)
         }
-
     }
 
-
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
-
         var offset = 0
         return sequence {
-
             do {
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
@@ -77,11 +69,9 @@ class LuceneService (
                 }
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
-
-            } while(searchResult.groups.isNotEmpty())
+            } while (searchResult.groups.isNotEmpty())
         }
     }
-
 
     fun clearIndex() {
         writer.deleteAll()
@@ -109,11 +99,10 @@ class LuceneService (
     }
 
     companion object {
-        const val GROUPING_KEY= "groupingKey"
+        const val GROUPING_KEY = "groupingKey"
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
         const val GROUPING_LIMIT = 50
-
     }
 }

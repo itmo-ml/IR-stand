@@ -7,6 +7,9 @@ plugins {
     kotlin("plugin.spring") version "1.7.21"
     kotlin("kapt") version "1.7.21"
     id("me.champeau.jmh") version "0.6.8"
+    id("org.jlleitschuh.gradle.ktlint") version "11.2.0"
+    id("org.jlleitschuh.gradle.ktlint-idea") version "11.2.0"
+    id("com.star-zero.gradle.githook") version "1.2.1"
 }
 
 group = "ru.itmo"
@@ -25,12 +28,12 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("com.github.haifengl:smile-core:3.0.0")
-    implementation("com.github.haifengl:smile-kotlin:3.0.0")
+    implementation("com.github.haifengl:smile-core:${findProperty("smileVersion")}")
+    implementation("com.github.haifengl:smile-kotlin:${findProperty("smileVersion")}")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.1:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}")
+    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 
@@ -60,8 +63,23 @@ tasks.withType<Test> {
 
 jmh {
     includes.set(listOf(".*")) // include pattern (regular expression) for benchmarks to be executed
-    warmupIterations.set(2) // Number of warmup iterations to do.
-    iterations.set(2) // Number of measurement iterations to do.
+    warmupIterations.set(2) // Number of warmup iterations to do
+    iterations.set(2) // Number of measurement iterations to do
     fork.set(2) // How many times to forks a single benchmark. Use 0 to disable forking altogether
     zip64.set(true) // is used for big archives (more than 65535 entries)
+}
+
+ktlint {
+    version.set("0.48.2")
+}
+
+githook {
+    hooks {
+        register("pre-commit") {
+            task = "--continue --parallel ktlintFormat"
+        }
+        register("pre-push") {
+            task = "--continue --parallel ktlintCheck"
+        }
+    }
 }

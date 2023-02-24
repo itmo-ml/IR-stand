@@ -14,7 +14,7 @@ interface DocumentSnrmRepository : ElasticsearchRepository<DocumentSnrm, String>
           "match": {
             "representation": "?0"
           }
-        }"""
+        }""",
     ) // TODO: add constant_score
     fun findByRepresentation(representation: String, pageable: Pageable): Page<DocumentSnrm>
 }

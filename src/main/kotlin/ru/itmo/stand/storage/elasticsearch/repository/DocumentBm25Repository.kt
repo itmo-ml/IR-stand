@@ -12,8 +12,7 @@ interface DocumentBm25Repository : ElasticsearchRepository<DocumentBm25, String>
           "match": {
             "representation": "?0"
           }
-        }"""
+        }""",
     )
     fun findByRepresentation(representation: String): List<DocumentBm25>
-
 }

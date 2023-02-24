@@ -5,5 +5,5 @@ object Params {
     const val NUM_DOCUMENT_BATCHES = 18000
     const val MAX_QUERY_LEN = 10
     const val MAX_DOC_LEN = 103
-    const val SNRM_OUTPUT_SIZE= 5000;
+    const val SNRM_OUTPUT_SIZE = 5000
 }

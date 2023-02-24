@@ -21,7 +21,7 @@ fun walkDirectory(dirPath: Path): List<Path> {
                 paths.add(path)
                 return FileVisitResult.CONTINUE
             }
-        }
+        },
     )
     return paths
 }

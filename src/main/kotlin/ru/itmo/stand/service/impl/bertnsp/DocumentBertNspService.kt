@@ -23,7 +23,7 @@ class DocumentBertNspService(
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (documentId, passage) = extractId(content)
 
-        val tokens = preprocess(passage);
+        val tokens = preprocess(passage)
 
         val scoreByTokens = tokens
             .map { Pair(it, predictor.predict(concatNsp(it, passage))[0]) }

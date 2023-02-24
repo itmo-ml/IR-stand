@@ -13,7 +13,6 @@ fun softmax(numbers: FloatArray): FloatArray {
     return numbers.map { exp(it) / sum }.toFloatArray()
 }
 
-
 fun FloatArray.toDoubleArray(): DoubleArray {
     return this.map { it.toDouble() }.toDoubleArray()
 }
