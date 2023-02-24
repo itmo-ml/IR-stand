@@ -63,8 +63,8 @@ tasks.withType<Test> {
 
 jmh {
     includes.set(listOf(".*")) // include pattern (regular expression) for benchmarks to be executed
-    warmupIterations.set(2) // Number of warmup iterations to do.
-    iterations.set(2) // Number of measurement iterations to do.
+    warmupIterations.set(2) // Number of warmup iterations to do
+    iterations.set(2) // Number of measurement iterations to do
     fork.set(2) // How many times to forks a single benchmark. Use 0 to disable forking altogether
     zip64.set(true) // is used for big archives (more than 65535 entries)
 }
