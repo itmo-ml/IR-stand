@@ -1,8 +1,10 @@
 package ru.itmo.stand.service.lucene
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.codecs.lucene87.Lucene87Codec
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.SortedDocValuesField
 import org.apache.lucene.document.StoredField
@@ -14,7 +16,6 @@ import org.apache.lucene.search.MatchAllDocsQuery
 import org.apache.lucene.search.Sort
 import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.search.grouping.TopGroups
-import org.apache.lucene.search.similarities.BooleanSimilarity
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.BytesRef
 import org.slf4j.LoggerFactory
@@ -47,7 +48,6 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-
         documents.forEach {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
@@ -55,14 +55,12 @@ class LuceneService(standProperties: StandProperties) : Closeable {
             doc.add(StoredField(DOC_ID, it.documentId))
             writer.addDocument(doc)
         }
-
     }
 
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
         val searcher = IndexSearcher(DirectoryReader.open(indexDir))
         var offset = 0
         return sequence {
-
             do {
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
@@ -122,6 +120,5 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
         const val GROUPING_LIMIT = 10
-
     }
 }

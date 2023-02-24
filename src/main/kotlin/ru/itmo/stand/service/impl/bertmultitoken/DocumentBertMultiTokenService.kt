@@ -52,5 +52,4 @@ class DocumentBertMultiTokenService(
     override fun preprocess(contents: List<String>): List<List<String>> = contents
         .map { it.lowercase() }
         .map { it.toTokens(stanfordCoreNlp) }
-
 }

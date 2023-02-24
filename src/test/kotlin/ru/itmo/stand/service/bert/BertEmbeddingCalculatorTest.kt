@@ -7,7 +7,8 @@ import ru.itmo.stand.fixtures.standProperties
 class BertEmbeddingCalculatorTest {
 
     private val embeddingCalculator = BertEmbeddingCalculator(
-        BertModelLoader(DefaultBertTranslator(), standProperties()), standProperties()
+        BertModelLoader(DefaultBertTranslator(), standProperties()),
+        standProperties(),
     )
     private val precision = 0.000_001f
 

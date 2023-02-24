@@ -1,10 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import edu.stanford.nlp.naturalli.ClauseSplitter
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
@@ -12,7 +7,6 @@ import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.util.processParallel
-import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class WindowedTokenCreator(
@@ -43,6 +37,6 @@ class WindowedTokenCreator(
     }
 
     companion object {
-        const val MAX_CONCURRENCY = 10;
+        const val MAX_CONCURRENCY = 10
     }
 }

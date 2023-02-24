@@ -6,7 +6,8 @@ import ru.itmo.stand.config.StandProperties
 @Service
 class BertEmbeddingCalculator(
     private val bertModelLoader: BertModelLoader,
-    private val standProperties: StandProperties) {
+    private val standProperties: StandProperties,
+) {
 
     private val predictor by lazy {
         bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()

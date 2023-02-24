@@ -58,7 +58,6 @@ class DocumentBm25Service(
         return emptyList()
     }
 
-
     override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
 
     private fun preprocess(content: String) =

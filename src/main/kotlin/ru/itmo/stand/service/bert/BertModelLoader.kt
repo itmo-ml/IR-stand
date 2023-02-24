@@ -62,12 +62,12 @@ class BertModelLoader(
     }
 
     private val models = mapOf(
-        BertModelType.BASE to lazy {defaultModel},
-        BertModelType.TINY to lazy {tinyModel}
+        BertModelType.BASE to lazy { defaultModel },
+        BertModelType.TINY to lazy { tinyModel },
     )
 
     fun loadModel(type: BertModelType): ZooModel<Array<String>, Array<FloatArray>> {
-        if(!models.containsKey(type)) {
+        if (!models.containsKey(type)) {
             throw IllegalArgumentException(type.name)
         }
         return models[type]!!.value

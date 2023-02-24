@@ -12,7 +12,6 @@ import ru.itmo.stand.util.extractId
 
 @Service
 @Profile("!standalone")
-
 class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertService(bertTranslator) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -41,6 +40,4 @@ class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertSer
         log.info("Content is indexed (id={})", documentId)
         return documentId
     }
-
-
 }
