@@ -27,7 +27,7 @@ class DocumentBertMultiTokenService(
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (documentId, passage) = extractId(content)
 
-        val tokens = preprocess(passage);
+        val tokens = preprocess(passage)
 
         val scores = tokens.createWindows(standProperties.app.bertMultiToken.tokenBatchSize).flatMap { window ->
             val modelInput = concatNsp(window.content.joinToString(" "), passage)
@@ -51,4 +51,3 @@ class DocumentBertMultiTokenService(
         .map { it.lowercase() }
         .map { it.toTokens(stanfordCoreNlp) }
 }
-

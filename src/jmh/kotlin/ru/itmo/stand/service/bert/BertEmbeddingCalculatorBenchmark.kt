@@ -17,14 +17,16 @@ open class BertEmbeddingCalculatorBenchmark {
 
     private val bertModelLoader = bertModelLoader()
     private val predictor = bertModelLoader.loadModel(BertTranslator()).newPredictor()
-    private val contents = ("Definition of Central nervous system (CNS) Central nervous system (CNS): " +
-        "The central nervous system is that part of the nervous system that consists " +
-        "of the brain and spinal cord. The central nervous system (CNS) is one of the " +
-        "two major divisions of the nervous system. " +
-        "The other is the peripheral nervous system (PNS) which is outside the brain and spinal cord. " +
-        "The peripheral nervous system (PNS) connects the central nervous system (CNS) " +
-        "to sensory organs (such as the eye and ear), other organs of the body, muscles, " +
-        "blood vessels and glands.")
+    private val contents = (
+        "Definition of Central nervous system (CNS) Central nervous system (CNS): " +
+            "The central nervous system is that part of the nervous system that consists " +
+            "of the brain and spinal cord. The central nervous system (CNS) is one of the " +
+            "two major divisions of the nervous system. " +
+            "The other is the peripheral nervous system (PNS) which is outside the brain and spinal cord. " +
+            "The peripheral nervous system (PNS) connects the central nervous system (CNS) " +
+            "to sensory organs (such as the eye and ear), other organs of the body, muscles, " +
+            "blood vessels and glands."
+        )
         .let { preprocessingPipelineExecutor().execute(it) }
         .map { it.content }
     private inline fun <reified I, reified O> loadModel(): ZooModel<I, O> =

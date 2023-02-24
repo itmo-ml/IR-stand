@@ -1,6 +1,7 @@
 package ru.itmo.stand.util
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -8,8 +9,10 @@ class PreprocessingKtTest {
 
     @Nested
     inner class CreateWindows {
-        private val tokens = ("Some sentence that is used in tests " +
-            "to check the correctness of the function").split(" ")
+        private val tokens = (
+            "Some sentence that is used in tests " +
+                "to check the correctness of the function"
+            ).split(" ")
 
         @Test
         fun `should throw when even size is passed`() {

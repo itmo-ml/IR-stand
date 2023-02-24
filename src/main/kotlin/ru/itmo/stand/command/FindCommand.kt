@@ -18,7 +18,7 @@ class FindCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     @Parameters(
         paramLabel = "id",
         arity = "1",
-        description = ["ID by which the document is found."]
+        description = ["ID by which the document is found."],
     )
     private lateinit var id: String
 

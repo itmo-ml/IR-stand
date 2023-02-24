@@ -16,7 +16,7 @@ import java.io.File
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
     private val luceneService: LuceneService,
-    private val embeddingCalculator: BertEmbeddingCalculator
+    private val embeddingCalculator: BertEmbeddingCalculator,
 ) : DocumentService {
     override val method: Method
         get() = Method.NEIGHBOURS
@@ -40,13 +40,13 @@ class DocumentNeighboursService(
         val clusterSizes = mutableListOf<Int>()
         luceneService.iterateTokens().forEach {
             val embeddings = embeddingCalculator.calculate(
-                it.second.map { it.content }.toTypedArray()
+                it.second.map { it.content }.toTypedArray(),
             )
 
             val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
 
-            //Already got centroids, cool
-            val centroids = clusterModel.centroids;
+            // Already got centroids, cool
+            val centroids = clusterModel.centroids
 
             clusterSizes.add(clusterModel.k)
         }

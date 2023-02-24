@@ -26,13 +26,13 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     @Option(
         names = ["-m", "-method"],
         required = true,
-        description = ["Search method. Available values: BM25, SNRM."]
+        description = ["Search method. Available values: BM25, SNRM."],
     )
     private lateinit var method: Method
 
     @Option(
-        names=["--with-id"],
-        description =["Indicates that document has its own id, separated by tab"]
+        names = ["--with-id"],
+        description = ["Indicates that document has its own id, separated by tab"],
     )
     private var withId: Boolean = false
 

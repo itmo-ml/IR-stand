@@ -11,5 +11,4 @@ class DocumentConfig {
     fun documentServicesByMethod(documentServices: List<DocumentService>): Map<Method, DocumentService> {
         return documentServices.associateBy { it.method }
     }
-
 }

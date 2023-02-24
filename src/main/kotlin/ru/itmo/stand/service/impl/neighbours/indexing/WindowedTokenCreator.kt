@@ -1,7 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.insert
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.lucene.LuceneDocument
@@ -11,7 +10,7 @@ import ru.itmo.stand.service.model.Document
 @Service
 class WindowedTokenCreator(
     private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
-    private val luceneService: LuceneService
+    private val luceneService: LuceneService,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)

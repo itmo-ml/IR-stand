@@ -18,14 +18,14 @@ import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.mongodb.model.ContentSnrm
-import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
+import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.service.model.Format
+import ru.itmo.stand.service.preprocessing.StopWordRemover
 import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
 import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
-import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.model.Format
-import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
-import ru.itmo.stand.service.preprocessing.StopWordRemover
+import ru.itmo.stand.storage.mongodb.model.ContentSnrm
+import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.throwDocIdNotFoundEx
 import ru.itmo.stand.util.toTokens
@@ -76,7 +76,7 @@ class DocumentSnrmService(
         return documents.map {
             Pair(
                 it.id ?: throwDocIdNotFoundEx(),
-                dotProduct(queryLatentTermWeightMap, convertToMap(it.representation, it.weights))
+                dotProduct(queryLatentTermWeightMap, convertToMap(it.representation, it.weights)),
             )
         }
             .sortedByDescending { it.second }
@@ -123,7 +123,7 @@ class DocumentSnrmService(
                 externalId = externalId.toLong(),
                 representation = latentTerms,
                 weights = weights,
-            )
+            ),
         )
         val id = documentSnrm.id ?: throwDocIdNotFoundEx()
         contentSnrmRepository.save(ContentSnrm(indexId = id, content = content))
@@ -150,7 +150,7 @@ class DocumentSnrmService(
                             representation = latentTermsAndWeightsPair.first,
                             weights = latentTermsAndWeightsPair.second,
                         ),
-                        documents[idx]
+                        documents[idx],
                     )
                 }
 
@@ -158,12 +158,14 @@ class DocumentSnrmService(
                     val entities = entitiesAndContents.map { it.first }
                     val docContents = entitiesAndContents.map { it.second }
                     val savedEntities = documentSnrmRepository.saveAll(entities)
-                    contentSnrmRepository.saveAll(savedEntities.mapIndexed { idx, it ->
-                        ContentSnrm(
-                            indexId = it.id!!,
-                            content = docContents[idx],
-                        )
-                    })
+                    contentSnrmRepository.saveAll(
+                        savedEntities.mapIndexed { idx, it ->
+                            ContentSnrm(
+                                indexId = it.id!!,
+                                content = docContents[idx],
+                            )
+                        },
+                    )
                     log.info("Index now holds ${documentSnrmRepository.count()} documents")
                 }
             }
@@ -176,7 +178,7 @@ class DocumentSnrmService(
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
         QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),
-        DOCUMENT("Placeholder_4", "Mean_5", MAX_DOC_LEN);
+        DOCUMENT("Placeholder_4", "Mean_5", MAX_DOC_LEN),
     }
 
     private fun preprocess(contents: List<String>, type: PreprocessingType): Array<FloatArray> {

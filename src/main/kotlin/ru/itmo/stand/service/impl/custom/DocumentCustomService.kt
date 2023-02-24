@@ -38,5 +38,4 @@ class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertSer
         log.info("Content is indexed (id={})", documentId)
         return documentId
     }
-
 }
