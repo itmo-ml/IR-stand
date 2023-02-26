@@ -16,22 +16,33 @@ class WindowedTokenCreator(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+
     fun create(documents: Sequence<Document>) {
-        val memoryIndex = mutableMapOf<String, MutableSet<String>>()
+        val memoryIndex = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
         for ((index, doc) in documents.withIndex()) {
+
             if (index % 100000 == 0) log.info("documents processed: {}", index)
             val windows = create(doc)
             for (res in windows) {
                 if (!memoryIndex.containsKey(res.middleToken)) {
-                    memoryIndex[res.middleToken] = mutableSetOf()
+                    memoryIndex[res.middleToken] = mutableMapOf()
                 }
-                memoryIndex[res.middleToken]!!.add(res.convertContentToString())
+                val windowsMap = memoryIndex[res.middleToken]!!
+                val window = res.convertContentToString()
+                if(windowsMap.containsKey(window)) {
+                    //add doc id to existing element
+                    windowsMap[window]!!.add(doc.id)
+                }
+                else {
+                    windowsMap[window] = mutableSetOf(doc.id)
+                }
             }
         }
 
         memoryIndex.forEach { (token, windows) ->
-            windows.forEach {
-                luceneService.save(LuceneDocument(token, "", it))
+            windows.forEach { (window, docIds) ->
+                val docStr = docIds.joinToString(" ")
+                luceneService.save(LuceneDocument(token, docStr, window))
             }
         }
 
