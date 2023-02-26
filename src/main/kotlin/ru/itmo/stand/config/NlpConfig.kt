@@ -15,6 +15,7 @@ class NlpConfig {
     fun stanfordCoreNlp(): StanfordCoreNLP {
         val props = Properties()
         props.setProperty("annotators", ANNOTATORS)
+        props.setProperty("tokenize.options", "untokenizable=noneDelete")
         val stanfordCoreNLP = StanfordCoreNLP(props)
 
         val message = stanfordCoreNLP.processToCoreDocument("StanfordCoreNLP: warmed up.")
@@ -24,6 +25,6 @@ class NlpConfig {
     }
 
     companion object {
-        const val ANNOTATORS = "tokenize,ssplit,pos,lemma"
+        const val ANNOTATORS = "tokenize"
     }
 }
