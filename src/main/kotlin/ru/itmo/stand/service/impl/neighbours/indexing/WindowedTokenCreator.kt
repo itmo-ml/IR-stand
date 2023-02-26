@@ -16,11 +16,9 @@ class WindowedTokenCreator(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-
     fun create(documents: Sequence<Document>) {
         val memoryIndex = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
         for ((index, doc) in documents.withIndex()) {
-
             if (index % 100000 == 0) log.info("documents processed: {}", index)
             val windows = create(doc)
             for (res in windows) {
@@ -29,11 +27,10 @@ class WindowedTokenCreator(
                 }
                 val windowsMap = memoryIndex[res.middleToken]!!
                 val window = res.convertContentToString()
-                if(windowsMap.containsKey(window)) {
-                    //add doc id to existing element
+                if (windowsMap.containsKey(window)) {
+                    // add doc id to existing element
                     windowsMap[window]!!.add(doc.id)
-                }
-                else {
+                } else {
                     windowsMap[window] = mutableSetOf(doc.id)
                 }
             }
