@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
