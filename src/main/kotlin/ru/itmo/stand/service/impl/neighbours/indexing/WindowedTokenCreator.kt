@@ -39,6 +39,8 @@ class WindowedTokenCreator(
             }
         }
 
+        log.info("memoryIndex is constructed. Token number: ${memoryIndex.size}")
+
         memoryIndex.forEach { (token, windows) ->
             windows.forEach { (window, docIds) ->
                 luceneService.save(LuceneDocument(token, docIds, window))
