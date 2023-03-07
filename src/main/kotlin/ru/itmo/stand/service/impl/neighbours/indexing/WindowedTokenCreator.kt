@@ -17,29 +17,31 @@ class WindowedTokenCreator(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun create(documents: Sequence<Document>) {
-        val memoryIndex = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
-        for ((index, doc) in documents.withIndex()) {
+        val memoryIndex = hashMapOf<String, HashMap<String, String>>()
+
+        for ((index, document) in documents.withIndex()) {
             if (index % 100000 == 0) log.info("documents processed: {}", index)
-            val windows = create(doc)
-            for (res in windows) {
-                if (!memoryIndex.containsKey(res.middleToken)) {
-                    memoryIndex[res.middleToken] = mutableMapOf()
+            val docId = document.id
+            val windows = create(document)
+            for (window in windows) {
+                if (!memoryIndex.containsKey(window.middleToken)) {
+                    memoryIndex[window.middleToken] = hashMapOf()
                 }
-                val windowsMap = memoryIndex[res.middleToken]!!
-                val window = res.convertContentToString()
-                if (windowsMap.containsKey(window)) {
-                    // add doc id to existing element
-                    windowsMap[window]!!.add(doc.id)
+                val docIdsByContentMap = memoryIndex[window.middleToken]!!
+                val currentContent = window.convertContentToString()
+                val contentAndDocIds = docIdsByContentMap[currentContent]
+                if (contentAndDocIds == null) {
+                    docIdsByContentMap[currentContent] = docId
                 } else {
-                    windowsMap[window] = mutableSetOf(doc.id)
+                    val docIds = docIdsByContentMap[currentContent]
+                    docIdsByContentMap[currentContent] = "$docIds $docId"
                 }
             }
         }
 
         memoryIndex.forEach { (token, windows) ->
             windows.forEach { (window, docIds) ->
-                val docStr = docIds.joinToString(" ")
-                luceneService.save(LuceneDocument(token, docStr, window))
+                luceneService.save(LuceneDocument(token, docIds, window))
             }
         }
 
@@ -48,10 +50,5 @@ class WindowedTokenCreator(
 
     fun create(document: Document): List<Window> {
         return preprocessingPipelineExecutor.execute(document.content)
-    }
-
-    companion object {
-        const val MAX_CONCURRENCY = 3
-        const val DOC_BATCH_SIZE = 100_000
     }
 }
