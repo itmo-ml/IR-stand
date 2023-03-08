@@ -18,7 +18,7 @@ class NlpConfig {
         props.setProperty("tokenize.options", "untokenizable=noneDelete")
         val stanfordCoreNLP = StanfordCoreNLP(props)
 
-        val message = stanfordCoreNLP.processToCoreDocument("StanfordCoreNLP: warmed up.")
+        val message = stanfordCoreNLP.processToCoreDocument("StanfordCoreNLP: warmed up. Annotators: $ANNOTATORS")
         log.info(message.toString())
 
         return stanfordCoreNLP
