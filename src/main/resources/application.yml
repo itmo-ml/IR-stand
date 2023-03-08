@@ -10,6 +10,7 @@ spring:
 logging.level:
   root: warn
   ru.itmo: info
+  edu.stanford.nlp.process.PTBLexer: error
 
 stand:
   elasticsearch.host-and-port: localhost:9200
