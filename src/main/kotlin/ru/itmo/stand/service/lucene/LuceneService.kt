@@ -16,24 +16,30 @@ import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.search.grouping.TopGroups
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.BytesRef
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import java.io.Closeable
 import java.nio.file.Paths
 
 @Service
-class LuceneService(
-    private val standProperties: StandProperties,
-) : Closeable {
+class LuceneService(standProperties: StandProperties) : Closeable {
 
-    private val analyzer = StandardAnalyzer()
-    private val indexWriterConfig = IndexWriterConfig(analyzer)
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val analyzer: StandardAnalyzer
+    private val indexDir: FSDirectory
+    private val writer: IndexWriter
 
-    private val indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene"))
-
-    private val writer = IndexWriter(indexDir, indexWriterConfig)
-
-    private val searcher = IndexSearcher(DirectoryReader.open(indexDir))
+    init {
+        try {
+            analyzer = StandardAnalyzer()
+            indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/lucene"))
+            writer = IndexWriter(indexDir, IndexWriterConfig(analyzer))
+        } catch (ex: Exception) {
+            log.error("Class initialization failed", ex)
+            throw IllegalStateException(ex)
+        }
+    }
 
     fun save(document: LuceneDocument) {
         saveInBatch(listOf(document))
@@ -51,6 +57,7 @@ class LuceneService(
     }
 
     fun iterateTokens(): Sequence<Pair<String, List<LuceneDocument>>> {
+        val searcher = IndexSearcher(DirectoryReader.open(indexDir))
         var offset = 0
         return sequence {
             do {

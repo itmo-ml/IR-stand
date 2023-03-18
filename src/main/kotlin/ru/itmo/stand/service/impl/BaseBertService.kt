@@ -3,6 +3,8 @@ package ru.itmo.stand.service.impl
 import ai.djl.inference.Predictor
 import ai.djl.translate.Translator
 import edu.stanford.nlp.naturalli.ClauseSplitter.log
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -23,8 +25,6 @@ import ru.itmo.stand.util.toNgrams
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
 
 typealias KeyType = String
 typealias ValueType = ConcurrentHashMap<String, Float>
