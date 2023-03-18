@@ -1,11 +1,10 @@
 package ru.itmo.stand.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.boot.context.properties.bind.ConstructorBinding
 
-@ConstructorBinding
 @ConfigurationProperties(value = "stand")
-data class StandProperties(
+data class StandProperties @ConstructorBinding constructor(
     val elasticsearch: ElasticsearchProperties,
     val app: ApplicationProperties,
 ) {
