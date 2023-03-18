@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm") version "1.8.10"
     kotlin("plugin.spring") version "1.8.10"
     kotlin("kapt") version "1.8.10"
-    id("me.champeau.jmh") version "0.6.8"
+    id("me.champeau.jmh") version "0.7.0"
     id("org.jlleitschuh.gradle.ktlint") version "11.2.0"
     id("org.jlleitschuh.gradle.ktlint-idea") version "11.2.0"
     id("com.star-zero.gradle.githook") version "1.2.1"
