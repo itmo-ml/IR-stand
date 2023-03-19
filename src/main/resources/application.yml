@@ -20,5 +20,6 @@ stand:
     neighbours-algorithm:
       token-batch-size: 5
       bert-model-type: TINY
+      documents-count: 500000
     bert-multi-token:
       token-batch-size: 5

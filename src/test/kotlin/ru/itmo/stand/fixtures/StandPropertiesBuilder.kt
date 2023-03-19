@@ -18,7 +18,7 @@ fun standProperties(
     ApplicationProperties(
         basePath,
         BertMultiToken(bertMultiTokenBatchSize),
-        NeighboursAlgorithm(neighboursAlgorithmBatchSize, BertModelType.BASE),
+        NeighboursAlgorithm(neighboursAlgorithmBatchSize, BertModelType.BASE, 500_000),
         fileLoadBufferSizeMb,
     ),
 )
