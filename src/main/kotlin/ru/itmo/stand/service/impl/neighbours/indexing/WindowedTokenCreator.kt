@@ -20,7 +20,7 @@ class WindowedTokenCreator(
         val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
-            if (index % 100000 == 0) log.info("documents processed: {}", index)
+            if (index % 10000 == 0) log.info("documents processed: {}", index)
             val docId = document.id
             val windows = create(document)
             for (window in windows) {
@@ -40,6 +40,9 @@ class WindowedTokenCreator(
         }
 
         log.info("memoryIndex is constructed. Token number: ${memoryIndex.size}")
+        log.info("min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
+        log.info("max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
+        log.info("mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
 
         memoryIndex.forEach { (token, windows) ->
             windows.forEach { (window, docIds) ->

@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl.neighbours
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
@@ -18,6 +19,7 @@ class DocumentNeighboursService(
     private val luceneService: LuceneService,
     private val embeddingCalculator: BertEmbeddingCalculator,
     private val vectorIndexBuilder: VectorIndexBuilder,
+    private val standProperties: StandProperties,
 ) : DocumentService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -39,7 +41,11 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
-        windowedTokenCreator.create(contents.map { extractId(it) })
+        windowedTokenCreator.create(
+            contents
+                .take(standProperties.app.neighboursAlgorithm.documentsCount)
+                .map { extractId(it) },
+        )
 
         // val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
 
