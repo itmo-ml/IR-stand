@@ -2,21 +2,38 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
-import ru.itmo.stand.service.lucene.LuceneDocument
-import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.util.Window
+import ru.itmo.stand.util.createPath
+import java.io.File
 
 @Service
 class WindowedTokenCreator(
     private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
-    private val luceneService: LuceneService,
+    private val standProperties: StandProperties,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun create(documents: Sequence<Document>) {
+    fun create(documents: Sequence<Document>): File {
+        val memoryIndex = constructMemoryIndex(documents)
+
+        log.info("memoryIndex is constructed. Token number: ${memoryIndex.size}")
+        log.info("min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
+        log.info("max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
+        log.info("mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
+
+        val windowedTokensFile = File("${standProperties.app.basePath}/indexes/neighbours/windowed-tokens.txt")
+            .createPath()
+
+        writeMemoryIndexToFile(memoryIndex, windowedTokensFile)
+
+        return windowedTokensFile
+    }
+
+    private fun constructMemoryIndex(documents: Sequence<Document>): HashMap<String, HashMap<String, String>> {
         val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
@@ -38,19 +55,27 @@ class WindowedTokenCreator(
                 }
             }
         }
+        return memoryIndex
+    }
 
-        log.info("memoryIndex is constructed. Token number: ${memoryIndex.size}")
-        log.info("min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
-        log.info("max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
-        log.info("mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
-
-        memoryIndex.forEach { (token, windows) ->
-            windows.forEach { (window, docIds) ->
-                luceneService.save(LuceneDocument(token, docIds, window))
+    private fun writeMemoryIndexToFile(
+        memoryIndex: HashMap<String, HashMap<String, String>>,
+        windowedTokensFile: File,
+    ) {
+        windowedTokensFile.bufferedWriter()
+            .use { out ->
+                memoryIndex.forEach { (token, windows) ->
+                    out.write(token)
+                    out.write("=")
+                    windows.forEach { (window, docIds) ->
+                        out.write(window)
+                        out.write(":")
+                        out.write(docIds)
+                        out.write(";")
+                    }
+                    out.newLine()
+                }
             }
-        }
-
-        luceneService.completeIndexing()
     }
 
     fun create(document: Document): List<Window> {

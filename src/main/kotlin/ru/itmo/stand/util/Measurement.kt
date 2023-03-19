@@ -3,4 +3,4 @@ package ru.itmo.stand.util
 import kotlin.system.measureTimeMillis
 
 // TODO: use measureTime when it's stable
-fun measureTimeSeconds(block: () -> Unit): Double = measureTimeMillis(block) / 1000.0
+inline fun measureTimeSeconds(block: () -> Unit): Double = measureTimeMillis(block) / 1000.0
