@@ -29,7 +29,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("com.github.haifengl:smile-core:${findProperty("smileVersion")}")
     implementation("com.github.haifengl:smile-kotlin:${findProperty("smileVersion")}")
-    implementation("info.picocli:picocli-spring-boot-starter:4.7.0")
+    implementation("info.picocli:picocli-spring-boot-starter:4.7.1")
 
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
