@@ -3,7 +3,6 @@ package ru.itmo.stand.service.bert
 import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -83,9 +82,6 @@ open class BertHyperParameterBenchmark {
 //        return singleThreadBenchmark(5000)
 //    }
 
-
-
-
 /*
     @Benchmark
     fun singleThreadBenchmark_10_000(): Array<FloatArray> {
@@ -112,7 +108,6 @@ open class BertHyperParameterBenchmark {
         return singleThreadBenchmark(50_000)
     }*/
 
-
     @Benchmark
     fun multithreadedBenchmark_4_5000(): Array<FloatArray> {
         return multithreadedBenchmark(5000, 4)
@@ -125,16 +120,13 @@ open class BertHyperParameterBenchmark {
             }.toTypedArray()
     }
 
-
-
     private fun multithreadedBenchmark(batchSize: Int, numThreads: Int): Array<FloatArray> = runBlocking(Dispatchers.Default) {
-
         val counter = AtomicInteger(0)
         val chan = Channel<List<String>>(numThreads)
         repeat(numThreads) {
             launch {
                 val predictor = tinyModel.newPredictor()
-                for(data in chan) {
+                for (data in chan) {
                     counter.incrementAndGet()
                     predictor.predict(data.toTypedArray())
                 }
@@ -142,10 +134,10 @@ open class BertHyperParameterBenchmark {
             }
         }
 
-        for(data in testContents.chunked(batchSize)) {
+        for (data in testContents.chunked(batchSize)) {
             chan.send(data)
         }
-        while(!chan.isEmpty) {}
+        while (!chan.isEmpty) {}
         chan.close()
 
         arrayOf()
