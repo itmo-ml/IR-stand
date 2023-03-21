@@ -3,7 +3,6 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
-import ru.itmo.stand.service.lucene.LuceneDocument
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
 import smile.clustering.XMeans
@@ -15,7 +14,7 @@ class VectorIndexBuilder(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun indexDocuments(documents: Sequence<Pair<String, List<LuceneDocument>>>): Int {
+    fun indexDocuments(documents: Sequence<Pair<String, List<String>>>): Int {
         log.info("starting vector indexing")
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
@@ -35,17 +34,16 @@ class VectorIndexBuilder(
         return (clusterSizes.get() / counter.get())
     }
 
-    private fun process(token: Pair<String, List<LuceneDocument>>): Int {
+    fun process(token: Pair<String, Collection<String>>): Int {
         val embeddings = token.second.chunked(BERT_BATCH_SIZE)
-            .flatMap {
-                embeddingCalculator.calculate(it.map { it.content }.toTypedArray())
-                    .asIterable()
-            }.toTypedArray()
+            .flatMap { embeddingCalculator.calculate(it.toTypedArray()).asIterable() }
+            .toTypedArray()
 
         val doubleEmb = embeddings.toDoubleArray()
 
-        val clusterModel = XMeans.fit(doubleEmb, 16)
-        // log.info("{} got centroids {}", token.first, clusterModel.k)
+        val clusterModel = XMeans.fit(doubleEmb, 8)
+
+        log.info("{} got centroids {}", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids
 
