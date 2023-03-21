@@ -27,21 +27,21 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("com.github.haifengl:smile-core:${findProperty("smileVersion")}")
-    implementation("com.github.haifengl:smile-kotlin:${findProperty("smileVersion")}")
+    implementation("com.github.haifengl:smile-core:3.0.0")
+    implementation("com.github.haifengl:smile-kotlin:3.0.0")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.1")
 
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}")
-    implementation("edu.stanford.nlp:stanford-corenlp:${findProperty("stanfordCoreNlpVersion")}:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 
     // djl
-    implementation(platform("ai.djl:bom:${findProperty("djlVersion")}"))
+    implementation(platform("ai.djl:bom:0.21.0"))
     implementation("ai.djl:api")
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
@@ -50,7 +50,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.mockk:mockk:${findProperty("mockkVersion")}")
+    testImplementation("io.mockk:mockk:1.13.3")
 }
 
 tasks.withType<KotlinCompile> {
