@@ -45,7 +45,7 @@ class SaveInBatchCommand(
 
     override fun run() {
         val contents = Paths.get(contentFile.path)
-            .bufferedReader(bufferSize = standProperties.app.fileLoadBufferSizeMb * 1024)
+            .bufferedReader(bufferSize = standProperties.app.fileLoadBufferSizeKb * 1024)
             .lineSequence()
 
         val seconds = measureTimeSeconds {
