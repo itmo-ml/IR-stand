@@ -12,7 +12,7 @@ import io.weaviate.client.v1.schema.model.WeaviateClass
 
 class WeaviateRepository {
 
-    fun test(): Unit {
+    fun test() {
         val config = Config("http", "localhost:8080")
         val client = WeaviateClient(config)
 
@@ -21,45 +21,50 @@ class WeaviateRepository {
             .vectorIndexType("hnsw")
             .vectorIndexConfig(
                 VectorIndexConfig.builder()
-                    .build())
-            .properties(listOf(
-                Property.builder()
-                    .name("embedding_id")
-                    .dataType(listOf("string"))
                     .build(),
-                Property.builder()
-                    .name("token")
-                    .dataType(listOf("string"))
-                    .build()
-            ))
+            )
+            .properties(
+                listOf(
+                    Property.builder()
+                        .name("embedding_id")
+                        .dataType(listOf("string"))
+                        .build(),
+                    Property.builder()
+                        .name("token")
+                        .dataType(listOf("string"))
+                        .build(),
+                ),
+            )
             .build()
 
 //    var classResult = client.schema().classCreator()
 //        .withClass(classParam)
 //        .run()
 
-        val vector = floatArrayOf(1.2f, 1.2f, 1.2f, 1.2f,1.2f,1.2f,1.2f,1.2f).toTypedArray()
+        val vector = floatArrayOf(1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f).toTypedArray()
 
         val obj = WeaviateObject.builder()
             .vector(vector)
-            .properties(mapOf(
-                "embedding_id" to "test",
-                "token" to "testtoken"))
+            .properties(
+                mapOf(
+                    "embedding_id" to "test",
+                    "token" to "testtoken",
+                ),
+            )
             .className("context_vectors")
-            .build();
+            .build()
 
         val batchResult = client.batch().objectsBatcher()
             .withObject(obj)
             .withConsistencyLevel(ConsistencyLevel.ONE)
             .run()
 
-
         val additional = Field.builder()
             .name("_additional")
             .fields(
                 arrayOf(
-                    Field.builder().name("vector").build()
-                )
+                    Field.builder().name("vector").build(),
+                ),
             ).build()
 
         val nearResults = client.graphQL()
