@@ -66,12 +66,12 @@ class WindowedTokenCreator(
             .use { out ->
                 memoryIndex.forEach { (token, windows) ->
                     out.write(token)
-                    out.write("=")
+                    out.write(TOKEN_WINDOWS_SEPARATOR)
                     windows.forEach { (window, docIds) ->
                         out.write(window)
-                        out.write(":")
+                        out.write(WINDOW_DOC_IDS_SEPARATOR)
                         out.write(docIds)
-                        out.write(";")
+                        out.write(WINDOWS_SEPARATOR)
                     }
                     out.newLine()
                 }
@@ -80,5 +80,11 @@ class WindowedTokenCreator(
 
     fun create(document: Document): List<Window> {
         return preprocessingPipelineExecutor.execute(document.content)
+    }
+
+    companion object {
+        const val TOKEN_WINDOWS_SEPARATOR = "="
+        const val WINDOW_DOC_IDS_SEPARATOR = ":"
+        const val WINDOWS_SEPARATOR = ";"
     }
 }
