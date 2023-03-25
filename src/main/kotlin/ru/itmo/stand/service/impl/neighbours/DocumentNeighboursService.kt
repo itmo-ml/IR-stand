@@ -5,10 +5,8 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
-import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
 import java.io.File
@@ -16,8 +14,6 @@ import java.io.File
 @Service
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
-    private val luceneService: LuceneService,
-    private val embeddingCalculator: BertEmbeddingCalculator,
     private val vectorIndexBuilder: VectorIndexBuilder,
     private val standProperties: StandProperties,
 ) : DocumentService {
@@ -41,13 +37,12 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
-        windowedTokenCreator.create(
+        val windowedTokensFile = windowedTokenCreator.create(
             contents
                 .take(standProperties.app.neighboursAlgorithm.documentsCount)
                 .map { extractId(it) },
         )
-
-        // val meanClusters = vectorIndexBuilder.indexDocuments(luceneService.iterateTokens())
+        val meanClusters = vectorIndexBuilder.index(windowedTokensFile)
 
         // log.info("mean cluster size is $meanClusters")
 
