@@ -12,6 +12,11 @@ class CustomEmbeddingBatchTranslator internal constructor(
     private val pooling: String,
     private val normalize: Boolean,
 ) : NoBatchifyTranslator<Array<String?>?, Array<FloatArray?>?> {
+
+    override fun getBatchifier(): Batchifier? {
+        return super.getBatchifier()
+    }
+
     /** {@inheritDoc}  */
     override fun processInput(ctx: TranslatorContext, input: Array<String?>?): NDList {
         val manager = ctx.ndManager

@@ -162,7 +162,13 @@ class CustomEmbeddingTranslator internal constructor(
         }
 
         private fun tokenPool(embeddings: NDArray): NDArray {
-            return embeddings[0]
+            val shape = embeddings.shape.shape
+            val tokenCount = shape[0]
+
+            //5 window size, 2 for [SEP] and [CLS]
+            assert(tokenCount == 7L)
+
+            return embeddings[3]
         }
 
         private fun meanPool(embeddings: NDArray, attentionMask: NDArray, sqrt: Boolean): NDArray {
