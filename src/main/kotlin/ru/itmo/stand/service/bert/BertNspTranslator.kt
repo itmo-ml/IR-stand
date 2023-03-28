@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.bert
 
-import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
 import ai.djl.modality.nlp.bert.BertTokenizer
 import ai.djl.ndarray.NDList
@@ -11,8 +10,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.util.CLS_TOKEN
 import ru.itmo.stand.util.SEP_TOKEN
 import ru.itmo.stand.util.TOKEN_SEPARATOR
-import ru.itmo.stand.util.UNKNOWN_TOKEN
-import ru.itmo.stand.util.getResource
+import ru.itmo.stand.util.bertVocabulary
 import ru.itmo.stand.util.softmax
 import java.util.Locale
 
@@ -23,11 +21,7 @@ class BertNspTranslator : Translator<String, FloatArray> {
     private lateinit var tokenizer: BertTokenizer
 
     override fun prepare(ctx: TranslatorContext?) {
-        vocabulary = DefaultVocabulary.builder()
-            .optMinFrequency(1)
-            .addFromTextFile(getResource("./data/bert/vocab.txt"))
-            .optUnknownToken(UNKNOWN_TOKEN)
-            .build()
+        vocabulary = bertVocabulary
         tokenizer = BertTokenizer()
     }
 

@@ -35,6 +35,8 @@ dependencies {
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
+    implementation("io.weaviate:client:4.0.1")
+
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.2:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
@@ -50,9 +52,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.mockk:mockk:1.13.3")
-
-    implementation("io.weaviate:client:4.0.0")
+    testImplementation("io.mockk:mockk:1.13.4")
 }
 
 tasks.withType<KotlinCompile> {
