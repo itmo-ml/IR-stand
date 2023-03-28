@@ -34,7 +34,10 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
     /** {@inheritDoc}  */
     @Throws(TranslateException::class)
     override fun <I, O> newInstance(
-        input: Class<I>, output: Class<O>, model: Model, arguments: Map<String?, *>?
+        input: Class<I>,
+        output: Class<O>,
+        model: Model,
+        arguments: Map<String?, *>?,
     ): Translator<I, O> {
         val modelPath = model.modelPath
         try {
@@ -64,20 +67,20 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
             SUPPORTED_TYPES.add(
                 Pair(
                     String::class.java,
-                    FloatArray::class.java
-                )
+                    FloatArray::class.java,
+                ),
             )
             SUPPORTED_TYPES.add(
                 Pair(
                     Array<String>::class.java,
-                    Array<FloatArray>::class.java
-                )
+                    Array<FloatArray>::class.java,
+                ),
             )
             SUPPORTED_TYPES.add(
                 Pair(
                     Input::class.java,
-                    Output::class.java
-                )
+                    Output::class.java,
+                ),
             )
         }
     }

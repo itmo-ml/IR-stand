@@ -28,7 +28,7 @@ class CustomEmbeddingTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
     private val pooling: String,
-    private val normalize: Boolean
+    private val normalize: Boolean,
 ) : Translator<String?, FloatArray?> {
     /** {@inheritDoc}  */
     override fun getBatchifier(): Batchifier {
@@ -47,8 +47,10 @@ class CustomEmbeddingTranslator internal constructor(
         val encoding = ctx.getAttachment("encoding") as Encoding
         val manager = ctx.ndManager
         var embeddings = processEmbedding(
-            manager, list, encoding,
-            pooling
+            manager,
+            list,
+            encoding,
+            pooling,
         )
         if (normalize) {
             embeddings = embeddings.normalize(2.0, 0)
@@ -97,16 +99,16 @@ class CustomEmbeddingTranslator internal constructor(
          * @return this builder
          */
         fun optPoolingMode(poolingMode: String): Builder {
-            if ("mean" != poolingMode
-                && "max" != poolingMode
-                && "cls" != poolingMode
-                && "mean_sqrt_len" != poolingMode
-                && "weightedmean" != poolingMode
-                && "token" != poolingMode
+            if ("mean" != poolingMode &&
+                "max" != poolingMode &&
+                "cls" != poolingMode &&
+                "mean_sqrt_len" != poolingMode &&
+                "weightedmean" != poolingMode &&
+                "token" != poolingMode
             ) {
                 throw IllegalArgumentException(
-                    "Invalid pooling model, must be one of [mean, max, cls, mean_sqrt_len,"
-                            + " weightedmean]."
+                    "Invalid pooling model, must be one of [mean, max, cls, mean_sqrt_len," +
+                        " weightedmean].",
                 )
             }
             pooling = poolingMode
@@ -140,7 +142,10 @@ class CustomEmbeddingTranslator internal constructor(
     companion object {
         private val AXIS = intArrayOf(0)
         fun processEmbedding(
-            manager: NDManager, list: NDList, encoding: Encoding, pooling: String
+            manager: NDManager,
+            list: NDList,
+            encoding: Encoding,
+            pooling: String,
         ): NDArray {
             val embedding = list["last_hidden_state"]
             val attentionMask = encoding.attentionMask
@@ -170,7 +175,9 @@ class CustomEmbeddingTranslator internal constructor(
             val sum = prod.sum(AXIS)
             return if (sqrt) {
                 sum.div(clamp.sqrt())
-            } else sum.div(clamp)
+            } else {
+                sum.div(clamp)
+            }
         }
 
         private fun maxPool(embeddings: NDArray, inputAttentionMask: NDArray): NDArray {

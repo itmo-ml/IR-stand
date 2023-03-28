@@ -10,7 +10,7 @@ class CustomEmbeddingBatchTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
     private val pooling: String,
-    private val normalize: Boolean
+    private val normalize: Boolean,
 ) : NoBatchifyTranslator<Array<String?>?, Array<FloatArray?>?> {
     /** {@inheritDoc}  */
     override fun processInput(ctx: TranslatorContext, input: Array<String?>?): NDList {
@@ -32,7 +32,10 @@ class CustomEmbeddingBatchTranslator internal constructor(
         val ret = arrayOfNulls<FloatArray>(batch.size)
         for (i in batch.indices) {
             var array = CustomEmbeddingTranslator.processEmbedding(
-                manager, batch[i], encoding[i], pooling
+                manager,
+                batch[i],
+                encoding[i],
+                pooling,
             )
             if (normalize) {
                 array = array.normalize(2.0, 0)
