@@ -165,7 +165,7 @@ class CustomEmbeddingTranslator internal constructor(
             val shape = embeddings.shape.shape
             val tokenCount = shape[0]
 
-            //5 window size, 2 for [SEP] and [CLS]
+            // 5 window size, 2 for [SEP] and [CLS]
             assert(tokenCount == 7L)
 
             return embeddings[3]
