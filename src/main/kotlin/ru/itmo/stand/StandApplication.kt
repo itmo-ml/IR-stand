@@ -1,10 +1,14 @@
 package ru.itmo.stand
 
+import CustomEmbeddingTranslatorFactory
+import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
+import ai.djl.repository.zoo.Criteria
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import ru.itmo.stand.config.StandProperties
+import java.nio.file.Paths
 import kotlin.system.exitProcess
 
 @SpringBootApplication
@@ -12,7 +16,24 @@ import kotlin.system.exitProcess
 class StandApplication
 
 fun main(args: Array<String>) {
-    exitProcess(SpringApplication.exit(runApplication<StandApplication>(*args)))
+
+    val tinyModel =  Criteria.builder()
+            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .optModelName("prajjwal1/bert-tiny")
+            .optModelPath(Paths.get("./models/bert-tiny"))
+            .optEngine("PyTorch")
+            .optArgument("padding", "true")
+            .optArgument("normalize", "false")
+            .optArgument("pooling", "token")
+            .optArgument("maxLength", "20")
+            .optTranslatorFactory(CustomEmbeddingTranslatorFactory())
+            .build()
+            .loadModel()
+
+
+
+
+//    exitProcess(SpringApplication.exit(runApplication<StandApplication>(*args)))
 }
 
 /*
