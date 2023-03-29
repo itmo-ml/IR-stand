@@ -13,9 +13,6 @@
 
 import ai.djl.Model
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.modality.Input
-import ai.djl.modality.Output
-import ai.djl.modality.nlp.translator.TextEmbeddingServingTranslator
 import ai.djl.translate.TranslateException
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorFactory
@@ -48,9 +45,9 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
                 .build()
             val translator = CustomEmbeddingTranslator.builder(tokenizer, arguments).build()
 
-            if(input == CustomTranslatorInput::class.java && output == FloatArray::class.java) {
+            if (input == CustomTranslatorInput::class.java && output == FloatArray::class.java) {
                 return translator as Translator<I, O>
-            } else if(input == Array<CustomTranslatorInput>::class.java && output == Array<FloatArray>::class.java) {
+            } else if (input == Array<CustomTranslatorInput>::class.java && output == Array<FloatArray>::class.java) {
                 return translator.toBatchTranslator() as Translator<I, O>
             }
             throw IllegalArgumentException("Unsupported input/output types.")
@@ -67,13 +64,13 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
             SUPPORTED_TYPES.add(
                 Pair(
                     CustomTranslatorInput::class.java,
-                    FloatArray::class.java
+                    FloatArray::class.java,
                 ),
             )
             SUPPORTED_TYPES.add(
                 Pair(
                     Array<CustomTranslatorInput>::class.java,
-                    Array<FloatArray>::class.java
+                    Array<FloatArray>::class.java,
                 ),
             )
         }

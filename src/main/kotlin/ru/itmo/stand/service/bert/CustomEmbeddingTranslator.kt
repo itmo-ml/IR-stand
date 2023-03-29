@@ -54,7 +54,7 @@ class CustomEmbeddingTranslator internal constructor(
             list,
             encoding,
             pooling,
-            index
+            index,
         )
         if (normalize) {
             embeddings = embeddings.normalize(2.0, 0)
