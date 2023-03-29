@@ -20,6 +20,7 @@ import ai.djl.translate.TranslateException
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorFactory
 import ai.djl.util.Pair
+import ru.itmo.stand.service.bert.CustomTranslatorInput
 import java.io.IOException
 import java.io.Serializable
 import java.lang.reflect.Type
@@ -46,12 +47,11 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
                 .optManager(model.ndManager)
                 .build()
             val translator = CustomEmbeddingTranslator.builder(tokenizer, arguments).build()
-            if (input == String::class.java && output == FloatArray::class.java) {
+
+            if(input == CustomTranslatorInput::class.java && output == FloatArray::class.java) {
                 return translator as Translator<I, O>
-            } else if (input == Array<String>::class.java && output == Array<FloatArray>::class.java) {
+            } else if(input == Array<CustomTranslatorInput>::class.java && output == Array<FloatArray>::class.java) {
                 return translator.toBatchTranslator() as Translator<I, O>
-            } else if (input == Input::class.java && output == Output::class.java) {
-                return TextEmbeddingServingTranslator(translator) as Translator<I, O>
             }
             throw IllegalArgumentException("Unsupported input/output types.")
         } catch (e: IOException) {
@@ -66,20 +66,14 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
         init {
             SUPPORTED_TYPES.add(
                 Pair(
-                    String::class.java,
-                    FloatArray::class.java,
+                    CustomTranslatorInput::class.java,
+                    FloatArray::class.java
                 ),
             )
             SUPPORTED_TYPES.add(
                 Pair(
-                    Array<String>::class.java,
-                    Array<FloatArray>::class.java,
-                ),
-            )
-            SUPPORTED_TYPES.add(
-                Pair(
-                    Input::class.java,
-                    Output::class.java,
+                    Array<CustomTranslatorInput>::class.java,
+                    Array<FloatArray>::class.java
                 ),
             )
         }

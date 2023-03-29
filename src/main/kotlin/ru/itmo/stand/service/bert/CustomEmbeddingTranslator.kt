@@ -21,6 +21,7 @@ import ai.djl.translate.ArgumentsUtil
 import ai.djl.translate.Batchifier
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
+import ru.itmo.stand.service.bert.CustomTranslatorInput
 import java.io.IOException
 
 /** The translator for Huggingface text embedding model.  */
@@ -29,28 +30,31 @@ class CustomEmbeddingTranslator internal constructor(
     private val batchifier: Batchifier,
     private val pooling: String,
     private val normalize: Boolean,
-) : Translator<String?, FloatArray?> {
+) : Translator<CustomTranslatorInput?, FloatArray?> {
     /** {@inheritDoc}  */
     override fun getBatchifier(): Batchifier {
         return batchifier
     }
 
     /** {@inheritDoc}  */
-    override fun processInput(ctx: TranslatorContext, input: String?): NDList {
-        val encoding = tokenizer.encode(input)
+    override fun processInput(ctx: TranslatorContext, input: CustomTranslatorInput?): NDList {
+        val encoding = tokenizer.encode(input?.window)
         ctx.setAttachment("encoding", encoding)
+        ctx.setAttachment("index", input?.middleTokenIndex)
         return encoding.toNDList(ctx.ndManager, false)
     }
 
     /** {@inheritDoc}  */
     override fun processOutput(ctx: TranslatorContext, list: NDList): FloatArray {
         val encoding = ctx.getAttachment("encoding") as Encoding
+        val index = ctx.getAttachment("index") as Long
         val manager = ctx.ndManager
         var embeddings = processEmbedding(
             manager,
             list,
             encoding,
             pooling,
+            index
         )
         if (normalize) {
             embeddings = embeddings.normalize(2.0, 0)
@@ -146,6 +150,7 @@ class CustomEmbeddingTranslator internal constructor(
             list: NDList,
             encoding: Encoding,
             pooling: String,
+            tokenIndex: Long,
         ): NDArray {
             val embedding = list["last_hidden_state"]
             val attentionMask = encoding.attentionMask
@@ -156,19 +161,9 @@ class CustomEmbeddingTranslator internal constructor(
                 "max" -> return maxPool(embedding, inputAttentionMask)
                 "weightedmean" -> return weightedMeanPool(embedding, inputAttentionMask)
                 "cls" -> return embedding[0]
-                "token" -> return tokenPool(embedding)
+                "token" -> return embedding[tokenIndex]
                 else -> throw AssertionError("Unexpected pooling mode: $pooling")
             }
-        }
-
-        private fun tokenPool(embeddings: NDArray): NDArray {
-            val shape = embeddings.shape.shape
-            val tokenCount = shape[0]
-
-            // 5 window size, 2 for [SEP] and [CLS]
-            assert(tokenCount == 7L)
-
-            return embeddings[3]
         }
 
         private fun meanPool(embeddings: NDArray, attentionMask: NDArray, sqrt: Boolean): NDArray {
