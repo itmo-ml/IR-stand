@@ -46,7 +46,7 @@ class CustomEmbeddingBatchTranslator internal constructor(
                 batch[i],
                 encoding[i],
                 pooling,
-                indices[i]
+                indices[i],
             )
             if (normalize) {
                 array = array.normalize(2.0, 0)
