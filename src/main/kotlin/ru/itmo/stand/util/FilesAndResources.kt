@@ -1,6 +1,6 @@
 package ru.itmo.stand.util
 
-import ai.djl.util.ClassLoaderUtils
+import org.springframework.core.io.ClassPathResource
 import java.io.File
 import java.io.InputStream
 import java.net.URL
@@ -26,7 +26,6 @@ fun walkDirectory(dirPath: Path): List<Path> {
     return paths
 }
 
-fun getResource(name: String): URL = ClassLoaderUtils.getResource(name)
-    ?: error("Resource not found in classpath: $name")
+fun getResource(name: String): URL = ClassPathResource(name).url
 
-fun getResourceAsStream(name: String): InputStream = ClassLoaderUtils.getResourceAsStream(name)
+fun getResourceAsStream(name: String): InputStream = ClassPathResource(name).inputStream

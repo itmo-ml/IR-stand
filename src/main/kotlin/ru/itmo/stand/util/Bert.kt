@@ -3,7 +3,6 @@ package ru.itmo.stand.util
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.Vocabulary
-import java.nio.file.Paths
 
 const val SEP_TOKEN = "[SEP]"
 const val CLS_TOKEN = "[CLS]"
@@ -22,5 +21,6 @@ val bertVocabulary: Vocabulary = DefaultVocabulary.builder()
     .build()
 
 val bertTokenizer: HuggingFaceTokenizer = HuggingFaceTokenizer.newInstance(
-    Paths.get(getResource("./data/bert/tokenizer.json").toURI()),
+    getResourceAsStream("./data/bert/tokenizer.json"),
+    null,
 )
