@@ -1,11 +1,11 @@
 package ru.itmo.stand.util.kmeans
 
-import java.lang.Math.exp;
-import java.lang.Math.floor;
-import java.lang.Math.abs;
+import java.lang.Math.abs
+import java.lang.Math.exp
+import java.lang.Math.floor
 import java.lang.Math.sqrt
-import java.util.Arrays
 import java.security.SecureRandom
+import java.util.Arrays
 import java.util.stream.LongStream
 
 object MathEx {
