@@ -8,7 +8,6 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
-import smile.clustering.XMeans
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -60,13 +59,14 @@ class VectorIndexBuilder(
 
         val doubleEmb = embeddings.toDoubleArray()
 
-        val clusterModel = XMeans.fit(doubleEmb, 8)
-
+        // val clusterModel = XMeans.fit(doubleEmb, 8)
+/*
         log.info("{} got centroids {}", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids
 
-        return clusterModel.k
+        return clusterModel.k*/
+        return 0
     }
 
     companion object {
