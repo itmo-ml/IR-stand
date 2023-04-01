@@ -5,9 +5,10 @@ import java.util.Arrays
 import java.util.stream.IntStream
 
 class XMeans(
-    distortion: Double, 
+    distortion: Double,
     centroids: Array<FloatArray>,
-    y: IntArray?) :
+    y: IntArray?,
+) :
     CentroidClustering<FloatArray, FloatArray>(distortion, centroids, y!!) {
     override fun distance(x: FloatArray, y: FloatArray): Double {
         return MathEx.squaredDistance(x, y)
@@ -32,7 +33,8 @@ class XMeans(
             var centroids = arrayOf(mean)
             var distortion = Arrays.stream(data).parallel().mapToDouble { x: FloatArray ->
                 MathEx.squaredDistance(
-                    x, mean
+                    x,
+                    mean,
                 )
             }.sum()
             val distortions = DoubleArray(kmax)
@@ -68,9 +70,12 @@ class XMeans(
                     score[i] = newBIC - oldBIC
                     logger.info(
                         String.format(
-                            "Cluster %3d BIC: %12.4f, BIC after split: %12.4f, improvement: %12.4f", i, oldBIC, newBIC,
-                            score[i]
-                        )
+                            "Cluster %3d BIC: %12.4f, BIC after split: %12.4f, improvement: %12.4f",
+                            i,
+                            oldBIC,
+                            newBIC,
+                            score[i],
+                        ),
                     )
                 }
                 val index = QuickSort.sort(score)
@@ -122,7 +127,6 @@ class XMeans(
             return XMeans(distortion, centroids, y)
         }
 
-
         private fun bic(n: Int, d: Int, distortion: Double): Double {
             val variance = distortion / (n - 1)
             val p1 = -n * LOG2PI
@@ -132,7 +136,6 @@ class XMeans(
             val numParameters = d + 1
             return L - 0.5 * numParameters * Math.log(n.toDouble())
         }
-
 
         private fun bic(k: Int, n: Int, d: Int, distortion: Double, clusterSize: IntArray): Double {
             val variance = distortion / (n - k)
