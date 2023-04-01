@@ -2,16 +2,16 @@ package ru.itmo.stand.util.kmeans
 
 import java.util.*
 
-class BBDTree(data: Array<DoubleArray>) {
+class BBDTree(data: Array<FloatArray>) {
     internal class Node(d: Int) {
         var size = 0
 
         var index = 0
-        var center: DoubleArray
+        var center: FloatArray
 
-        var radius: DoubleArray
+        var radius: FloatArray
 
-        var sum: DoubleArray
+        var sum: FloatArray
 
         var cost = 0.0
 
@@ -19,9 +19,9 @@ class BBDTree(data: Array<DoubleArray>) {
         var upper: Node? = null
 
         init {
-            center = DoubleArray(d)
-            radius = DoubleArray(d)
-            sum = DoubleArray(d)
+            center = FloatArray(d)
+            radius = FloatArray(d)
+            sum = FloatArray(d)
         }
     }
 
@@ -40,7 +40,7 @@ class BBDTree(data: Array<DoubleArray>) {
         root = buildNode(data, 0, n)
     }
 
-    private fun buildNode(data: Array<DoubleArray>, begin: Int, end: Int): Node {
+    private fun buildNode(data: Array<FloatArray>, begin: Int, end: Int): Node {
         val d = data[0].size
 
         // Allocate the node
@@ -51,8 +51,8 @@ class BBDTree(data: Array<DoubleArray>) {
         node.index = begin
 
         // Calculate the bounding box
-        val lowerBound = DoubleArray(d)
-        val upperBound = DoubleArray(d)
+        val lowerBound = FloatArray(d)
+        val upperBound = FloatArray(d)
         for (i in 0 until d) {
             lowerBound[i] = data[index[begin]][i]
             upperBound[i] = data[index[begin]][i]
@@ -70,7 +70,7 @@ class BBDTree(data: Array<DoubleArray>) {
         }
 
         // Calculate bounding box stats
-        var maxRadius = -1.0
+        var maxRadius = -1.0f
         var splitIndex = -1
         for (i in 0 until d) {
             node.center[i] = (lowerBound[i] + upperBound[i]) / 2
@@ -89,7 +89,7 @@ class BBDTree(data: Array<DoubleArray>) {
             if (end > begin + 1) {
                 val len = end - begin
                 for (i in 0 until d) {
-                    node.sum[i] *= len.toDouble()
+                    node.sum[i] *= len.toFloat()
                 }
             }
             node.cost = 0.0
@@ -130,7 +130,7 @@ class BBDTree(data: Array<DoubleArray>) {
         for (i in 0 until d) {
             node.sum[i] = node.lower!!.sum[i] + node.upper!!.sum[i]
         }
-        val mean = DoubleArray(d)
+        val mean = FloatArray(d)
         for (i in 0 until d) {
             mean[i] = node.sum[i] / node.size
         }
@@ -138,7 +138,7 @@ class BBDTree(data: Array<DoubleArray>) {
         return node
     }
 
-    private fun getNodeCost(node: Node?, center: DoubleArray): Double {
+    private fun getNodeCost(node: Node?, center: FloatArray): Double {
         val d = center.size
         var scatter = 0.0
         for (i in 0 until d) {
@@ -148,13 +148,13 @@ class BBDTree(data: Array<DoubleArray>) {
         return node!!.cost + node.size * scatter
     }
 
-    fun clustering(centroids: Array<DoubleArray>, sum: Array<DoubleArray>, size: IntArray, y: IntArray): Double {
+    fun clustering(centroids: Array<FloatArray>, sum: Array<FloatArray>, size: IntArray, y: IntArray): Double {
         val k = centroids.size
         Arrays.fill(size, 0)
         val candidates = IntArray(k)
         for (i in 0 until k) {
             candidates[i] = i
-            Arrays.fill(sum[i], 0.0)
+            Arrays.fill(sum[i], 0.0f)
         }
         val wcss = filter(root, centroids, candidates, k, sum, size, y)
         val d = centroids[0].size
@@ -170,10 +170,10 @@ class BBDTree(data: Array<DoubleArray>) {
 
     private fun filter(
         node: Node?,
-        centroids: Array<DoubleArray>,
+        centroids: Array<FloatArray>,
         candidates: IntArray,
         k: Int,
-        sum: Array<DoubleArray>,
+        sum: Array<FloatArray>,
         size: IntArray,
         y: IntArray,
     ): Double {
@@ -228,9 +228,9 @@ class BBDTree(data: Array<DoubleArray>) {
     }
 
     private fun prune(
-        center: DoubleArray,
-        radius: DoubleArray,
-        centroids: Array<DoubleArray>,
+        center: FloatArray,
+        radius: FloatArray,
+        centroids: Array<FloatArray>,
         bestIndex: Int,
         testIndex: Int,
     ): Boolean {

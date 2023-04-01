@@ -6,6 +6,7 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
+import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
 import java.io.File
@@ -57,16 +58,13 @@ class VectorIndexBuilder(
             .flatMap { embeddingCalculator.calculate(it.toTypedArray()).asIterable() }
             .toTypedArray()
 
-        val doubleEmb = embeddings.toDoubleArray()
+        val clusterModel = XMeans.fit(embeddings, 8)
 
-        // val clusterModel = XMeans.fit(doubleEmb, 8)
-/*
         log.info("{} got centroids {}", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids
 
-        return clusterModel.k*/
-        return 0
+        return clusterModel.k
     }
 
     companion object {

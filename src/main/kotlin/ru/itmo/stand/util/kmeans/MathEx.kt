@@ -1,5 +1,6 @@
 package ru.itmo.stand.util.kmeans
 
+import java.lang.Float.isNaN
 import java.lang.Math.abs
 import java.lang.Math.exp
 import java.lang.Math.floor
@@ -655,6 +656,17 @@ object MathEx {
         return x
     }
 
+    fun colMeans(matrix: Array<FloatArray>): FloatArray {
+        val x = matrix[0].clone()
+        for (i in 1 until matrix.size) {
+            for (j in x.indices) {
+                x[j] += matrix[i][j]
+            }
+        }
+        scale(1.0f / matrix.size, x)
+        return x
+    }
+
     fun sum(x: ByteArray): Int {
         var sum = 0
         for (n in x) {
@@ -937,12 +949,12 @@ object MathEx {
         return sum
     }
 
-    fun squaredDistanceWithMissingValues(x: DoubleArray, y: DoubleArray): Double {
+    fun squaredDistanceWithMissingValues(x: FloatArray, y: FloatArray): Double {
         val n = x.size
         var m = 0
         var dist = 0.0
         for (i in 0 until n) {
-            if (!java.lang.Double.isNaN(x[i]) && !java.lang.Double.isNaN(y[i])) {
+            if (!isNaN(x[i]) && !isNaN(y[i])) {
                 m++
                 val d = x[i] - y[i]
                 dist += d * d
@@ -1419,6 +1431,12 @@ object MathEx {
     }
 
     fun scale(a: Double, x: DoubleArray) {
+        for (i in x.indices) {
+            x[i] *= a
+        }
+    }
+
+    fun scale(a: Float, x: FloatArray) {
         for (i in x.indices) {
             x[i] *= a
         }

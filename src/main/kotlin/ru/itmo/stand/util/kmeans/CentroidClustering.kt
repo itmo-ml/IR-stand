@@ -1,5 +1,6 @@
 package ru.itmo.stand.util.kmeans
 
+import java.lang.Float.isNaN
 import java.util.*
 import java.util.function.ToDoubleBiFunction
 import java.util.stream.IntStream
@@ -70,13 +71,13 @@ abstract class CentroidClustering<T, U>(
         /**
          * Calculates the new centroids in the new clusters.
          */
-        fun updateCentroids(centroids: Array<DoubleArray>, data: Array<DoubleArray>, y: IntArray, size: IntArray) {
+        fun updateCentroids(centroids: Array<FloatArray>, data: Array<FloatArray>, y: IntArray, size: IntArray) {
             val n = data.size
             val k = centroids.size
             val d = centroids[0].size
             Arrays.fill(size, 0)
             IntStream.range(0, k).parallel().forEach { cluster: Int ->
-                Arrays.fill(centroids[cluster], 0.0)
+                Arrays.fill(centroids[cluster], 0.0f)
                 for (i in 0 until n) {
                     if (y[i] == cluster) {
                         size[cluster]++
@@ -86,7 +87,7 @@ abstract class CentroidClustering<T, U>(
                     }
                 }
                 for (j in 0 until d) {
-                    centroids[cluster][j] /= size[cluster].toDouble()
+                    centroids[cluster][j] /= size[cluster].toFloat()
                 }
             }
         }
@@ -96,8 +97,8 @@ abstract class CentroidClustering<T, U>(
          * @param notNaN the number of non-missing values per cluster per variable.
          */
         fun updateCentroidsWithMissingValues(
-            centroids: Array<DoubleArray>,
-            data: Array<DoubleArray>,
+            centroids: Array<FloatArray>,
+            data: Array<FloatArray>,
             y: IntArray,
             size: IntArray,
             notNaN: Array<IntArray>,
@@ -106,13 +107,13 @@ abstract class CentroidClustering<T, U>(
             val k = centroids.size
             val d = centroids[0].size
             IntStream.range(0, k).parallel().forEach { cluster: Int ->
-                Arrays.fill(centroids[cluster], 0.0)
+                Arrays.fill(centroids[cluster], 0.0f)
                 Arrays.fill(notNaN[cluster], 0)
                 for (i in 0 until n) {
                     if (y[i] == cluster) {
                         size[cluster]++
                         for (j in 0 until d) {
-                            if (!java.lang.Double.isNaN(data[i][j])) {
+                            if (!isNaN(data[i][j])) {
                                 centroids[cluster][j] += data[i][j]
                                 notNaN[cluster][j]++
                             }
@@ -120,7 +121,7 @@ abstract class CentroidClustering<T, U>(
                     }
                 }
                 for (j in 0 until d) {
-                    centroids[cluster][j] /= notNaN[cluster][j].toDouble()
+                    centroids[cluster][j] /= notNaN[cluster][j].toFloat()
                 }
             }
         }
