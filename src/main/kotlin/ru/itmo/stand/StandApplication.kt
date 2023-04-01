@@ -1,13 +1,8 @@
 package ru.itmo.stand
 
-import CustomEmbeddingTranslatorFactory
-import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.repository.zoo.Criteria
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.service.bert.CustomTranslatorInput
-import java.nio.file.Paths
 
 @SpringBootApplication
 @EnableConfigurationProperties(StandProperties::class)
