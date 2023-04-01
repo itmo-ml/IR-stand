@@ -4,11 +4,11 @@ import org.slf4j.LoggerFactory
 
 open class KMeans(
     distortion: Double,
-    centroids: Array<DoubleArray>,
+    centroids: Array<FloatArray>,
     y: IntArray,
 ) :
-    CentroidClustering<DoubleArray, DoubleArray>(distortion, centroids, y) {
-    public override fun distance(x: DoubleArray, y: DoubleArray): Double {
+    CentroidClustering<FloatArray, FloatArray>(distortion, centroids, y) {
+    public override fun distance(x: FloatArray, y: FloatArray): Double {
         return MathEx.squaredDistance(x, y)
     }
 
@@ -17,17 +17,17 @@ open class KMeans(
         private val logger = LoggerFactory.getLogger(KMeans::class.java)
 
         @JvmOverloads
-        fun fit(data: Array<DoubleArray>, k: Int, maxIter: Int = 100, tol: Double = 1E-4): KMeans {
+        fun fit(data: Array<FloatArray>, k: Int, maxIter: Int = 100, tol: Double = 1E-4): KMeans {
             return fit(BBDTree(data), data, k, maxIter, tol)
         }
 
-        fun fit(bbd: BBDTree, data: Array<DoubleArray>, k: Int, maxIter: Int, tol: Double): KMeans {
+        fun fit(bbd: BBDTree, data: Array<FloatArray>, k: Int, maxIter: Int, tol: Double): KMeans {
             require(k >= 2) { "Invalid number of clusters: $k" }
             require(maxIter > 0) { "Invalid maximum number of iterations: $maxIter" }
             val n = data.size
             val d = data[0].size
             val y = IntArray(n)
-            val medoids = Array(k) { doubleArrayOf() }
+            val medoids = Array(k) { floatArrayOf() }
 
             var distortion: Double = MathEx.sum(seed(data, medoids, y, MathEx::squaredDistance))
             logger.info(String.format("Distortion after initialization: %.4f", distortion))
@@ -35,12 +35,12 @@ open class KMeans(
             // Initialize the centroids
             val size = IntArray(k)
             val centroids = Array(k) {
-                DoubleArray(
+                FloatArray(
                     d,
                 )
             }
             updateCentroids(centroids, data, y, size)
-            val sum = Array(k) { DoubleArray(d) }
+            val sum = Array(k) { FloatArray(d) }
             var diff = Double.MAX_VALUE
             var iter = 1
             while (iter <= maxIter && diff > tol) {
@@ -54,18 +54,18 @@ open class KMeans(
         }
 
         @JvmOverloads
-        fun lloyd(data: Array<DoubleArray>, k: Int, maxIter: Int = 100, tol: Double = 1E-4): KMeans {
+        fun lloyd(data: Array<FloatArray>, k: Int, maxIter: Int = 100, tol: Double = 1E-4): KMeans {
             require(k >= 2) { "Invalid number of clusters: $k" }
             require(maxIter > 0) { "Invalid maximum number of iterations: $maxIter" }
             val n = data.size
             val d = data[0].size
             val y = IntArray(n)
-            val medoids = Array(k) { doubleArrayOf() }
+            val medoids = Array(k) { floatArrayOf() }
             var distortion: Double = MathEx.sum(seed(data, medoids, y, MathEx::squaredDistanceWithMissingValues))
             logger.info(String.format("Distortion after initialization: %.4f", distortion))
             val size = IntArray(k)
             val centroids = Array(k) {
-                DoubleArray(
+                FloatArray(
                     d,
                 )
             }
@@ -87,7 +87,7 @@ open class KMeans(
                 updateCentroidsWithMissingValues(centroids, data, y, size, notNaN)
             }
             return object : KMeans(distortion, centroids, y) {
-                override fun distance(x: DoubleArray, y: DoubleArray): Double {
+                override fun distance(x: FloatArray, y: FloatArray): Double {
                     return MathEx.squaredDistanceWithMissingValues(x, y)
                 }
             }
