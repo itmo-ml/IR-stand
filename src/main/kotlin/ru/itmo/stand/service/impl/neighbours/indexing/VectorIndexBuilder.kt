@@ -8,7 +8,6 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
-import ru.itmo.stand.util.toDoubleArray
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
