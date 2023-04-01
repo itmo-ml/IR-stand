@@ -14,30 +14,7 @@ import java.nio.file.Paths
 class StandApplication
 
 fun main(args: Array<String>) {
-    val tinyModel = Criteria.builder()
-        .setTypes(Array<CustomTranslatorInput>::class.java, Array<FloatArray>::class.java)
-        .optModelName("prajjwal1/bert-tiny")
-        .optModelPath(Paths.get("./models/bert-tiny"))
-        .optEngine("PyTorch")
-        .optArgument("padding", "true")
-        .optArgument("normalize", "false")
-        .optArgument("pooling", "token")
-        .optArgument("maxLength", "20")
-        .optTranslatorFactory(CustomEmbeddingTranslatorFactory())
-        .build()
-        .loadModel()
-
-    val tokenizer = HuggingFaceTokenizer.newInstance(Paths.get("./models/bert-tiny/tokenizer.json"))
-
-    val text = "Some input text for testing"
-    val tokens = tokenizer.tokenize(text)
-
-    val window = tokens.take(5).joinToString(" ")
-
-    val predictor = tinyModel.newPredictor()
-    val prediction = predictor.predict(arrayOf(CustomTranslatorInput(2, window)))
-
-//    exitProcess(SpringApplication.exit(runApplication<StandApplication>(*args)))
+    exitProcess(SpringApplication.exit(runApplication<StandApplication>(*args)))
 }
 
 /*
