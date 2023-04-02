@@ -9,5 +9,4 @@ fun preprocessingPipelineExecutor(): PreprocessingPipelineExecutor = Preprocessi
     ContextSplitter(),
     StopWordRemover(),
     textCleaner(),
-    tokenizer(),
 )

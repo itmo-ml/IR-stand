@@ -22,5 +22,5 @@ val bertVocabulary: Vocabulary = DefaultVocabulary.builder()
 
 val bertTokenizer: HuggingFaceTokenizer = HuggingFaceTokenizer.newInstance(
     getResourceAsStream("./data/bert/tokenizer.json"),
-    null,
+    mapOf("addSpecialTokens" to "false"),
 )

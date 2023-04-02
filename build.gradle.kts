@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.4"
+    id("org.springframework.boot") version "3.0.5"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version "1.8.10"
     kotlin("plugin.spring") version "1.8.10"
@@ -37,8 +37,8 @@ dependencies {
 
     implementation("io.weaviate:client:4.0.1")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.2:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 
