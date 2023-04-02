@@ -20,7 +20,6 @@ interface Sort {
             x[j] = a
         }
 
-
         fun <T> swap(x: Array<T>, i: Int, j: Int) {
             val a: T
             a = x[i]
