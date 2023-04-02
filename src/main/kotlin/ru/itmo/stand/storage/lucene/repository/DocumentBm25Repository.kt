@@ -1,5 +1,6 @@
 package ru.itmo.stand.storage.lucene.repository
 
+import jakarta.annotation.PreDestroy
 import org.apache.lucene.analysis.en.EnglishAnalyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -19,14 +20,13 @@ import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.preprocessing.TextCleaner
 import ru.itmo.stand.storage.lucene.model.DocumentBm25
-import java.io.Closeable
 import java.nio.file.Paths
 
 @Repository
 class DocumentBm25Repository(
     private val textCleaner: TextCleaner,
     standProperties: StandProperties,
-) : Closeable {
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val analyzer: StandardAnalyzer
@@ -51,6 +51,11 @@ class DocumentBm25Repository(
     }
 
     private val searcher by lazy { IndexSearcher(DirectoryReader.open(indexDir)) }
+
+    @PreDestroy
+    private fun closeIndex() {
+        indexDir.close()
+    }
 
     fun findByContent(content: String, count: Int): List<DocumentBm25> {
         val query = QueryParser(DocumentBm25::content.name, analyzer)
@@ -82,10 +87,5 @@ class DocumentBm25Repository(
     fun completeSaving() {
         writer.forceMerge(1, true)
         writer.commit()
-    }
-
-    override fun close() {
-        writer.close()
-        indexDir.close()
     }
 }

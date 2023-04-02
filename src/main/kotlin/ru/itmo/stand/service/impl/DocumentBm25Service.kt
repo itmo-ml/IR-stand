@@ -84,7 +84,6 @@ class DocumentBm25Service(private val documentBm25Repository: DocumentBm25Reposi
             log.info("Processed: ${(index + 1) * chunkSize}")
         }
         documentBm25Repository.completeSaving()
-        documentBm25Repository.close()
         return emptyList()
     }
 
