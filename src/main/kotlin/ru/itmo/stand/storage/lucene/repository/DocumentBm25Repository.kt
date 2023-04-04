@@ -2,9 +2,9 @@ package ru.itmo.stand.storage.lucene.repository
 
 import jakarta.annotation.PreDestroy
 import org.apache.lucene.analysis.Analyzer
-import org.apache.lucene.analysis.TokenStream
 import org.apache.lucene.analysis.LowerCaseFilter
 import org.apache.lucene.analysis.StopFilter
+import org.apache.lucene.analysis.TokenStream
 import org.apache.lucene.analysis.en.EnglishAnalyzer
 import org.apache.lucene.analysis.en.PorterStemFilter
 import org.apache.lucene.analysis.miscellaneous.CapitalizationFilter
@@ -29,7 +29,7 @@ import ru.itmo.stand.storage.lucene.model.DocumentBm25
 import java.nio.file.Paths
 // import org.apache.lucene.analysis.standard.StandardFilter
 
-class MyCustomAnalyzer : Analyzer() {
+class Bm25Analyzer : Analyzer() {
     override fun createComponents(fieldName: String): TokenStreamComponents {
         val src = StandardTokenizer()
         var result: TokenStream = src
@@ -55,7 +55,7 @@ class DocumentBm25Repository(
         try {
 
             indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/bm25"))
-            val config = IndexWriterConfig(MyCustomAnalyzer())
+            val config = IndexWriterConfig(Bm25Analyzer())
             config.similarity = BM25Similarity()
             config.openMode = IndexWriterConfig.OpenMode.CREATE
             config.ramBufferSizeMB = 2048.0
@@ -99,7 +99,7 @@ class DocumentBm25Repository(
     }*/
 
     fun findByContent(content: String, count: Int): List<DocumentBm25> {
-        val query = QueryParser(DocumentBm25::content.name, MyCustomAnalyzer())
+        val query = QueryParser(DocumentBm25::content.name, Bm25Analyzer())
             .parse(textCleaner.preprocess(content)) // TODO: try BagOfWords
         val topDocs = searcher.search(query, count)
         return topDocs.scoreDocs
