@@ -1,8 +1,14 @@
 package ru.itmo.stand.storage.lucene.repository
 
 import jakarta.annotation.PreDestroy
+import org.apache.lucene.analysis.Analyzer
+import org.apache.lucene.analysis.TokenStream
+import org.apache.lucene.analysis.LowerCaseFilter
+import org.apache.lucene.analysis.StopFilter
 import org.apache.lucene.analysis.en.EnglishAnalyzer
-import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.analysis.en.PorterStemFilter
+import org.apache.lucene.analysis.miscellaneous.CapitalizationFilter
+import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.StringField
@@ -21,6 +27,19 @@ import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.preprocessing.TextCleaner
 import ru.itmo.stand.storage.lucene.model.DocumentBm25
 import java.nio.file.Paths
+// import org.apache.lucene.analysis.standard.StandardFilter
+
+class MyCustomAnalyzer : Analyzer() {
+    override fun createComponents(fieldName: String): TokenStreamComponents {
+        val src = StandardTokenizer()
+        var result: TokenStream = src
+        result = LowerCaseFilter(result)
+        result = StopFilter(result, EnglishAnalyzer.ENGLISH_STOP_WORDS_SET)
+        result = PorterStemFilter(result)
+        result = CapitalizationFilter(result)
+        return TokenStreamComponents(src, result)
+    }
+}
 
 @Repository
 class DocumentBm25Repository(
@@ -29,19 +48,19 @@ class DocumentBm25Repository(
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val analyzer: StandardAnalyzer
     private val indexDir: FSDirectory
     private val writer: IndexWriter
 
     init {
         try {
-            analyzer = StandardAnalyzer(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET)
+
             indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/bm25"))
-            val config = IndexWriterConfig(analyzer)
+            val config = IndexWriterConfig(MyCustomAnalyzer())
             config.similarity = BM25Similarity()
             config.openMode = IndexWriterConfig.OpenMode.CREATE
             config.ramBufferSizeMB = 2048.0
             config.useCompoundFile = false
+
             config.mergeScheduler = ConcurrentMergeScheduler()
             writer = IndexWriter(indexDir, config)
         } catch (ex: Exception) {
@@ -50,15 +69,37 @@ class DocumentBm25Repository(
         }
     }
 
-    private val searcher by lazy { IndexSearcher(DirectoryReader.open(indexDir)) }
+    private val searcher by lazy {
+        IndexSearcher(DirectoryReader.open(indexDir))/*.similarity =
+        BM25Similarity(0.82f,0.68f) */
+    }
 
+//
     @PreDestroy
     private fun closeIndex() {
         indexDir.close()
     }
 
-    fun findByContent(content: String, count: Int): List<DocumentBm25> {
+  /*  fun findByContent(content: String, count: Int): List<DocumentBm25> {
+
+      //  val configSearcher = searcher.setSimilarity(BM25Similarity(0.82f,0.68f))
+
+
         val query = QueryParser(DocumentBm25::content.name, analyzer)
+            .parse(textCleaner.preprocess(content)) // TODO: try BagOfWords
+        val topDocs = searcher.search(query, count)
+        return topDocs.scoreDocs
+            .map { searcher.storedFields().document(it.doc) }
+            .map {
+                DocumentBm25(
+                    id = it.get(DocumentBm25::id.name),
+                    content = it.get(DocumentBm25::content.name),
+                )
+            }
+    }*/
+
+    fun findByContent(content: String, count: Int): List<DocumentBm25> {
+        val query = QueryParser(DocumentBm25::content.name, MyCustomAnalyzer())
             .parse(textCleaner.preprocess(content)) // TODO: try BagOfWords
         val topDocs = searcher.search(query, count)
         return topDocs.scoreDocs
