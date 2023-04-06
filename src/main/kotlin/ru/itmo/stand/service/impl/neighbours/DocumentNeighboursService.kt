@@ -42,9 +42,7 @@ class DocumentNeighboursService(
                 .take(standProperties.app.neighboursAlgorithm.documentsCount)
                 .map { extractId(it) },
         )
-        val meanClusters = vectorIndexBuilder.index(windowedTokensFile)
-
-        // log.info("mean cluster size is $meanClusters")
+        vectorIndexBuilder.index(windowedTokensFile)
 
         return emptyList()
     }

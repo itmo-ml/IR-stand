@@ -6,19 +6,23 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
+import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
+import ru.itmo.stand.util.toFloatArray
 import smile.clustering.XMeans
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
+    private val embeddingStorageClient: EmbeddingStorageClient,
     private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun index(windowedTokensFile: File): Int {
+    fun index(windowedTokensFile: File) {
         val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
 
         log.info("starting vector indexing")
@@ -37,7 +41,7 @@ class VectorIndexBuilder(
         log.info("cluster sizes: ${clusterSizes.get()}")
         log.info("windows count: ${windowsCount.get()}")
         log.info("mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
-        return (clusterSizes.get() / counter.get())
+        log.info("mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}")
     }
 
     private fun readWindowsByTokenPairs(windowedTokensFile: File) = windowedTokensFile
@@ -66,6 +70,10 @@ class VectorIndexBuilder(
 
         val centroids = clusterModel.centroids
 
+        centroids.map { it.toFloatArray() }.forEachIndexed { index, centroid ->
+            val contextualizedEmbedding = ContextualizedEmbedding(token.first, index, centroid)
+            embeddingStorageClient.index(contextualizedEmbedding)
+        }
         return clusterModel.k
     }
 
