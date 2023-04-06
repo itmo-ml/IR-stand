@@ -20,7 +20,6 @@ import kotlin.io.path.bufferedReader
 )
 class SaveInBatchCommand(
     private val documentServicesByMethod: Map<Method, DocumentService>,
-    private val standProperties: StandProperties,
 ) : Runnable {
 
     @Parameters(
@@ -45,7 +44,7 @@ class SaveInBatchCommand(
 
     override fun run() {
         val contents = Paths.get(contentFile.path)
-            .bufferedReader(bufferSize = standProperties.app.fileLoadBufferSizeKb * 1024)
+            .bufferedReader()
             .lineSequence()
 
         val seconds = measureTimeSeconds {

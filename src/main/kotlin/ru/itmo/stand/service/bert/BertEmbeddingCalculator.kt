@@ -9,6 +9,7 @@ class BertEmbeddingCalculator(
     private val standProperties: StandProperties,
 ) {
 
+    // TODO: configure to return vector for middle token
     private val predictor by lazy {
         bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()
     }

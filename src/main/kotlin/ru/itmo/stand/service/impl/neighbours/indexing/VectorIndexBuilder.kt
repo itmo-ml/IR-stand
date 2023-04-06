@@ -23,9 +23,9 @@ class VectorIndexBuilder(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun index(windowedTokensFile: File) {
+        log.info("Starting vector indexing")
         val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
 
-        log.info("starting vector indexing")
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
@@ -37,11 +37,11 @@ class VectorIndexBuilder(
             counter.incrementAndGet()
         }
 
-        log.info("token count: ${counter.get()}")
-        log.info("cluster sizes: ${clusterSizes.get()}")
-        log.info("windows count: ${windowsCount.get()}")
-        log.info("mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
-        log.info("mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}")
+        log.info("Token count: ${counter.get()}")
+        log.info("Cluster sizes: ${clusterSizes.get()}")
+        log.info("Windows count: ${windowsCount.get()}")
+        log.info("Mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
+        log.info("Mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}")
     }
 
     private fun readWindowsByTokenPairs(windowedTokensFile: File) = windowedTokensFile
@@ -53,7 +53,7 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-                .take(1000)
+                .take(1000) // TODO: configure this value
             token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
         }
 
@@ -64,9 +64,9 @@ class VectorIndexBuilder(
 
         val doubleEmb = embeddings.toDoubleArray()
 
-        val clusterModel = XMeans.fit(doubleEmb, 8)
+        val clusterModel = XMeans.fit(doubleEmb, 8) // TODO: configure this value
 
-        log.info("{} got centroids {}", token.first, clusterModel.k)
+        log.info("{} got {} centroids", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids
 
