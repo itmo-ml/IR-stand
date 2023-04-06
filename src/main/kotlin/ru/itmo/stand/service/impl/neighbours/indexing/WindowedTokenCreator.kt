@@ -7,7 +7,6 @@ import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.util.Window
 import ru.itmo.stand.util.createPath
-import ru.itmo.stand.util.diskBasedMap
 import java.io.File
 
 @Service
@@ -34,10 +33,8 @@ class WindowedTokenCreator(
         return windowedTokensFile
     }
 
-    private fun constructMemoryIndex(documents: Sequence<Document>): MutableMap<String, HashMap<String, String>> {
-        val memoryIndex = diskBasedMap<String, HashMap<String, String>>(
-            "${standProperties.app.basePath}/indexes/neighbours/memory-index-stage-1.txt",
-        )
+    private fun constructMemoryIndex(documents: Sequence<Document>): HashMap<String, HashMap<String, String>> {
+        val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
             if (index % 10000 == 0) log.info("documents processed: {}", index)
@@ -62,7 +59,7 @@ class WindowedTokenCreator(
     }
 
     private fun writeMemoryIndexToFile(
-        memoryIndex: Map<String, HashMap<String, String>>,
+        memoryIndex: HashMap<String, HashMap<String, String>>,
         windowedTokensFile: File,
     ) {
         windowedTokensFile.bufferedWriter()
