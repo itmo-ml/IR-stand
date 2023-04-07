@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   elasticsearch:
     image: elasticsearch:7.17.3
@@ -23,6 +24,15 @@ services:
       - mongo:/data/db
     ports:
       - "27017:27017"
+  weaviate:
+    image: semitechnologies/weaviate:1.18.2
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
 
 volumes:
   elasticsearch:

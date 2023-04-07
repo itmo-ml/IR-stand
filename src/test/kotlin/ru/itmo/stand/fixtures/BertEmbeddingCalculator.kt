@@ -4,4 +4,5 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 
 fun bertEmbeddingCalculator(): BertEmbeddingCalculator = BertEmbeddingCalculator(
     bertModelLoader(),
+    standProperties(),
 )

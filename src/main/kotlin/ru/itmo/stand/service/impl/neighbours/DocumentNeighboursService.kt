@@ -1,23 +1,25 @@
 package ru.itmo.stand.service.impl.neighbours
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
-import ru.itmo.stand.service.lucene.LuceneService
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
-import ru.itmo.stand.util.toDoubleArray
-import smile.clustering.XMeans
 import java.io.File
 
 @Service
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
-    private val luceneService: LuceneService,
-    private val embeddingCalculator: BertEmbeddingCalculator,
+    private val vectorIndexBuilder: VectorIndexBuilder,
+    private val standProperties: StandProperties,
 ) : DocumentService {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override val method: Method
         get() = Method.NEIGHBOURS
 
@@ -34,25 +36,13 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
-        windowedTokenCreator.create(contents.map { extractId(it) })
-
-        val clusterSizes = mutableListOf<Int>()
-        luceneService.iterateTokens().forEach {
-            val embeddings = embeddingCalculator.calculate(
-                it.second.map { it.content }.toTypedArray(),
-            )
-
-            val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 16)
-
-            // Already got centroids, cool
-            val centroids = clusterModel.centroids
-
-            clusterSizes.add(clusterModel.k)
-        }
-
-        val meanClusters = clusterSizes.average()
-        println("average cluster size is $meanClusters")
+    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
+        val windowedTokensFile = windowedTokenCreator.create(
+            contents
+                .take(standProperties.app.neighboursAlgorithm.documentsCount)
+                .map { extractId(it) },
+        )
+        vectorIndexBuilder.index(windowedTokensFile)
 
         return emptyList()
     }

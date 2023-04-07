@@ -1,11 +1,18 @@
 package ru.itmo.stand.service.bert
 
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.StandProperties
 
 @Service
-class BertEmbeddingCalculator(private val bertModelLoader: BertModelLoader) {
+class BertEmbeddingCalculator(
+    private val bertModelLoader: BertModelLoader,
+    private val standProperties: StandProperties,
+) {
 
-    private val predictor by lazy { bertModelLoader.defaultModel().newPredictor() }
+    // TODO: configure to return vector for middle token
+    private val predictor by lazy {
+        bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()
+    }
 
     fun calculate(content: String): FloatArray = predictor.predict(arrayOf(content)).first()
 

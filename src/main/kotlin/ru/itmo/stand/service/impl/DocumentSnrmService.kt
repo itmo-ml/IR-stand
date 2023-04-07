@@ -130,9 +130,8 @@ class DocumentSnrmService(
         return id
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        log.info("Total size: ${contents.size}")
 
         for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {

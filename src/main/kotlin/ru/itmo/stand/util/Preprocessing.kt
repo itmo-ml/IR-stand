@@ -1,7 +1,5 @@
 package ru.itmo.stand.util
 
-import ai.djl.modality.nlp.DefaultVocabulary
-import ai.djl.modality.nlp.bert.WordpieceTokenizer
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
@@ -19,12 +17,6 @@ fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
 fun String.toTokens(stanfordCoreNLP: StanfordCoreNLP): List<String> = stanfordCoreNLP.processToCoreDocument(this)
     .tokens()
     .map { it.lemma().lowercase() }
-
-val vocabulary = emptyList<String>() // TODO: add vocabulary
-fun String.toSubWords(): List<String> {
-    val wordpieceTokenizer = WordpieceTokenizer(DefaultVocabulary(vocabulary), "[UNK]", Int.MAX_VALUE)
-    return wordpieceTokenizer.tokenize(this)
-}
 
 /**
  * For n tokens and size = m,

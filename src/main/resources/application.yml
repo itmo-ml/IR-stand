@@ -10,6 +10,7 @@ spring:
 logging.level:
   root: warn
   ru.itmo: info
+  edu.stanford.nlp.process.PTBLexer: error
 
 stand:
   elasticsearch.host-and-port: localhost:9200
@@ -17,5 +18,7 @@ stand:
     base-path: "."
     neighbours-algorithm:
       token-batch-size: 5
+      bert-model-type: TINY
+      documents-count: 500000
     bert-multi-token:
       token-batch-size: 5

@@ -1,5 +1,6 @@
 package ru.itmo.stand.fixtures
 
+import ru.itmo.stand.config.BertModelType
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.config.StandProperties.ApplicationProperties
 import ru.itmo.stand.config.StandProperties.BertMultiToken
@@ -16,6 +17,6 @@ fun standProperties(
     ApplicationProperties(
         basePath,
         BertMultiToken(bertMultiTokenBatchSize),
-        NeighboursAlgorithm(neighboursAlgorithmBatchSize),
+        NeighboursAlgorithm(neighboursAlgorithmBatchSize, BertModelType.BASE, 500_000),
     ),
 )

@@ -44,9 +44,8 @@ class DocumentBm25Service(
         return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
-    override fun saveInBatch(contents: List<String>, withId: Boolean): List<String> {
+    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        log.info("Total size: ${contents.size}")
         for (chunk in contents.chunked(1000)) {
             val processedModels = chunk.map {
                 val (externalId, passage) = extractId(it)

@@ -1,11 +1,13 @@
 package ru.itmo.stand.service.lucene
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
 import org.apache.lucene.document.SortedDocValuesField
 import org.apache.lucene.document.StoredField
-import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
@@ -46,12 +48,11 @@ class LuceneService(standProperties: StandProperties) : Closeable {
     }
 
     fun saveInBatch(documents: List<LuceneDocument>) {
-        documents.forEach() {
+        documents.forEach {
             val doc = Document()
             doc.add(SortedDocValuesField(GROUPING_KEY, BytesRef(it.groupKey)))
-            doc.add(TextField(CONTENT, it.content, Field.Store.YES))
+            doc.add(StoredField(CONTENT, it.content))
             doc.add(StoredField(DOC_ID, it.documentId))
-
             writer.addDocument(doc)
         }
     }
@@ -64,16 +65,22 @@ class LuceneService(standProperties: StandProperties) : Closeable {
                 val searchResult: TopGroups<BytesRef> = createGrouping()
                     .search(searcher, MatchAllDocsQuery(), offset, GROUPING_LIMIT)
 
-                val yieldResult = searchResult.groups.map {
-                    val key = it.groupValue.utf8ToString()
-                    val documents = it.scoreDocs.map { doc ->
-                        val fields = searcher.doc(doc.doc)
-                        val content = fields.get(CONTENT)
-                        val docId = fields.get(DOC_ID)
-                        LuceneDocument(key, docId, content)
-                    }
-                    key to documents
+                val yieldResult = runBlocking(Dispatchers.Default) {
+                    searchResult.groups.map {
+                        async {
+                            val key = it.groupValue.utf8ToString()
+
+                            val documents = it.scoreDocs.map { doc ->
+                                val fields = searcher.doc(doc.doc, setOf(DOC_ID, CONTENT))
+                                val content = fields.get(CONTENT)
+                                val docId = fields.get(DOC_ID)
+                                LuceneDocument(key, docId, content)
+                            }
+                            key to documents
+                        }
+                    }.awaitAll()
                 }
+
                 yieldAll(yieldResult)
                 offset += GROUPING_LIMIT
             } while (searchResult.groups.isNotEmpty())
@@ -97,11 +104,13 @@ class LuceneService(standProperties: StandProperties) : Closeable {
 
     private fun createGrouping(): GroupingSearch {
         val groupingSearch = GroupingSearch(GROUPING_KEY)
-        groupingSearch.setAllGroups(true)
         groupingSearch.setGroupDocsOffset(0)
         groupingSearch.setGroupDocsLimit(GROUP_LIMIT)
         groupingSearch.setGroupSort(Sort.INDEXORDER)
         groupingSearch.setSortWithinGroup(Sort.INDEXORDER)
+        groupingSearch.setIncludeMaxScore(false)
+        groupingSearch.setAllGroupHeads(false)
+        groupingSearch.disableCaching()
         return groupingSearch
     }
 
@@ -110,6 +119,6 @@ class LuceneService(standProperties: StandProperties) : Closeable {
         const val CONTENT = "content"
         const val DOC_ID = "docId"
         const val GROUP_LIMIT = 2_000_000
-        const val GROUPING_LIMIT = 50
+        const val GROUPING_LIMIT = 10
     }
 }

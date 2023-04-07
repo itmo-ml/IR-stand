@@ -17,6 +17,8 @@ fun FloatArray.toDoubleArray(): DoubleArray {
     return this.map { it.toDouble() }.toDoubleArray()
 }
 
+fun DoubleArray.toFloatArray(): Array<Float> = this.map { it.toFloat() }.toTypedArray()
+
 fun Array<FloatArray>.toDoubleArray(): Array<DoubleArray> {
     return this.map { it.toDoubleArray() }.toTypedArray()
 }

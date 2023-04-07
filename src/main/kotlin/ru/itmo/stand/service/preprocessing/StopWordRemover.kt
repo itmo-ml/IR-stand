@@ -9,7 +9,7 @@ import java.util.stream.Collectors
 class StopWordRemover : Preprocessor<List<String>, List<String>> {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val stopWords: Set<String> = getResourceAsStream("./data/stopwords.txt")
+    private val stopWords: Set<String> = getResourceAsStream("/data/stopwords.txt")
         .bufferedReader()
         .lines()
         .collect(Collectors.toSet())
