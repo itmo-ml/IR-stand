@@ -1,19 +1,18 @@
 package ru.itmo.stand.storage.embedding
 
 import org.slf4j.LoggerFactory
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
+import org.springframework.boot.ApplicationArguments
+import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Service
 
 @Service
 class ContextualizedEmbeddingModelInitializer(
     private val embeddingStorageClient: EmbeddingStorageClient,
-) {
+) : ApplicationRunner {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @EventListener(ApplicationReadyEvent::class)
-    fun ensureContextualizedEmbeddingModel() {
+    override fun run(args: ApplicationArguments) {
         val result = embeddingStorageClient.ensureContextualizedEmbeddingModel()
         if (result.hasErrors()) {
             log.error("Errors during ContextualizedEmbeddingModel ensuring. Errors: ${result.error}")

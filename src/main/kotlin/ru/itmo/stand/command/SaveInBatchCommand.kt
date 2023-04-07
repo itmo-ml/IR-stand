@@ -5,7 +5,6 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
