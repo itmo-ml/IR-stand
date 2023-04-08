@@ -36,7 +36,8 @@ class EmbeddingStorageClient(
             .get()
             .withClassName(className)
             .withFields(tokenField, docIdField, additionalField)
-            .withNearVector(NearVectorArgument.builder().vector(vector).build())
+            .withNearVector(NearVectorArgument.builder().vector(vector).certainty(0.95f).build()) // TODO: configure this value
+            .withLimit(10) // TODO: configure this value
             .run()
         check(result.error == null) { "Weaviate error: ${result.error}" }
         check(result.result.errors == null) { "GraphQL errors: ${result.result.errors}" }
