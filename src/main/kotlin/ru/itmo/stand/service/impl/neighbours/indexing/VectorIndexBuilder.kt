@@ -70,10 +70,11 @@ class VectorIndexBuilder(
 
         val centroids = clusterModel.centroids
 
-        centroids.map { it.toFloatArray() }.forEachIndexed { index, centroid ->
-            val contextualizedEmbedding = ContextualizedEmbedding(token.first, index, centroid)
-            embeddingStorageClient.index(contextualizedEmbedding)
+        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
+            ContextualizedEmbedding(token.first, index, centroid)
         }
+        embeddingStorageClient.indexBatch(contextualizedEmbeddings)
+
         return clusterModel.k
     }
 

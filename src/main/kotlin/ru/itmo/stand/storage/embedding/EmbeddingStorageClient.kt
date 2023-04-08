@@ -65,6 +65,26 @@ class EmbeddingStorageClient(
             .run()
     }
 
+    fun indexBatch(embeddings: List<ContextualizedEmbedding>): Result<Array<ObjectGetResponse>> {
+        val objects = embeddings.map {
+            WeaviateObject.builder()
+                .vector(it.embedding)
+                .properties(
+                    mapOf(
+                        ContextualizedEmbedding::token.name to it.token,
+                        ContextualizedEmbedding::embeddingId.name to it.embeddingId,
+                    ),
+                )
+                .className(className)
+                .build()
+        }.toTypedArray()
+
+        return client.batch().objectsBatcher()
+            .withObjects(*objects)
+            .withConsistencyLevel(ConsistencyLevel.ONE)
+            .run()
+    }
+
     fun ensureContextualizedEmbeddingModel(): Result<WeaviateClass> {
         val foundClass = client.schema().classGetter()
             .withClassName(className)
