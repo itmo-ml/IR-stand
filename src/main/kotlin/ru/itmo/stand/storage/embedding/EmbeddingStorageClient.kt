@@ -5,7 +5,6 @@ import io.weaviate.client.base.Result
 import io.weaviate.client.v1.batch.model.ObjectGetResponse
 import io.weaviate.client.v1.data.model.WeaviateObject
 import io.weaviate.client.v1.data.replication.model.ConsistencyLevel
-import io.weaviate.client.v1.graphql.model.GraphQLResponse
 import io.weaviate.client.v1.graphql.query.argument.NearVectorArgument
 import io.weaviate.client.v1.graphql.query.fields.Field
 import io.weaviate.client.v1.misc.model.VectorIndexConfig
@@ -32,12 +31,26 @@ class EmbeddingStorageClient(
         )
         .build()
 
-    fun findByVector(vector: Array<Float>): Result<GraphQLResponse> = client.graphQL()
-        .get()
-        .withClassName(className)
-        .withFields(tokenField, docIdField, additionalField)
-        .withNearVector(NearVectorArgument.builder().vector(vector).build())
-        .run()
+    fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> {
+        val result = client.graphQL()
+            .get()
+            .withClassName(className)
+            .withFields(tokenField, docIdField, additionalField)
+            .withNearVector(NearVectorArgument.builder().vector(vector).build())
+            .run()
+        check(result.error == null) { "Weaviate error: ${result.error}" }
+        check(result.result.errors == null) { "GraphQL errors: ${result.result.errors}" }
+        @Suppress("UNCHECKED_CAST")
+        return checkNotNull((result.result.data as Map<String, Map<String, List<Map<String, *>>>>)["Get"]?.get("ContextualizedEmbedding"))
+            .map { obj ->
+                val additional = obj["_additional"] as Map<String, List<Double>>
+                ContextualizedEmbedding(
+                    token = obj["token"] as String,
+                    embeddingId = (obj["embeddingId"] as Double).toInt(),
+                    embedding = checkNotNull(additional["vector"]?.map { it.toFloat() }?.toTypedArray()),
+                )
+            }
+    }
 
     fun findSchema(): Result<Schema> = client.schema()
         .getter()
