@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.impl.neighbours.indexing.InvertedIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.model.Format
@@ -14,6 +15,7 @@ import java.io.File
 @Service
 class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
+    private val invertedIndexBuilder: InvertedIndexBuilder,
     private val vectorIndexBuilder: VectorIndexBuilder,
     private val standProperties: StandProperties,
 ) : DocumentService {
@@ -37,13 +39,12 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
-        val windowedTokensFile = windowedTokenCreator.create(
-            contents
-                .take(standProperties.app.neighboursAlgorithm.documentsCount)
-                .map { extractId(it) },
-        )
+        val documents = contents
+            .take(standProperties.app.neighboursAlgorithm.documentsCount)
+            .map { extractId(it) }
+        val windowedTokensFile = windowedTokenCreator.create(documents)
         vectorIndexBuilder.index(windowedTokensFile)
-
+        invertedIndexBuilder.index(windowedTokensFile)
         return emptyList()
     }
 
