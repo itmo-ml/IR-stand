@@ -72,8 +72,8 @@ class EmbeddingStorageClient(
                 .properties(
                     mapOf(
                         ContextualizedEmbedding::token.name to it.token,
-                        ContextualizedEmbedding::embeddingId.name to it.embeddingId
-                    )
+                        ContextualizedEmbedding::embeddingId.name to it.embeddingId,
+                    ),
                 )
                 .className(className)
                 .build()
@@ -84,7 +84,6 @@ class EmbeddingStorageClient(
             .withConsistencyLevel(ConsistencyLevel.ONE)
             .run()
     }
-
 
     fun ensureContextualizedEmbeddingModel(): Result<WeaviateClass> {
         val foundClass = client.schema().classGetter()
