@@ -51,7 +51,7 @@ class WindowedTokenCreator(
                     docIdsByContentMap[currentContent] = docId
                 } else {
                     val docIds = docIdsByContentMap[currentContent]
-                    docIdsByContentMap[currentContent] = "$docIds $docId"
+                    docIdsByContentMap[currentContent] = "$docIds$DOC_IDS_SEPARATOR$docId"
                 }
             }
         }
@@ -86,5 +86,6 @@ class WindowedTokenCreator(
         const val TOKEN_WINDOWS_SEPARATOR = "="
         const val WINDOW_DOC_IDS_SEPARATOR = ":"
         const val WINDOWS_SEPARATOR = ";"
+        const val DOC_IDS_SEPARATOR = " "
     }
 }
