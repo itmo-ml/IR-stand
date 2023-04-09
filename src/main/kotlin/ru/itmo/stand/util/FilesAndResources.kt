@@ -12,6 +12,8 @@ import java.nio.file.attribute.BasicFileAttributes
 
 fun File.createPath(): File = this.apply { parentFile.mkdirs() }
 
+fun File.lineSequence(): Sequence<String> = this.bufferedReader().lineSequence()
+
 fun walkDirectory(dirPath: Path): List<Path> {
     val paths = mutableListOf<Path>()
     Files.walkFileTree(

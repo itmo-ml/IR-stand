@@ -27,6 +27,7 @@ import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
 import ru.itmo.stand.storage.mongodb.model.ContentSnrm
 import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
 import ru.itmo.stand.util.extractId
+import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.throwDocIdNotFoundEx
 import ru.itmo.stand.util.toTokens
 import java.io.File
@@ -130,10 +131,10 @@ class DocumentSnrmService(
         return id
     }
 
-    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+    override fun saveInBatch(contents: File, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
 
-        for (chunk in contents.chunked(BATCH_SIZE_DOCUMENTS)) {
+        for (chunk in contents.lineSequence().chunked(BATCH_SIZE_DOCUMENTS)) {
             launch {
                 val idsAndDocuments = chunk.map { extractId(it) }
                 val ids = idsAndDocuments.map { it.id }
