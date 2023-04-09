@@ -3,6 +3,7 @@ package ru.itmo.stand.storage.lucene.repository
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
+import org.apache.lucene.document.StoredField
 import org.apache.lucene.document.StringField
 import org.apache.lucene.index.ConcurrentMergeScheduler
 import org.apache.lucene.index.IndexWriterConfig
@@ -39,7 +40,7 @@ class NeighboursEmbeddingRepository(private val standProperties: StandProperties
         }
         val document = Document()
         document.add(StringField(NeighboursEmbedding::docId.name, entity.docId, Field.Store.YES))
-        document.add(StringField(NeighboursEmbedding::embedding.name, vectorString, Field.Store.YES))
+        document.add(StoredField(NeighboursEmbedding::embedding.name, vectorString))
         writer.addDocument(document)
     }
 
