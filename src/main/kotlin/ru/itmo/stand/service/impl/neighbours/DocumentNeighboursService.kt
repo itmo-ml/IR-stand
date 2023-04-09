@@ -11,6 +11,7 @@ import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
+import ru.itmo.stand.util.lineSequence
 import java.io.File
 
 @Service
@@ -40,12 +41,9 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
-        val documents = contents
-            .take(standProperties.app.neighboursAlgorithm.documentsCount)
-            .map { extractId(it) }
-        documentEmbeddingCreator.create(documents)
-        val windowedTokensFile = windowedTokenCreator.create(documents)
+    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+        documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
+        val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)
         invertedIndexBuilder.index(windowedTokensFile)
         return emptyList()
@@ -54,4 +52,8 @@ class DocumentNeighboursService(
     override fun getFootprint(): String {
         TODO("Not yet implemented")
     }
+
+    private fun File.documentSequenceWithSpecifiedCount() = this.lineSequence()
+        .take(standProperties.app.neighboursAlgorithm.documentsCount)
+        .map { extractId(it) }
 }

@@ -21,6 +21,7 @@ import ru.itmo.stand.service.model.Format.JUST_QUERY
 import ru.itmo.stand.service.model.Format.MS_MARCO
 import ru.itmo.stand.util.createPath
 import ru.itmo.stand.util.formatMrr
+import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.toNgrams
 import java.io.File
 import java.util.Collections
@@ -111,9 +112,9 @@ abstract class BaseBertService(
     /**
      * CLI command example: save-in-batch -m CUSTOM --with-id data/collection.air-subset.tsv
      */
-    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+    override fun saveInBatch(contents: File, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
         val channel = Channel<String>(BATCH_SIZE_DOCUMENTS)
-        contents
+        contents.lineSequence()
             .onEachIndexed { index, _ -> if (index % 10 == 0) log.info("Indexing is started for $index passages") }
             .forEach { content ->
                 channel.send(content)

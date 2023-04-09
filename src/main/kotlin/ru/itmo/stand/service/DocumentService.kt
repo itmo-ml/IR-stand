@@ -11,6 +11,6 @@ interface DocumentService {
     fun find(id: String): String?
     fun search(queries: File, format: Format): List<String>
     fun save(content: String, withId: Boolean): String
-    fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String>
+    fun saveInBatch(contents: File, withId: Boolean): List<String>
     fun getFootprint(): String
 }

@@ -8,8 +8,6 @@ import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.bufferedReader
 
 @Component
 @Command(
@@ -42,12 +40,8 @@ class SaveInBatchCommand(
     private var withId: Boolean = false
 
     override fun run() {
-        val contents = Paths.get(contentFile.path)
-            .bufferedReader()
-            .lineSequence()
-
         val seconds = measureTimeSeconds {
-            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
+            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contentFile, withId)}")
         }
         println("Latency: $seconds seconds")
     }

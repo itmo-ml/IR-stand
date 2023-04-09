@@ -13,6 +13,7 @@ import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.storage.elasticsearch.model.DocumentBm25
 import ru.itmo.stand.storage.elasticsearch.repository.DocumentBm25Repository
 import ru.itmo.stand.util.extractId
+import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.throwDocIdNotFoundEx
 import java.io.File
 
@@ -44,9 +45,9 @@ class DocumentBm25Service(
         return documentBm25Repository.save(processedModel).id ?: throwDocIdNotFoundEx()
     }
 
-    override fun saveInBatch(contents: Sequence<String>, withId: Boolean): List<String> {
+    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        for (chunk in contents.chunked(1000)) {
+        for (chunk in contents.lineSequence().chunked(1000)) {
             val processedModels = chunk.map {
                 val (externalId, passage) = extractId(it)
                 DocumentBm25(content = it, representation = preprocess(passage), externalId = externalId.toLong())
