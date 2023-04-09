@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.lucene.model
+package ru.itmo.stand.storage.lucene.model.neighbours
 
 data class NeighboursDocument(
     val tokenWithEmbeddingId: String,

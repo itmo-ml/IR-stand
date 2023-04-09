@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.lucene.repository
+package ru.itmo.stand.storage.lucene.repository.neighbours
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -12,11 +12,11 @@ import org.apache.lucene.search.TermQuery
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.lucene.LuceneRepository
-import ru.itmo.stand.storage.lucene.model.NeighboursEmbedding
+import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursEmbedding
 import ru.itmo.stand.util.toFloatArray
 
 @Repository
-class NeighboursEmbeddingRepository(private val standProperties: StandProperties) : LuceneRepository() {
+class DocumentEmbeddingRepository(private val standProperties: StandProperties) : LuceneRepository() {
 
     override val indexPath: String
         get() = "${standProperties.app.basePath}/indexes/neighbours/embedding"

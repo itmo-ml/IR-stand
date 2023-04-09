@@ -4,12 +4,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.storage.lucene.model.NeighboursEmbedding
-import ru.itmo.stand.storage.lucene.repository.NeighboursEmbeddingRepository
+import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursEmbedding
+import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
 
 @Service
 class DocumentEmbeddingCreator(
-    private val neighboursEmbeddingRepository: NeighboursEmbeddingRepository,
+    private val documentEmbeddingRepository: DocumentEmbeddingRepository,
     private val bertEmbeddingCalculator: BertEmbeddingCalculator,
 ) {
 
@@ -21,9 +21,9 @@ class DocumentEmbeddingCreator(
             .forEach { chunk ->
                 val embeddings = bertEmbeddingCalculator.calculate(chunk.map { it.content }.toTypedArray())
                     .mapIndexed { index, embedding -> NeighboursEmbedding(chunk[index].id, embedding) }
-                neighboursEmbeddingRepository.saveAll(embeddings)
+                documentEmbeddingRepository.saveAll(embeddings)
             }
-        neighboursEmbeddingRepository.completeIndexing()
+        documentEmbeddingRepository.completeIndexing()
     }
 
     companion object {
