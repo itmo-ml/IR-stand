@@ -22,3 +22,7 @@ fun DoubleArray.toFloatArray(): Array<Float> = this.map { it.toFloat() }.toTyped
 fun Array<FloatArray>.toDoubleArray(): Array<DoubleArray> {
     return this.map { it.toDoubleArray() }.toTypedArray()
 }
+
+fun String.toFloatArray(): FloatArray = this.split(' ')
+    .map { it.toFloat() }
+    .toFloatArray()
