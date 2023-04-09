@@ -28,7 +28,7 @@ class InvertedIndexBuilder(
             .forEach { tokenWithWindows ->
                 val (_, docIdsByWindowPairs) = tokenWithWindows
                 val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-                embeddingCalculator.calculate(windows.toTypedArray()).forEachIndexed { index, embedding ->
+                embeddingCalculator.calculate(windows, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
                     val docIds = docIdsList[index]
                     embeddingStorageClient.findByVector(embedding.toTypedArray())
                         .forEach { computeScoreAndSave(docIds, it) }
@@ -71,4 +71,8 @@ class InvertedIndexBuilder(
         val token: String,
         val docIdsByWindowPairs: List<Pair<String, List<String>>>,
     )
+
+    companion object {
+        const val BERT_BATCH_SIZE = 30_000
+    }
 }

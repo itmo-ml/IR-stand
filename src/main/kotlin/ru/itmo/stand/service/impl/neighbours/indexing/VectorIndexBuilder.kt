@@ -58,9 +58,7 @@ class VectorIndexBuilder(
         }
 
     fun process(token: Pair<String, Collection<String>>): Int {
-        val embeddings = token.second.chunked(BERT_BATCH_SIZE)
-            .flatMap { embeddingCalculator.calculate(it.toTypedArray()).asIterable() }
-            .toTypedArray()
+        val embeddings = embeddingCalculator.calculate(token.second, BERT_BATCH_SIZE)
 
         val doubleEmb = embeddings.toDoubleArray()
 

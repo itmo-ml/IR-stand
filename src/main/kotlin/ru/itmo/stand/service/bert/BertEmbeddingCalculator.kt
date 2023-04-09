@@ -17,4 +17,8 @@ class BertEmbeddingCalculator(
     fun calculate(content: String): FloatArray = predictor.predict(arrayOf(content)).first()
 
     fun calculate(contents: Array<String>): Array<FloatArray> = predictor.predict(contents)
+
+    fun calculate(contents: Collection<String>, batchSize: Int): Array<FloatArray> = contents.chunked(batchSize)
+        .flatMap { chunk -> predictor.predict(chunk.toTypedArray()).asIterable() }
+        .toTypedArray()
 }
