@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
@@ -17,18 +18,22 @@ class InvertedIndexBuilder(
     private val embeddingStorageClient: EmbeddingStorageClient,
     private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun index(windowedTokensFile: File) {
         val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
 
-        tokensWithWindows.forEach { tokenWithWindows ->
-            val (_, docIdsByWindowPairs) = tokenWithWindows
-            val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-            embeddingCalculator.calculate(windows.toTypedArray()).forEachIndexed { index, embedding ->
-                val docIds = docIdsList[index]
-                embeddingStorageClient.findByVector(embedding.toTypedArray())
-                    .forEach { computeScoreAndSave(docIds, it) }
+        tokensWithWindows.onEachIndexed { index, _ -> if (index % 100 == 0) log.info("Tokens processed: {}", index) }
+            .forEach { tokenWithWindows ->
+                val (_, docIdsByWindowPairs) = tokenWithWindows
+                val (windows, docIdsList) = docIdsByWindowPairs.unzip()
+                embeddingCalculator.calculate(windows.toTypedArray()).forEachIndexed { index, embedding ->
+                    val docIds = docIdsList[index]
+                    embeddingStorageClient.findByVector(embedding.toTypedArray())
+                        .forEach { computeScoreAndSave(docIds, it) }
+                }
             }
-        }
     }
 
     private fun readTokensWithWindows(windowedTokensFile: File) = windowedTokensFile

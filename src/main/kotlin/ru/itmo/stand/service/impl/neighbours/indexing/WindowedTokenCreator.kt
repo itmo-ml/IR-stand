@@ -20,10 +20,10 @@ class WindowedTokenCreator(
     fun create(documents: Sequence<Document>): File {
         val memoryIndex = constructMemoryIndex(documents)
 
-        log.info("memoryIndex is constructed. Token number: ${memoryIndex.size}")
-        log.info("min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
-        log.info("max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
-        log.info("mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
+        log.info("MemoryIndex is constructed. Token number: ${memoryIndex.size}")
+        log.info("Min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
+        log.info("Max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
+        log.info("Mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
 
         val windowedTokensFile = File("${standProperties.app.basePath}/indexes/neighbours/windowed-tokens.txt")
             .createPath()
@@ -37,7 +37,7 @@ class WindowedTokenCreator(
         val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
-            if (index % 10000 == 0) log.info("documents processed: {}", index)
+            if (index % 10000 == 0) log.info("Documents processed: {}", index)
             val docId = document.id
             val windows = create(document)
             for (window in windows) {
