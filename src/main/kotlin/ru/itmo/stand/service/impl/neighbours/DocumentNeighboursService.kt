@@ -9,6 +9,7 @@ import ru.itmo.stand.service.impl.neighbours.indexing.DocumentEmbeddingCreator
 import ru.itmo.stand.service.impl.neighbours.indexing.InvertedIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
+import ru.itmo.stand.service.impl.neighbours.search.NeighboursSearcher
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
@@ -20,6 +21,7 @@ class DocumentNeighboursService(
     private val windowedTokenCreator: WindowedTokenCreator,
     private val invertedIndexBuilder: InvertedIndexBuilder,
     private val vectorIndexBuilder: VectorIndexBuilder,
+    private val neighboursSearcher: NeighboursSearcher,
     private val standProperties: StandProperties,
 ) : DocumentService {
 
@@ -33,7 +35,8 @@ class DocumentNeighboursService(
     }
 
     override fun search(queries: File, format: Format): List<String> {
-        TODO("Not yet implemented")
+        val query = queries.readLines().single()
+        return neighboursSearcher.search(query)
     }
 
     override fun save(content: String, withId: Boolean): String {

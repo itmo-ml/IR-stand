@@ -6,6 +6,8 @@ import org.apache.lucene.document.Field.Store.YES
 import org.apache.lucene.document.StringField
 import org.apache.lucene.index.ConcurrentMergeScheduler
 import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.index.Term
+import org.apache.lucene.search.TermQuery
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.lucene.LuceneRepository
@@ -33,6 +35,21 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
 
     fun saveAll(entities: Collection<NeighboursDocument>) {
         entities.forEach { save(it) }
+    }
+
+    fun findByTokenWithEmbeddingId(tokenWithEmbeddingId: String): List<NeighboursDocument> {
+        val query = TermQuery(Term(NeighboursDocument::tokenWithEmbeddingId.name, tokenWithEmbeddingId))
+
+        val topDocs = searcher.search(query, 1_000) // TODO: configure this value
+        return topDocs.scoreDocs
+            .map { searcher.storedFields().document(it.doc) }
+            .map {
+                NeighboursDocument(
+                    it.get(NeighboursDocument::tokenWithEmbeddingId.name),
+                    it.get(NeighboursDocument::docId.name),
+                    it.get(NeighboursDocument::score.name).toFloat(),
+                )
+            }
     }
 
     fun completeIndexing() {
