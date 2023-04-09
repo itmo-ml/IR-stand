@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
+import ru.itmo.stand.service.impl.neighbours.indexing.DocumentEmbeddingCreator
 import ru.itmo.stand.service.impl.neighbours.indexing.InvertedIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
@@ -14,6 +15,7 @@ import java.io.File
 
 @Service
 class DocumentNeighboursService(
+    private val documentEmbeddingCreator: DocumentEmbeddingCreator,
     private val windowedTokenCreator: WindowedTokenCreator,
     private val invertedIndexBuilder: InvertedIndexBuilder,
     private val vectorIndexBuilder: VectorIndexBuilder,
@@ -42,6 +44,7 @@ class DocumentNeighboursService(
         val documents = contents
             .take(standProperties.app.neighboursAlgorithm.documentsCount)
             .map { extractId(it) }
+        documentEmbeddingCreator.create(documents)
         val windowedTokensFile = windowedTokenCreator.create(documents)
         vectorIndexBuilder.index(windowedTokensFile)
         invertedIndexBuilder.index(windowedTokensFile)

@@ -18,7 +18,7 @@ import ru.itmo.stand.util.toFloatArray
 class NeighboursEmbeddingRepository(private val standProperties: StandProperties) : LuceneRepository() {
 
     override val indexPath: String
-        get() = "${standProperties.app.basePath}/indexes/neighbours/document_embedding"
+        get() = "${standProperties.app.basePath}/indexes/neighbours/embedding"
 
     override val writerConfig: IndexWriterConfig
         get() = IndexWriterConfig(StandardAnalyzer()).apply {
@@ -38,8 +38,8 @@ class NeighboursEmbeddingRepository(private val standProperties: StandProperties
             }
         }
         val document = Document()
-        document.add(StringField("id", entity.docId, Field.Store.YES))
-        document.add(StringField("vector", vectorString, Field.Store.YES))
+        document.add(StringField(NeighboursEmbedding::docId.name, entity.docId, Field.Store.YES))
+        document.add(StringField(NeighboursEmbedding::embedding.name, vectorString, Field.Store.YES))
         writer.addDocument(document)
     }
 
@@ -48,12 +48,17 @@ class NeighboursEmbeddingRepository(private val standProperties: StandProperties
     }
 
     fun findByDocId(docId: String): NeighboursEmbedding {
-        val query = TermQuery(Term("id", docId))
+        val query = TermQuery(Term(NeighboursEmbedding::docId.name, docId))
 
         val topDocs = searcher.search(query, 10)
         return topDocs.scoreDocs
             .map { searcher.storedFields().document(it.doc) }
-            .map { NeighboursEmbedding(it.get("id"), it.get("vector").toFloatArray()) }
+            .map {
+                NeighboursEmbedding(
+                    it.get(NeighboursEmbedding::docId.name),
+                    it.get(NeighboursEmbedding::embedding.name).toFloatArray(),
+                )
+            }
             .single()
     }
 
