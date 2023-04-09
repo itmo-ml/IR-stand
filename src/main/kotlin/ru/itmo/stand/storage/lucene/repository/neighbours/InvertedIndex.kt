@@ -14,7 +14,7 @@ import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
 @Repository
 class InvertedIndex(private val standProperties: StandProperties) : LuceneRepository() {
     override val indexPath: String
-        get() = "${standProperties.app.basePath}/indexes/neighbours/document"
+        get() = "${standProperties.app.basePath}/indexes/neighbours/index"
     override val writerConfig: IndexWriterConfig
         get() = IndexWriterConfig(StandardAnalyzer()).apply {
             openMode = IndexWriterConfig.OpenMode.CREATE
