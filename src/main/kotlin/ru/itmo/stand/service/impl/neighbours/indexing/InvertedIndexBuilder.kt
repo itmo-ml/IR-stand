@@ -24,7 +24,14 @@ class InvertedIndexBuilder(
     fun index(windowedTokensFile: File) {
         val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
 
-        tokensWithWindows.onEachIndexed { index, _ -> if (index % 100 == 0) log.info("Tokens processed: {}", index) }
+        tokensWithWindows.onEachIndexed { index, token ->
+            log.info(
+                "Tokens processed: {}. Current token: {}. Windows size: {}",
+                index,
+                token.token,
+                token.docIdsByWindowPairs.size,
+            )
+        }
             .forEach { tokenWithWindows ->
                 val (_, docIdsByWindowPairs) = tokenWithWindows
                 val (windows, docIdsList) = docIdsByWindowPairs.unzip()
@@ -73,6 +80,6 @@ class InvertedIndexBuilder(
     )
 
     companion object {
-        const val BERT_BATCH_SIZE = 30_000
+        const val BERT_BATCH_SIZE = 10_000
     }
 }
