@@ -20,6 +20,7 @@ class InvertedIndexBuilder(
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    private val documentEmbeddingCache = HashMap<String, FloatArray>()
 
     fun index(windowedTokensFile: File) {
         val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
@@ -64,7 +65,9 @@ class InvertedIndexBuilder(
         contextualizedEmbedding: ContextualizedEmbedding,
     ) {
         val neighboursDocuments = docIds.map { docId ->
-            val documentEmbedding = documentEmbeddingRepository.findByDocId(docId).embedding // TODO: cache?
+            val documentEmbedding = documentEmbeddingCache.computeIfAbsent(docId) {
+                documentEmbeddingRepository.findByDocId(docId).embedding
+            }
             NeighboursDocument(
                 tokenWithEmbeddingId = "${contextualizedEmbedding.token}:${contextualizedEmbedding.embeddingId}",
                 docId = docId,
