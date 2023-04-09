@@ -31,16 +31,16 @@ class InvertedIndexBuilder(
                 token.token,
                 token.docIdsByWindowPairs.size,
             )
-        }
-            .forEach { tokenWithWindows ->
-                val (_, docIdsByWindowPairs) = tokenWithWindows
-                val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-                embeddingCalculator.calculate(windows, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
-                    val docIds = docIdsList[index]
-                    embeddingStorageClient.findByVector(embedding.toTypedArray())
-                        .forEach { computeScoreAndSave(docIds, it) }
-                }
+        }.forEach { tokenWithWindows ->
+            val (_, docIdsByWindowPairs) = tokenWithWindows
+            val (windows, docIdsList) = docIdsByWindowPairs.unzip()
+            // TODO: configure this value
+            embeddingCalculator.calculate(windows.take(1000), BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
+                val docIds = docIdsList[index]
+                embeddingStorageClient.findByVector(embedding.toTypedArray())
+                    .forEach { computeScoreAndSave(docIds, it) }
             }
+        }
     }
 
     private fun readTokensWithWindows(windowedTokensFile: File) = windowedTokensFile
@@ -74,7 +74,7 @@ class InvertedIndexBuilder(
         invertedIndex.saveAll(neighboursDocuments)
     }
 
-    data class TokenWithWindows(
+    private data class TokenWithWindows(
         val token: String,
         val docIdsByWindowPairs: List<Pair<String, List<String>>>,
     )
