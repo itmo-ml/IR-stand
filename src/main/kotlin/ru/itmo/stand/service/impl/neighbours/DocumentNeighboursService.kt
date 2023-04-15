@@ -53,14 +53,6 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: File, withId: Boolean): List<String> {
-        embeddingStorage.index(
-            ContextualizedEmbedding(
-                "123123",
-                1,
-                floatArrayOf(12321.3f, 12312.2f),
-            ),
-        )
-
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)
