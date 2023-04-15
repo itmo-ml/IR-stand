@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
-        private val embeddingStorageClient: IEmbeddingStorage,
-        private val embeddingCalculator: BertEmbeddingCalculator,
+    private val embeddingStorageClient: IEmbeddingStorage,
+    private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

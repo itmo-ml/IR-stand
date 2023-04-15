@@ -16,10 +16,10 @@ import ru.itmo.stand.storage.embedding.IEmbeddingStorage
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 
 @Service
-@ConditionalOnProperty(value= ["stand.app.neighbours-algorithm.embedding-storage"],havingValue = "WEAVIATE")
+@ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "WEAVIATE")
 class WeaviateStorageClient(
     private val client: WeaviateClient,
-): IEmbeddingStorage {
+) : IEmbeddingStorage {
 
     private val className = checkNotNull(ContextualizedEmbedding::class.simpleName)
     private val tokenField = Field.builder().name(ContextualizedEmbedding::token.name).build()
@@ -64,7 +64,7 @@ class WeaviateStorageClient(
         .run()
         .result
 
-    override fun index(embedding: ContextualizedEmbedding){
+    override fun index(embedding: ContextualizedEmbedding) {
         val obj = WeaviateObject.builder()
             .vector(embedding.embedding.toTypedArray())
             .properties(

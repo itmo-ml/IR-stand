@@ -42,7 +42,6 @@ dependencies {
     implementation("com.github.jelmerk:hnswlib-core:1.1.0")
     implementation("com.github.jelmerk:hnswlib-utils:1.1.0")
 
-
     // djl
     implementation(platform("ai.djl:bom:0.21.0"))
     implementation("ai.djl:api")

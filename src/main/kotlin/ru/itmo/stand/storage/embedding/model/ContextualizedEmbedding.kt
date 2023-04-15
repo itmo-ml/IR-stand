@@ -6,7 +6,7 @@ data class ContextualizedEmbedding(
     val token: String, // TODO: combine token and embId
     val embeddingId: Int,
     val embedding: FloatArray,
-): Item<Int, FloatArray> {
+) : Item<Int, FloatArray> {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

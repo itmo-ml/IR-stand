@@ -13,10 +13,10 @@ import java.io.File
 
 @Service
 class InvertedIndexBuilder(
-        private val documentEmbeddingRepository: DocumentEmbeddingRepository,
-        private val embeddingStorageClient: IEmbeddingStorage,
-        private val embeddingCalculator: BertEmbeddingCalculator,
-        private val invertedIndex: InvertedIndex,
+    private val documentEmbeddingRepository: DocumentEmbeddingRepository,
+    private val embeddingStorageClient: IEmbeddingStorage,
+    private val embeddingCalculator: BertEmbeddingCalculator,
+    private val invertedIndex: InvertedIndex,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)

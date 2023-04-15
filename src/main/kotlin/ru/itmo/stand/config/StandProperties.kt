@@ -22,6 +22,6 @@ data class StandProperties @ConstructorBinding constructor(
         val tokenBatchSize: Int,
         val bertModelType: BertModelType,
         val documentsCount: Int,
-        val embeddingStorage: EmbeddingStorageType
+        val embeddingStorage: EmbeddingStorageType,
     )
 }

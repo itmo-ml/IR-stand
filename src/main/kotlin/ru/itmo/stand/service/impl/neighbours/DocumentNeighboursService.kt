@@ -12,7 +12,6 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.impl.neighbours.search.NeighboursSearcher
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.storage.embedding.IEmbeddingStorage
-import ru.itmo.stand.storage.embedding.hnsw.HnswEmbeddingStorage
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
@@ -54,12 +53,13 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: File, withId: Boolean): List<String> {
-
-        embeddingStorage.index(ContextualizedEmbedding(
+        embeddingStorage.index(
+            ContextualizedEmbedding(
                 "123123",
                 1,
-                floatArrayOf(12321.3f, 12312.2f)
-        ))
+                floatArrayOf(12321.3f, 12312.2f),
+            ),
+        )
 
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
