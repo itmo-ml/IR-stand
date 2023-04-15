@@ -9,17 +9,17 @@ import org.springframework.stereotype.Service
 @Service
 @Profile("!standalone")
 class ContextualizedEmbeddingModelInitializer(
-    private val embeddingStorageClient: EmbeddingStorageClient,
+    private val embeddingStorage: IEmbeddingStorage,
 ) : ApplicationRunner {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
-        val result = embeddingStorageClient.ensureContextualizedEmbeddingModel()
-        if (result.hasErrors()) {
-            log.error("Errors during ContextualizedEmbeddingModel ensuring. Errors: ${result.error}")
+        val result = embeddingStorage.initialize()
+        if (result) {
+            log.error("Errors during ContextualizedEmbeddingModel ensuring.")
         } else {
-            log.info("ContextualizedEmbeddingModel ensured. Result: ${result.result}")
+            log.info("ContextualizedEmbeddingModel ensured. ")
         }
     }
 }

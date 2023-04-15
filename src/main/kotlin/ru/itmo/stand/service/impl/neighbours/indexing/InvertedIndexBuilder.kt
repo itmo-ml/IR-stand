@@ -3,7 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
-import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.IEmbeddingStorage
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
 import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
@@ -13,10 +13,10 @@ import java.io.File
 
 @Service
 class InvertedIndexBuilder(
-    private val documentEmbeddingRepository: DocumentEmbeddingRepository,
-    private val embeddingStorageClient: EmbeddingStorageClient,
-    private val embeddingCalculator: BertEmbeddingCalculator,
-    private val invertedIndex: InvertedIndex,
+        private val documentEmbeddingRepository: DocumentEmbeddingRepository,
+        private val embeddingStorageClient: IEmbeddingStorage,
+        private val embeddingCalculator: BertEmbeddingCalculator,
+        private val invertedIndex: InvertedIndex,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -73,7 +73,7 @@ class InvertedIndexBuilder(
             NeighboursDocument(
                 tokenWithEmbeddingId = "${contextualizedEmbedding.token}:${contextualizedEmbedding.embeddingId}",
                 docId = docId,
-                score = documentEmbedding.dot(contextualizedEmbedding.embedding.toFloatArray()),
+                score = documentEmbedding.dot(contextualizedEmbedding.embedding),
             )
         }
         invertedIndex.saveAll(neighboursDocuments)

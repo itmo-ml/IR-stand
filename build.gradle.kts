@@ -39,6 +39,9 @@ dependencies {
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
+    implementation("com.github.jelmerk:hnswlib-core:1.1.0")
+    implementation("com.github.jelmerk:hnswlib-utils:1.1.0")
+
 
     // djl
     implementation(platform("ai.djl:bom:0.21.0"))

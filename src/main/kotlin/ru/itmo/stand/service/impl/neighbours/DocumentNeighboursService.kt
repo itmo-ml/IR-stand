@@ -11,6 +11,9 @@ import ru.itmo.stand.service.impl.neighbours.indexing.VectorIndexBuilder
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator
 import ru.itmo.stand.service.impl.neighbours.search.NeighboursSearcher
 import ru.itmo.stand.service.model.Format
+import ru.itmo.stand.storage.embedding.IEmbeddingStorage
+import ru.itmo.stand.storage.embedding.hnsw.HnswEmbeddingStorage
+import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.writeAsFileInMrrFormat
@@ -24,6 +27,7 @@ class DocumentNeighboursService(
     private val vectorIndexBuilder: VectorIndexBuilder,
     private val neighboursSearcher: NeighboursSearcher,
     private val standProperties: StandProperties,
+    private val embeddingStorage: IEmbeddingStorage,
 ) : DocumentService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -50,6 +54,13 @@ class DocumentNeighboursService(
     }
 
     override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+
+        embeddingStorage.index(ContextualizedEmbedding(
+                "123123",
+                1,
+                floatArrayOf(12321.3f, 12312.2f)
+        ))
+
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)

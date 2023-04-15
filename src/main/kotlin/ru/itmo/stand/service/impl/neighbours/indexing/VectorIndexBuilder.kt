@@ -6,7 +6,7 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
-import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.IEmbeddingStorage
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
-    private val embeddingStorageClient: EmbeddingStorageClient,
-    private val embeddingCalculator: BertEmbeddingCalculator,
+        private val embeddingStorageClient: IEmbeddingStorage,
+        private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -69,7 +69,7 @@ class VectorIndexBuilder(
         val centroids = clusterModel.centroids
 
         val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
-            ContextualizedEmbedding(token.first, index, centroid)
+            ContextualizedEmbedding(token.first, index, centroid.toFloatArray())
         }
         embeddingStorageClient.indexBatch(contextualizedEmbeddings)
 

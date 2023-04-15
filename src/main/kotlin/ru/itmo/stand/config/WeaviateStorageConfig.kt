@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class EmbeddingStorageConfig {
+class WeaviateStorageConfig {
 
     @Bean
     fun weaviateClient(): WeaviateClient {
