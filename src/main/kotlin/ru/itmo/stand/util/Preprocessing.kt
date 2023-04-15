@@ -1,9 +1,11 @@
 package ru.itmo.stand.util
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
+import java.io.IOException
 import java.io.StringReader
 
 fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
@@ -49,4 +51,24 @@ data class Window internal constructor(
     val content: List<String>,
 ) {
     fun convertContentToString() = content.joinToString(" ")
+}
+
+fun analyze(analyzer: Analyzer, s: String): List<String> {
+    val list = mutableListOf<String>()
+    try {
+        val tokenStream = analyzer.tokenStream(null, StringReader(s))
+        val charAttribute = tokenStream.addAttribute(CharTermAttribute::class.java)
+        tokenStream.reset()
+        while (tokenStream.incrementToken()) {
+            if (charAttribute.toString().isEmpty()) {
+                continue
+            }
+            list.add(charAttribute.toString())
+        }
+        tokenStream.end()
+        tokenStream.close()
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return list
 }

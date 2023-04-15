@@ -15,7 +15,7 @@ import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.lucene.analyze.BM25Analyzer
+import ru.itmo.stand.storage.lucene.analyze.Bm25Analyzer
 import ru.itmo.stand.storage.lucene.model.DocumentBm25
 import ru.itmo.stand.util.buildBagOfWordsQuery
 import java.nio.file.Paths
@@ -34,7 +34,7 @@ class DocumentBm25Repository(
         try {
 
             indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/bm25"))
-            val config = IndexWriterConfig(BM25Analyzer())
+            val config = IndexWriterConfig(Bm25Analyzer())
             config.similarity = BM25Similarity()
             config.openMode = IndexWriterConfig.OpenMode.CREATE
             config.ramBufferSizeMB = 2048.0
@@ -58,7 +58,7 @@ class DocumentBm25Repository(
     }
 
     fun findByContent(content: String, count: Int): List<DocumentBm25> {
-        val queryWithBagOfWords = buildBagOfWordsQuery(DocumentBm25::content.name, BM25Analyzer(), content)
+        val queryWithBagOfWords = buildBagOfWordsQuery(DocumentBm25::content.name, Bm25Analyzer(), content)
 
         val topDocs = searcher.search(queryWithBagOfWords, count)
         return topDocs.scoreDocs

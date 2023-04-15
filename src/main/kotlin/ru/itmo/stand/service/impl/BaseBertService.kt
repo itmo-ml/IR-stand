@@ -72,8 +72,7 @@ abstract class BaseBertService(
 
     override fun search(queries: File, format: Format): List<String> = when (format) {
         JUST_QUERY -> searchByQuery(queries.readLines().single())
-        MS_MARCO -> { searchByMS_Marco(queries, format)
-        }
+        MS_MARCO -> searchByMS_Marco(queries, format)
     }
 
     private fun searchByMS_Marco(queries: File, format: Format): List<String> {

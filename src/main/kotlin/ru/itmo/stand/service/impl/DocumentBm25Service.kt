@@ -2,7 +2,6 @@ package ru.itmo.stand.service.impl
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
@@ -18,10 +17,10 @@ import ru.itmo.stand.util.throwDocIdNotFoundEx
 import java.io.File
 
 @Service
-class DocumentBm25Service(private val documentBm25Repository: DocumentBm25Repository) : DocumentService {
-
-    @Autowired
-    protected lateinit var standProperties: StandProperties
+class DocumentBm25Service(
+    private val documentBm25Repository: DocumentBm25Repository,
+    private val standProperties: StandProperties,
+) : DocumentService {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -66,23 +65,21 @@ class DocumentBm25Service(private val documentBm25Repository: DocumentBm25Reposi
     override fun save(content: String, withId: Boolean): String {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val (externalId, passage) = extractId(content)
-        val processedModel = DocumentBm25(id = externalId, content = passage)
-        documentBm25Repository.save(processedModel)
+        documentBm25Repository.save(DocumentBm25(id = externalId, content = passage))
         return "Document saved"
     }
 
     override fun saveInBatch(contents: File, withId: Boolean): List<String> {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
-        log.info("Total size: ${contents.size}")
         val chunkSize = 10_000
-        for ((index, chunk) in contents.lineSequence().chunked(chunkSize).withIndex()) {
-            val processedModels = chunk.map {
-                val (externalId, passage) = extractId(it)
-                DocumentBm25(id = externalId, content = passage)
+        contents.lineSequence()
+            .map { extractId(it) }
+            .map { (externalId, passage) -> DocumentBm25(id = externalId, content = passage) }
+            .chunked(chunkSize)
+            .forEachIndexed { index, chunk ->
+                documentBm25Repository.saveAll(chunk)
+                log.info("Processed: ${(index + 1) * chunkSize}")
             }
-            documentBm25Repository.saveAll(processedModels)
-            log.info("Processed: ${(index + 1) * chunkSize}")
-        }
         documentBm25Repository.completeSaving()
         return emptyList()
     }

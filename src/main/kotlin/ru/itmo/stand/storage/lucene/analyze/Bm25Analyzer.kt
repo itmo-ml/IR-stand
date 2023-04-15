@@ -9,9 +9,9 @@ import org.apache.lucene.analysis.en.PorterStemFilter
 import org.apache.lucene.analysis.miscellaneous.CapitalizationFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 
-class BM25Analyzer : Analyzer() {
+class Bm25Analyzer : Analyzer() {
 
-     override fun createComponents(fieldName: String?): TokenStreamComponents {
+    override fun createComponents(fieldName: String?): TokenStreamComponents {
         val src = StandardTokenizer()
         var result: TokenStream = src
         result = LowerCaseFilter(result)
