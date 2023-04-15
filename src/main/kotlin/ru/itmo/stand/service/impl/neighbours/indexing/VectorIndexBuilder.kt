@@ -37,6 +37,8 @@ class VectorIndexBuilder(
             counter.incrementAndGet()
         }
 
+        embeddingStorageClient.saveIndex()
+
         log.info("Token count: ${counter.get()}")
         log.info("Cluster sizes: ${clusterSizes.get()}")
         log.info("Windows count: ${windowsCount.get()}")

@@ -23,6 +23,7 @@ class InvertedIndexBuilder(
     private val documentEmbeddingCache = HashMap<String, FloatArray>()
 
     fun index(windowedTokensFile: File) {
+        // embeddingStorageClient.loadIndex()
         val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
 
         tokensWithWindows.onEachIndexed { index, token ->
