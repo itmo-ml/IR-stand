@@ -1,61 +1,33 @@
 package ru.itmo.stand.storage.lucene.repository
 
-import jakarta.annotation.PreDestroy
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.StringField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.ConcurrentMergeScheduler
-import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
-import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.similarities.BM25Similarity
-import org.apache.lucene.store.FSDirectory
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
+import ru.itmo.stand.storage.lucene.LuceneRepository
 import ru.itmo.stand.storage.lucene.analyze.Bm25Analyzer
 import ru.itmo.stand.storage.lucene.model.DocumentBm25
 import ru.itmo.stand.util.buildBagOfWordsQuery
-import java.nio.file.Paths
 
 @Repository
-class DocumentBm25Repository(
-    standProperties: StandProperties,
+class DocumentBm25Repository(private val standProperties: StandProperties) : LuceneRepository() {
 
-) {
+    override val indexPath: String
+        get() = "${standProperties.app.basePath}/indexes/bm25"
 
-    private val log = LoggerFactory.getLogger(javaClass)
-    private val indexDir: FSDirectory
-    private val writer: IndexWriter
-
-    init {
-        try {
-
-            indexDir = FSDirectory.open(Paths.get("${standProperties.app.basePath}/indexes/bm25"))
-            val config = IndexWriterConfig(Bm25Analyzer())
-            config.similarity = BM25Similarity()
-            config.openMode = IndexWriterConfig.OpenMode.CREATE
-            config.ramBufferSizeMB = 2048.0
-            config.useCompoundFile = false
-
-            config.mergeScheduler = ConcurrentMergeScheduler()
-            writer = IndexWriter(indexDir, config)
-        } catch (ex: Exception) {
-            log.error("Class initialization failed", ex)
-            throw IllegalStateException(ex)
+    override val writerConfig: IndexWriterConfig
+        get() = IndexWriterConfig(Bm25Analyzer()).apply {
+            similarity = BM25Similarity()
+            openMode = IndexWriterConfig.OpenMode.CREATE
+            ramBufferSizeMB = 2048.0
+            useCompoundFile = false
+            mergeScheduler = ConcurrentMergeScheduler()
         }
-    }
-
-    private val searcher by lazy {
-        IndexSearcher(DirectoryReader.open(indexDir))
-    }
-
-    @PreDestroy
-    private fun closeIndex() {
-        indexDir.close()
-    }
 
     fun findByContent(content: String, count: Int): List<DocumentBm25> {
         val queryWithBagOfWords = buildBagOfWordsQuery(DocumentBm25::content.name, Bm25Analyzer(), content)
