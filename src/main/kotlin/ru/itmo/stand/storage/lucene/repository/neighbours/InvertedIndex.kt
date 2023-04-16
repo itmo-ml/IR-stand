@@ -34,4 +34,9 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
     fun saveAll(entities: Collection<NeighboursDocument>) {
         entities.forEach { save(it) }
     }
+
+    fun completeIndexing() {
+        writer.forceMerge(1, true)
+        writer.commit()
+    }
 }
