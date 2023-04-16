@@ -1,7 +1,7 @@
 package ru.itmo.stand.storage.lucene.model
 
 data class DocumentBm25(
-    var id: String? = null,
+    val id: String,
     val content: String,
 ) {
     companion object {
