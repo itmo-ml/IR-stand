@@ -42,6 +42,8 @@ class InvertedIndexBuilder(
                     .forEach { computeScoreAndSave(docIds, it) }
             }
         }
+
+        invertedIndex.completeIndexing()
     }
 
     private fun readTokensWithWindows(windowedTokensFile: File) = windowedTokensFile
