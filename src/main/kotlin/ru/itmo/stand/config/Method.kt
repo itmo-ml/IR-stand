@@ -1,7 +1,7 @@
 package ru.itmo.stand.config
 
-import ru.itmo.stand.storage.elasticsearch.model.DocumentBm25
 import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
+import ru.itmo.stand.storage.lucene.model.DocumentBm25
 
 enum class Method(val indexName: String) {
     BM25(DocumentBm25.DOCUMENT_BM25),

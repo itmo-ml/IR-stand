@@ -20,9 +20,9 @@ import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.model.Format.JUST_QUERY
 import ru.itmo.stand.service.model.Format.MS_MARCO
 import ru.itmo.stand.util.createPath
-import ru.itmo.stand.util.formatMrr
 import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.toNgrams
+import ru.itmo.stand.util.writeAsFileInMrrFormat
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -73,15 +73,8 @@ abstract class BaseBertService(
     override fun search(queries: File, format: Format): List<String> = when (format) {
         JUST_QUERY -> searchByQuery(queries.readLines().single())
         MS_MARCO -> {
-            val queryByIdMap = getQueryByIdMap(queries)
-            val outputLines = mutableListOf<String>()
-            for ((queryId, query) in queryByIdMap) {
-                val docsTopList = searchByQuery(query).mapIndexed { index, docId -> formatMrr(queryId, docId, index + 1) }
-                outputLines.addAll(docsTopList)
-            }
-            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/queriesForMRR.tsv"
-            File(outputPath).createPath().bufferedWriter()
-                .use { output -> outputLines.forEach { line -> output.appendLine(line) } }
+            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/resultInMrrFormat.tsv"
+            writeAsFileInMrrFormat(queries, outputPath) { query -> searchByQuery(query) }
             listOf("See output in $outputPath")
         }
     }
@@ -96,12 +89,6 @@ abstract class BaseBertService(
         ?.sortedByDescending { (_, score) -> score }
         ?.take(10)
         ?.map { (docId, _) -> docId } ?: emptyList()
-
-    private fun getQueryByIdMap(queries: File): Map<Int, String> = queries.bufferedReader()
-        .use { it.readLines() }
-        .filter { it != "" }
-        .map { it.split("\t") }
-        .associate { it[0].toInt() to it[1] }
 
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"
