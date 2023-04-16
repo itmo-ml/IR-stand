@@ -13,6 +13,7 @@ import ru.itmo.stand.service.impl.neighbours.search.NeighboursSearcher
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
+import ru.itmo.stand.util.writeAsFileInMrrFormat
 import java.io.File
 
 @Service
@@ -34,9 +35,13 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun search(queries: File, format: Format): List<String> {
-        val query = queries.readLines().single()
-        return neighboursSearcher.search(query)
+    override fun search(queries: File, format: Format): List<String> = when (format) {
+        Format.JUST_QUERY -> neighboursSearcher.search(queries.readLines().single())
+        Format.MS_MARCO -> {
+            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/resultInMrrFormat.tsv"
+            writeAsFileInMrrFormat(queries, outputPath) { query -> neighboursSearcher.search(query) }
+            listOf("See output in $outputPath")
+        }
     }
 
     override fun save(content: String, withId: Boolean): String {
