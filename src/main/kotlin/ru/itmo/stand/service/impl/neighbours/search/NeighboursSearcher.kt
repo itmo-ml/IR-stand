@@ -23,7 +23,7 @@ class NeighboursSearcher(
                     "${contextualizedEmbedding.token}:${contextualizedEmbedding.embeddingId}",
                 ).groupingBy { it.docId }
                     .foldTo(HashMap(), 0f) { acc, doc -> acc + doc.score }
-            }.reduce { acc, scoreByDocIdMap ->
+            }.fold(HashMap<String, Float>()) { acc, scoreByDocIdMap ->
                 scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
                 acc
             }.entries
