@@ -12,18 +12,17 @@ import io.weaviate.client.v1.schema.model.Schema
 import io.weaviate.client.v1.schema.model.WeaviateClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import ru.itmo.stand.storage.embedding.IEmbeddingStorage
+import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 
 @Service
 @ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "WEAVIATE")
-class WeaviateStorageClient(
+class ContextualizedEmbeddingWeaviateRepository(
     private val client: WeaviateClient,
-) : IEmbeddingStorage {
+) : ContextualizedEmbeddingRepository {
 
     private val className = checkNotNull(ContextualizedEmbedding::class.simpleName)
-    private val tokenField = Field.builder().name(ContextualizedEmbedding::token.name).build()
-    private val docIdField = Field.builder().name(ContextualizedEmbedding::embeddingId.name).build()
+    private val tokenField = Field.builder().name(ContextualizedEmbedding::tokenWithEmbeddingId.name).build()
     private val additionalField = Field.builder()
         .name("_additional")
         .fields(
@@ -37,7 +36,7 @@ class WeaviateStorageClient(
         val result = client.graphQL()
             .get()
             .withClassName(className)
-            .withFields(tokenField, docIdField, additionalField)
+            .withFields(tokenField, additionalField)
             .withNearVector(NearVectorArgument.builder().vector(vector).certainty(0.95f).build()) // TODO: configure this value
             .withLimit(10) // TODO: configure this value
             .run()
@@ -48,8 +47,7 @@ class WeaviateStorageClient(
             .map { obj ->
                 val additional = obj["_additional"] as Map<String, List<Double>>
                 ContextualizedEmbedding(
-                    token = obj["token"] as String,
-                    embeddingId = (obj["embeddingId"] as Double).toInt(),
+                    tokenWithEmbeddingId = obj[ContextualizedEmbedding::tokenWithEmbeddingId.name] as String,
                     embedding = checkNotNull(additional["vector"]?.map { it.toFloat() }?.toTypedArray()?.toFloatArray()),
                 )
             }
@@ -67,12 +65,7 @@ class WeaviateStorageClient(
     override fun index(embedding: ContextualizedEmbedding) {
         val obj = WeaviateObject.builder()
             .vector(embedding.embedding.toTypedArray())
-            .properties(
-                mapOf(
-                    ContextualizedEmbedding::token.name to embedding.token,
-                    ContextualizedEmbedding::embeddingId.name to embedding.embeddingId,
-                ),
-            )
+            .properties(mapOf(ContextualizedEmbedding::tokenWithEmbeddingId.name to embedding.tokenWithEmbeddingId))
             .className(className)
             .build()
 
@@ -86,12 +79,7 @@ class WeaviateStorageClient(
         val objects = embeddings.map {
             WeaviateObject.builder()
                 .vector(it.embedding.toTypedArray())
-                .properties(
-                    mapOf(
-                        ContextualizedEmbedding::token.name to it.token,
-                        ContextualizedEmbedding::embeddingId.name to it.embeddingId,
-                    ),
-                )
+                .properties(mapOf(ContextualizedEmbedding::tokenWithEmbeddingId.name to it.tokenWithEmbeddingId))
                 .className(className)
                 .build()
         }.toTypedArray()
@@ -115,11 +103,7 @@ class WeaviateStorageClient(
             .properties(
                 listOf(
                     Property.builder()
-                        .name(ContextualizedEmbedding::embeddingId.name)
-                        .dataType(listOf("int"))
-                        .build(),
-                    Property.builder()
-                        .name(ContextualizedEmbedding::token.name)
+                        .name(ContextualizedEmbedding::tokenWithEmbeddingId.name)
                         .dataType(listOf("string"))
                         .build(),
                 ),
@@ -135,11 +119,5 @@ class WeaviateStorageClient(
         }
 
         error("Failed to ensure class [$weaviateClass]. Error: ${createdClass.error}")
-    }
-
-    override fun loadIndex() {
-    }
-
-    override fun saveIndex() {
     }
 }

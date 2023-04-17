@@ -3,24 +3,30 @@ package ru.itmo.stand.storage.embedding.hnsw
 import com.github.jelmerk.knn.DistanceFunctions
 import com.github.jelmerk.knn.JavaObjectSerializer
 import com.github.jelmerk.knn.hnsw.HnswIndex
+import jakarta.annotation.PreDestroy
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.embedding.IEmbeddingStorage
+import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import java.nio.file.Paths
 
 @Service
 @ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "HNSW")
-class HnswEmbeddingStorage(
+class ContextualizedEmbeddingHnswRepository(
     private val standProperties: StandProperties,
+) : ContextualizedEmbeddingRepository {
 
-) : IEmbeddingStorage {
-
-    private val itemIdSerializer = JavaObjectSerializer<Int>()
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val itemIdSerializer = JavaObjectSerializer<String>()
     private val itemSerializer = JavaObjectSerializer<ContextualizedEmbedding>()
 
-    private var index: HnswIndex<Int, FloatArray, ContextualizedEmbedding, Float> =
+    private var index = runCatching {
+        val indexPath = Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw")
+        HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexPath)
+    }.getOrElse {
+        log.info("Got exception [{}] during index loading with message: {}", it.javaClass.simpleName, it.message)
         // TODO move dimensions to config
         HnswIndex.newBuilder(128, DistanceFunctions.FLOAT_EUCLIDEAN_DISTANCE, 64_000_000)
             // defaults for weaviate
@@ -29,6 +35,13 @@ class HnswEmbeddingStorage(
             .withM(64)
             .withEfConstruction(128)
             .build()
+    }
+
+    @PreDestroy
+    fun saveIndex() {
+        index.save(Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw"))
+    }
+
     override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> {
         return index.findNearest(vector.toFloatArray(), 100)
             .map {
@@ -52,13 +65,5 @@ class HnswEmbeddingStorage(
 
     override fun initialize(): Boolean {
         return true
-    }
-
-    override fun loadIndex() {
-        index = HnswIndex.load(Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw"))
-    }
-
-    override fun saveIndex() {
-        index.save(Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw"))
     }
 }

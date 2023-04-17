@@ -2,7 +2,7 @@ package ru.itmo.stand.storage.embedding
 
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 
-interface IEmbeddingStorage {
+interface ContextualizedEmbeddingRepository {
 
     fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding>
 
@@ -13,7 +13,4 @@ interface IEmbeddingStorage {
     fun indexBatch(embeddings: List<ContextualizedEmbedding>)
 
     fun initialize(): Boolean
-
-    fun loadIndex()
-    fun saveIndex()
 }
