@@ -1,81 +1,80 @@
-/*
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
+import io.mockk.mockkStatic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.insert
-import reactor.core.Disposable
-import reactor.core.publisher.Flux
 import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
+import ru.itmo.stand.fixtures.standProperties
 import ru.itmo.stand.service.model.Document
-import ru.itmo.stand.service.lucene.WindowedToken
+import ru.itmo.stand.util.createPath
+import java.io.File
 
 class WindowedTokenCreatorTest {
 
-    private val reactiveMongoTemplate = mockk<ReactiveMongoTemplate>()
-
     private val windowedTokenCreator = WindowedTokenCreator(
         preprocessingPipelineExecutor(),
-        ,
+        standProperties(),
     )
 
     @Test
-    fun `should do to do`() {
+    fun `should create windowed tokens`() {
         val content = "Definition of Central nervous system (CNS): " +
             "The central nervous system is that part of the nervous system that consists " +
             "of the brain and spinal cord."
         val windows = arrayOf(
             "definition central nervous",
             "definition central nervous system",
-            "definition central nervous system cns",
-            "central nervous system cns central",
-            "nervous system cns central nervous",
-            "system cns central nervous system",
-            "cns central nervous system part",
+            "cn ##s central nervous system",
+            "definition central nervous system cn",
+            "##s central nervous system part",
+            "system part nervous system consists",
+            "central nervous system cn ##s",
             "central nervous system part nervous",
+            "part nervous system consists brain",
+            "nervous system cn ##s central",
+            "system cn ##s central nervous",
             "nervous system part nervous system",
-            "system part nervous system consist",
-            "part nervous system consist brain",
-            "nervous system consist brain spinal",
-            "system consist brain spinal cord",
-            "consist brain spinal cord",
+            "nervous system consists brain spinal",
+            "system consists brain spinal cord",
+            "consists brain spinal cord",
             "brain spinal cord",
         )
 
-        val flux = mockk<Flux<WindowedToken>>()
-        every { flux.subscribe() } returns Disposable { }
-        every {
-            reactiveMongoTemplate.insert<WindowedToken>(any<List<WindowedToken>>())
-        } returns flux
+        mockkStatic(File::createPath) {
+            every { any<File>().createPath() } returns File.createTempFile("windowed-token-creator-test", null)
+            val windowedTokensFile = windowedTokenCreator.create(sequenceOf(Document("id", content)))
 
-        windowedTokenCreator.create(Document("id", content))
+            val result = windowedTokensFile
+                .bufferedReader()
+                .readLines()
+                .map { line ->
+                    val (token, windowsString) = line.split(WindowedTokenCreator.TOKEN_WINDOWS_SEPARATOR)
+                    val docIdsByWindowPairs: Set<Pair<String, List<String>>> = windowsString
+                        .split(WindowedTokenCreator.WINDOWS_SEPARATOR)
+                        .filter { it.isNotBlank() }
+                        .mapTo(HashSet()) {
+                            val (window, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
+                            val docIds = docIdsString.split(WindowedTokenCreator.DOC_IDS_SEPARATOR)
+                            window to docIds
+                        }
+                    token to docIdsByWindowPairs
+                }
 
-        val slot = slot<List<WindowedToken>>()
-        verify(exactly = 1) { reactiveMongoTemplate.insert<WindowedToken>(capture(slot)) }
-        verify(exactly = 1) { flux.subscribe() }
-        assertThat(slot.captured)
-            .containsExactly(
-                WindowedToken(token = "definition", documentId = "id", window = windows[0]),
-                WindowedToken(token = "central", documentId = "id", window = windows[1]),
-                WindowedToken(token = "nervous", documentId = "id", window = windows[2]),
-                WindowedToken(token = "system", documentId = "id", window = windows[3]),
-                WindowedToken(token = "cns", documentId = "id", window = windows[4]),
-                WindowedToken(token = "central", documentId = "id", window = windows[5]),
-                WindowedToken(token = "nervous", documentId = "id", window = windows[6]),
-                WindowedToken(token = "system", documentId = "id", window = windows[7]),
-                WindowedToken(token = "part", documentId = "id", window = windows[8]),
-                WindowedToken(token = "nervous", documentId = "id", window = windows[9]),
-                WindowedToken(token = "system", documentId = "id", window = windows[10]),
-                WindowedToken(token = "consist", documentId = "id", window = windows[11]),
-                WindowedToken(token = "brain", documentId = "id", window = windows[12]),
-                WindowedToken(token = "spinal", documentId = "id", window = windows[13]),
-                WindowedToken(token = "cord", documentId = "id", window = windows[14]),
+            assertThat(windowedTokensFile.name).startsWith("windowed-token-creator-test")
+            assertThat(result).containsExactlyInAnyOrder(
+                "definition" to setOf(windows[0] to listOf("id")),
+                "central" to setOf(windows[1] to listOf("id"), windows[2] to listOf("id")),
+                "nervous" to setOf(windows[3] to listOf("id"), windows[4] to listOf("id"), windows[5] to listOf("id")),
+                "system" to setOf(windows[6] to listOf("id"), windows[7] to listOf("id"), windows[8] to listOf("id")),
+                "cn" to setOf(windows[9] to listOf("id")),
+                "##s" to setOf(windows[10] to listOf("id")),
+                "part" to setOf(windows[11] to listOf("id")),
+                "consists" to setOf(windows[12] to listOf("id")),
+                "brain" to setOf(windows[13] to listOf("id")),
+                "spinal" to setOf(windows[14] to listOf("id")),
+                "cord" to setOf(windows[15] to listOf("id")),
             )
+        }
     }
 }
-*/
