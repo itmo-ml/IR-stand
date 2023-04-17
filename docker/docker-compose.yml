@@ -1,29 +1,6 @@
 version: '3.9'
 
 services:
-  elasticsearch:
-    image: elasticsearch:7.17.3
-    volumes:
-      - elasticsearch:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    environment:
-      - ES_JAVA_OPTS=-Xms750m -Xmx750m
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-  kibana:
-    image: kibana:7.17.3
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    restart: on-failure
-  mongo:
-    image: mongo
-    volumes:
-      - mongo:/data/db
-    ports:
-      - "27017:27017"
   weaviate:
     image: semitechnologies/weaviate:1.18.2
     ports:
@@ -39,6 +16,4 @@ services:
       - weaviate:/var/lib/weaviate
 
 volumes:
-  elasticsearch:
-  mongo:
   weaviate:
