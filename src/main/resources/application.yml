@@ -3,9 +3,6 @@ spring:
     web-application-type: none
     banner-mode: off
     lazy-initialization: true
-  data.mongodb:
-    database: ir-stand
-    auto-index-creation: true
 
 logging.level:
   root: warn
@@ -13,7 +10,6 @@ logging.level:
   edu.stanford.nlp.process.PTBLexer: error
 
 stand:
-  elasticsearch.host-and-port: localhost:9200
   app:
     base-path: "."
     neighbours-algorithm:

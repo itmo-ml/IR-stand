@@ -22,7 +22,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework:spring-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -31,7 +30,6 @@ dependencies {
     implementation("com.github.haifengl:smile-kotlin:3.0.0")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.1")
 
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
