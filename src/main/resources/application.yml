@@ -16,7 +16,6 @@ stand:
   elasticsearch.host-and-port: localhost:9200
   app:
     base-path: "."
-    file-load-buffer-size-kb: 512
     neighbours-algorithm:
       token-batch-size: 5
       bert-model-type: TINY

@@ -12,13 +12,11 @@ fun standProperties(
     basePath: String = ".",
     bertMultiTokenBatchSize: Int = 5,
     neighboursAlgorithmBatchSize: Int = 5,
-    fileLoadBufferSizeMb: Int = 512,
 ) = StandProperties(
     ElasticsearchProperties(elkHostAndPort),
     ApplicationProperties(
         basePath,
         BertMultiToken(bertMultiTokenBatchSize),
         NeighboursAlgorithm(neighboursAlgorithmBatchSize, BertModelType.BASE, 500_000),
-        fileLoadBufferSizeMb,
     ),
 )

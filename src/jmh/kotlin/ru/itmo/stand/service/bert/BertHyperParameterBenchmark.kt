@@ -50,7 +50,6 @@ open class BertHyperParameterBenchmark {
 
     private val testContents = generateWindows()
 
-/*
     @Benchmark
     fun singleThreadBenchmark_100(): Array<FloatArray> {
         return singleThreadBenchmark(100)
@@ -75,14 +74,12 @@ open class BertHyperParameterBenchmark {
     fun singleThreadBenchmark_2000(): Array<FloatArray> {
         return singleThreadBenchmark(2000)
     }
-*/
 
-//    @Benchmark
-//    fun singleThreadBenchmark_5000(): Array<FloatArray> {
-//        return singleThreadBenchmark(5000)
-//    }
+    @Benchmark
+    fun singleThreadBenchmark_5000(): Array<FloatArray> {
+        return singleThreadBenchmark(5000)
+    }
 
-/*
     @Benchmark
     fun singleThreadBenchmark_10_000(): Array<FloatArray> {
         return singleThreadBenchmark(10_000)
@@ -106,7 +103,7 @@ open class BertHyperParameterBenchmark {
     @Benchmark
     fun singleThreadBenchmark_50_000(): Array<FloatArray> {
         return singleThreadBenchmark(50_000)
-    }*/
+    }
 
     @Benchmark
     fun multithreadedBenchmark_4_5000(): Array<FloatArray> {
@@ -120,28 +117,30 @@ open class BertHyperParameterBenchmark {
             }.toTypedArray()
     }
 
-    private fun multithreadedBenchmark(batchSize: Int, numThreads: Int): Array<FloatArray> = runBlocking(Dispatchers.Default) {
-        val counter = AtomicInteger(0)
-        val chan = Channel<List<String>>(numThreads)
-        repeat(numThreads) {
-            launch {
-                val predictor = tinyModel.newPredictor()
-                for (data in chan) {
-                    counter.incrementAndGet()
-                    predictor.predict(data.toTypedArray())
+    private fun multithreadedBenchmark(batchSize: Int, numThreads: Int): Array<FloatArray> =
+        runBlocking(Dispatchers.Default) {
+            val counter = AtomicInteger(0)
+            val chan = Channel<List<String>>(numThreads)
+            repeat(numThreads) {
+                launch {
+                    val predictor = tinyModel.newPredictor()
+                    for (data in chan) {
+                        counter.incrementAndGet()
+                        predictor.predict(data.toTypedArray())
+                    }
+                    predictor.close()
                 }
-                predictor.close()
             }
-        }
 
-        for (data in testContents.chunked(batchSize)) {
-            chan.send(data)
-        }
-        while (!chan.isEmpty) {}
-        chan.close()
+            for (data in testContents.chunked(batchSize)) {
+                chan.send(data)
+            }
+            while (!chan.isEmpty) {
+            }
+            chan.close()
 
-        arrayOf()
-    }
+            arrayOf()
+        }
 
     private fun generateWindows(count: Int = 50_000): List<String> {
         val result = mutableListOf<String>()

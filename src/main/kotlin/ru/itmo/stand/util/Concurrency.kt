@@ -10,12 +10,11 @@ fun <T> processParallel(data: Sequence<T>, numWorkers: Int, log: Logger, action:
     data
         .onEachIndexed { index, _ -> if (index % 10 == 0) log.info("Elements processed: {}", index) }
         .chunked(numWorkers)
-        .mapIndexed { index, chunk ->
+        .forEach { chunk ->
             chunk.map {
                 launch {
                     action(it)
                 }
-            }
+            }.joinAll()
         }
-        .forEach { it.joinAll() }
 }

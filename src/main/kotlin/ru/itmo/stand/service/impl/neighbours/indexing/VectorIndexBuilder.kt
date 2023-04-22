@@ -6,6 +6,12 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
+import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.util.processParallel
+import ru.itmo.stand.util.toDoubleArray
+import ru.itmo.stand.util.toFloatArray
+import smile.clustering.XMeans
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
 import java.io.File
@@ -13,14 +19,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
+    private val embeddingStorageClient: EmbeddingStorageClient,
     private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun index(windowedTokensFile: File): Int {
+    fun index(windowedTokensFile: File) {
+        log.info("Starting vector indexing")
         val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
 
-        log.info("starting vector indexing")
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
@@ -32,11 +39,11 @@ class VectorIndexBuilder(
             counter.incrementAndGet()
         }
 
-        log.info("token count: ${counter.get()}")
-        log.info("cluster sizes: ${clusterSizes.get()}")
-        log.info("windows count: ${windowsCount.get()}")
-        log.info("mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
-        return (clusterSizes.get() / counter.get())
+        log.info("Token count: ${counter.get()}")
+        log.info("Cluster sizes: ${clusterSizes.get()}")
+        log.info("Windows count: ${windowsCount.get()}")
+        log.info("Mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
+        log.info("Mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}")
     }
 
     private fun readWindowsByTokenPairs(windowedTokensFile: File) = windowedTokensFile
@@ -48,20 +55,23 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-                .take(1000)
+                .take(1000) // TODO: configure this value
             token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
         }
 
     fun process(token: Pair<String, Collection<String>>): Int {
-        val embeddings = token.second.chunked(BERT_BATCH_SIZE)
-            .flatMap { embeddingCalculator.calculate(it.toTypedArray()).asIterable() }
-            .toTypedArray()
+        val embeddings = embeddingCalculator.calculate(token.second, BERT_BATCH_SIZE)
 
         val clusterModel = XMeans.fit(embeddings, 8)
 
-        log.info("{} got centroids {}", token.first, clusterModel.k)
+        log.info("{} got {} centroids", token.first, clusterModel.k)
 
         val centroids = clusterModel.centroids
+
+        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
+            ContextualizedEmbedding(token.first, index, centroid)
+        }
+        embeddingStorageClient.indexBatch(contextualizedEmbeddings)
 
         return clusterModel.k
     }

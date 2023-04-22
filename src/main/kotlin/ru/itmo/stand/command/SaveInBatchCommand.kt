@@ -5,12 +5,9 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import ru.itmo.stand.config.Method
-import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.bufferedReader
 
 @Component
 @Command(
@@ -20,7 +17,6 @@ import kotlin.io.path.bufferedReader
 )
 class SaveInBatchCommand(
     private val documentServicesByMethod: Map<Method, DocumentService>,
-    private val standProperties: StandProperties,
 ) : Runnable {
 
     @Parameters(
@@ -44,12 +40,8 @@ class SaveInBatchCommand(
     private var withId: Boolean = false
 
     override fun run() {
-        val contents = Paths.get(contentFile.path)
-            .bufferedReader(bufferSize = standProperties.app.fileLoadBufferSizeKb * 1024)
-            .lineSequence()
-
         val seconds = measureTimeSeconds {
-            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contents, withId)}")
+            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contentFile, withId)}")
         }
         println("Latency: $seconds seconds")
     }
