@@ -8,12 +8,10 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
 import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
-import ru.itmo.stand.util.processParallel
-import ru.itmo.stand.util.toDoubleArray
-import ru.itmo.stand.util.toFloatArray
-import smile.clustering.XMeans
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
+import ru.itmo.stand.util.toFloatArray
+import smile.clustering.XMeans
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 

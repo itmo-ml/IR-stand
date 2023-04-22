@@ -1,5 +1,6 @@
 package ru.itmo.stand.service.bert
 
+import CustomEmbeddingTranslatorFactory
 import ai.djl.Application
 import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
@@ -54,9 +55,9 @@ class BertModelLoader(
             .optEngine("PyTorch")
             .optArgument("padding", "true")
             .optArgument("normalize", "false")
-            .optArgument("pooling", "cls")
+            .optArgument("pooling", "token")
             .optArgument("maxLength", "20")
-            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .optTranslatorFactory(CustomEmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }
