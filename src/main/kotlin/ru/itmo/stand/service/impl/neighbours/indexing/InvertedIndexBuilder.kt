@@ -62,7 +62,7 @@ class InvertedIndexBuilder(
                 .filter { it.isNotBlank() }
                 .map {
                     val (windowWithId, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
-                    val (window, tokenIndex) = it.split(WindowedTokenCreator.TOKEN_INDEX_SEPARATOR)
+                    val (window, tokenIndex) = windowWithId.split(WindowedTokenCreator.TOKEN_INDEX_SEPARATOR)
 
                     val docIds = docIdsString.split(WindowedTokenCreator.DOC_IDS_SEPARATOR)
                     Pair(tokenIndex.toLong(), window) to docIds

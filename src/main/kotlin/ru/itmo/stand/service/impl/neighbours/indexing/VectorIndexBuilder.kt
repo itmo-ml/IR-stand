@@ -56,9 +56,8 @@ class VectorIndexBuilder(
                 .take(1000) // TODO: configure this value
             token to windows.map {
                 val windowWithIndex = it.split(WINDOW_DOC_IDS_SEPARATOR).first()
-                val window = windowWithIndex.split(TOKEN_INDEX_SEPARATOR).first()
-                val index = windowWithIndex.split(TOKEN_INDEX_SEPARATOR).last().toLong()
-                Pair(window, index)
+                val (window, index) = windowWithIndex.split(TOKEN_INDEX_SEPARATOR)
+                Pair(window, index.toLong())
             }
         }
 
