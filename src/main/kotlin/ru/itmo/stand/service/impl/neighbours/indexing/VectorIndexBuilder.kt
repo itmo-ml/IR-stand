@@ -12,7 +12,6 @@ import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
-import ru.itmo.stand.util.toFloatArray
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -54,7 +53,6 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-
                 .take(1000) // TODO: configure this value
             token to windows.map {
                 val windowWithIndex = it.split(WINDOW_DOC_IDS_SEPARATOR).first()
@@ -65,9 +63,12 @@ class VectorIndexBuilder(
         }
 
     fun process(token: Pair<String, Collection<Pair<String, Long>>>): Int {
-        val embeddings = embeddingCalculator.calculate(token.second.map {
-            CustomTranslatorInput(it.second, it.first)
-        }, BERT_BATCH_SIZE)
+        val embeddings = embeddingCalculator.calculate(
+            token.second.map {
+                CustomTranslatorInput(it.second, it.first)
+            },
+            BERT_BATCH_SIZE,
+        )
 
         val clusterModel = XMeans.fit(embeddings, 8)
 

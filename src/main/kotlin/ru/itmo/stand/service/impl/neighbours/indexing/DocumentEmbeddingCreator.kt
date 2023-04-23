@@ -20,9 +20,11 @@ class DocumentEmbeddingCreator(
         documents.onEachIndexed { index, _ -> if (index % 10000 == 0) log.info("Document embeddings created: {}", index) }
             .chunked(BERT_BATCH_SIZE)
             .forEach { chunk ->
-                val embeddings = bertEmbeddingCalculator.calculate(chunk.map {
-                    CustomTranslatorInput(0, it.content, "cls")
-                }.toTypedArray())
+                val embeddings = bertEmbeddingCalculator.calculate(
+                    chunk.map {
+                        CustomTranslatorInput(0, it.content, "cls")
+                    }.toTypedArray(),
+                )
                     .mapIndexed { index, embedding -> NeighboursEmbedding(chunk[index].id, embedding) }
                 documentEmbeddingRepository.saveAll(embeddings)
             }

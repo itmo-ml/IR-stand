@@ -96,8 +96,6 @@ class CustomEmbeddingTranslator internal constructor(
             return this
         }
 
-
-
         /**
          * Configures the builder with the model arguments.
          *
@@ -139,7 +137,7 @@ class CustomEmbeddingTranslator internal constructor(
                 "max" -> return maxPool(embedding, inputAttentionMask)
                 "weightedmean" -> return weightedMeanPool(embedding, inputAttentionMask)
                 "cls" -> return embedding[0]
-                //cls token is first
+                // cls token is first
                 "token" -> return embedding[tokenIndex + 1]
                 else -> throw AssertionError("Unexpected pooling mode: $pooling")
             }

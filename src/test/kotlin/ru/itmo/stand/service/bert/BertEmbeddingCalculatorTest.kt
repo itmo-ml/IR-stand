@@ -32,9 +32,13 @@ class BertEmbeddingCalculatorTest {
         val embedding2 = embeddingCalculator.calculate(CustomTranslatorInput(-1, content2))
         val embedding3 = embeddingCalculator.calculate(CustomTranslatorInput(-1, content3))
 
-        val embeddingsBatch = embeddingCalculator.calculate(arrayOf(CustomTranslatorInput(-1, content1),
+        val embeddingsBatch = embeddingCalculator.calculate(
+            arrayOf(
+                CustomTranslatorInput(-1, content1),
                 CustomTranslatorInput(-1, content2),
-                CustomTranslatorInput(-1, content3)))
+                CustomTranslatorInput(-1, content3),
+            ),
+        )
 
         assertThat(embeddingsBatch[0]).usingComparatorWithPrecision(precision).containsExactly(*embedding1)
         assertThat(embeddingsBatch[1]).usingComparatorWithPrecision(precision).containsExactly(*embedding2)
