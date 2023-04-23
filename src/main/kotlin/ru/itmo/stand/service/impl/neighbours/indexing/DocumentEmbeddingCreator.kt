@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.CustomTranslatorInput
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursEmbedding
 import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
@@ -19,7 +20,9 @@ class DocumentEmbeddingCreator(
         documents.onEachIndexed { index, _ -> if (index % 10000 == 0) log.info("Document embeddings created: {}", index) }
             .chunked(BERT_BATCH_SIZE)
             .forEach { chunk ->
-                val embeddings = bertEmbeddingCalculator.calculate(chunk.map { it.content }.toTypedArray())
+                val embeddings = bertEmbeddingCalculator.calculate(chunk.map {
+                    CustomTranslatorInput(0, it.content, "cls")
+                }.toTypedArray())
                     .mapIndexed { index, embedding -> NeighboursEmbedding(chunk[index].id, embedding) }
                 documentEmbeddingRepository.saveAll(embeddings)
             }

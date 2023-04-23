@@ -28,7 +28,6 @@ import java.io.IOException
 class CustomEmbeddingTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
-    private val pooling: String,
     private val normalize: Boolean,
 ) : Translator<CustomTranslatorInput?, FloatArray?> {
     /** {@inheritDoc}  */
@@ -41,6 +40,7 @@ class CustomEmbeddingTranslator internal constructor(
         val encoding = tokenizer.encode(input?.window)
         ctx.setAttachment("encoding", encoding)
         ctx.setAttachment("index", input?.middleTokenIndex)
+        ctx.setAttachment("pooling", input?.pooling)
         return encoding.toNDList(ctx.ndManager, false)
     }
 
@@ -48,6 +48,7 @@ class CustomEmbeddingTranslator internal constructor(
     override fun processOutput(ctx: TranslatorContext, list: NDList): FloatArray {
         val encoding = ctx.getAttachment("encoding") as Encoding
         val index = ctx.getAttachment("index") as Long
+        val pooling = ctx.getAttachment("pooling") as String
         val manager = ctx.ndManager
         var embeddings = processEmbedding(
             manager,
@@ -65,14 +66,13 @@ class CustomEmbeddingTranslator internal constructor(
     /** {@inheritDoc}  */
     override fun toBatchTranslator(batchifier: Batchifier): CustomEmbeddingBatchTranslator {
         tokenizer.enableBatch()
-        return CustomEmbeddingBatchTranslator(tokenizer, batchifier, pooling, normalize)
+        return CustomEmbeddingBatchTranslator(tokenizer, batchifier, normalize)
     }
 
     /** The builder for token classification translator.  */
     class Builder internal constructor(private val tokenizer: HuggingFaceTokenizer) {
         private var batchifier = Batchifier.STACK
         private var normalize = true
-        private var pooling = "mean"
 
         /**
          * Sets the [Batchifier] for the [Translator].
@@ -96,28 +96,7 @@ class CustomEmbeddingTranslator internal constructor(
             return this
         }
 
-        /**
-         * Sets the pooling for the [Translator].
-         *
-         * @param poolingMode the pooling model, one of mean_pool, max_pool and cls
-         * @return this builder
-         */
-        fun optPoolingMode(poolingMode: String): Builder {
-            if ("mean" != poolingMode &&
-                "max" != poolingMode &&
-                "cls" != poolingMode &&
-                "mean_sqrt_len" != poolingMode &&
-                "weightedmean" != poolingMode &&
-                "token" != poolingMode
-            ) {
-                throw IllegalArgumentException(
-                    "Invalid pooling model, must be one of [mean, max, cls, mean_sqrt_len," +
-                        " weightedmean].",
-                )
-            }
-            pooling = poolingMode
-            return this
-        }
+
 
         /**
          * Configures the builder with the model arguments.
@@ -128,7 +107,6 @@ class CustomEmbeddingTranslator internal constructor(
             val batchifierStr = ArgumentsUtil.stringValue(arguments, "batchifier", "stack")
             optBatchifier(Batchifier.fromString(batchifierStr))
             optNormalize(ArgumentsUtil.booleanValue(arguments, "normalize", true))
-            optPoolingMode(ArgumentsUtil.stringValue(arguments, "pooling", "mean"))
         }
 
         /**
@@ -139,7 +117,7 @@ class CustomEmbeddingTranslator internal constructor(
          */
         @Throws(IOException::class)
         fun build(): CustomEmbeddingTranslator {
-            return CustomEmbeddingTranslator(tokenizer, batchifier, pooling, normalize)
+            return CustomEmbeddingTranslator(tokenizer, batchifier, normalize)
         }
     }
 
@@ -161,7 +139,8 @@ class CustomEmbeddingTranslator internal constructor(
                 "max" -> return maxPool(embedding, inputAttentionMask)
                 "weightedmean" -> return weightedMeanPool(embedding, inputAttentionMask)
                 "cls" -> return embedding[0]
-                "token" -> return embedding[tokenIndex]
+                //cls token is first
+                "token" -> return embedding[tokenIndex + 1]
                 else -> throw AssertionError("Unexpected pooling mode: $pooling")
             }
         }

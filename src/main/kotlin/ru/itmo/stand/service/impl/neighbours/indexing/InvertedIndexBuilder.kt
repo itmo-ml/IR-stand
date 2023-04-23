@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.CustomTranslatorInput
 import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
@@ -36,7 +37,9 @@ class InvertedIndexBuilder(
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
             // TODO: configure this value
-            embeddingCalculator.calculate(windows.take(1000), BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
+            embeddingCalculator.calculate(windows.map {
+                CustomTranslatorInput(it.first, it.second)
+            }.take(1000), BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
                 val docIds = docIdsList[index]
                 embeddingStorageClient.findByVector(embedding.toTypedArray())
                     .forEach { computeScoreAndSave(docIds, it) }
@@ -55,9 +58,11 @@ class InvertedIndexBuilder(
                 .split(WindowedTokenCreator.WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
                 .map {
-                    val (window, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
+                    val (windowWithId, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
+                    val (window, tokenIndex) = it.split(WindowedTokenCreator.TOKEN_INDEX_SEPARATOR)
+
                     val docIds = docIdsString.split(WindowedTokenCreator.DOC_IDS_SEPARATOR)
-                    window to docIds
+                    Pair(tokenIndex.toLong(), window) to docIds
                 }
             TokenWithWindows(token, docIdsByWindowPairs)
         }
@@ -81,7 +86,7 @@ class InvertedIndexBuilder(
 
     private data class TokenWithWindows(
         val token: String,
-        val docIdsByWindowPairs: List<Pair<String, List<String>>>,
+        val docIdsByWindowPairs: List<Pair<Pair<Long, String>, List<String>>>,
     )
 
     companion object {

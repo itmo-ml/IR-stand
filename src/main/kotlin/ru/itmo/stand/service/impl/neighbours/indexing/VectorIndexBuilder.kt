@@ -3,6 +3,8 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_INDEX_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
@@ -11,7 +13,6 @@ import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toFloatArray
-import smile.clustering.XMeans
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -53,12 +54,20 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
+
                 .take(1000) // TODO: configure this value
-            token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
+            token to windows.map {
+                val windowWithIndex = it.split(WINDOW_DOC_IDS_SEPARATOR).first()
+                val window = windowWithIndex.split(TOKEN_INDEX_SEPARATOR).first()
+                val index = windowWithIndex.split(TOKEN_INDEX_SEPARATOR).last().toLong()
+                Pair(window, index)
+            }
         }
 
-    fun process(token: Pair<String, Collection<String>>): Int {
-        val embeddings = embeddingCalculator.calculate(token.second, BERT_BATCH_SIZE)
+    fun process(token: Pair<String, Collection<Pair<String, Long>>>): Int {
+        val embeddings = embeddingCalculator.calculate(token.second.map {
+            CustomTranslatorInput(it.second, it.first)
+        }, BERT_BATCH_SIZE)
 
         val clusterModel = XMeans.fit(embeddings, 8)
 
@@ -66,8 +75,8 @@ class VectorIndexBuilder(
 
         val centroids = clusterModel.centroids
 
-        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
-            ContextualizedEmbedding(token.first, index, centroid)
+        val contextualizedEmbeddings = centroids.mapIndexed { index, centroid ->
+            ContextualizedEmbedding(token.first, index, centroid.toTypedArray())
         }
         embeddingStorageClient.indexBatch(contextualizedEmbeddings)
 

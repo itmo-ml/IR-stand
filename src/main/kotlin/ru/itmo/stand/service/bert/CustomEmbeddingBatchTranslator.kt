@@ -10,7 +10,6 @@ import ru.itmo.stand.service.bert.CustomTranslatorInput
 class CustomEmbeddingBatchTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
-    private val pooling: String,
     private val normalize: Boolean,
 ) : NoBatchifyTranslator<Array<CustomTranslatorInput?>?, Array<FloatArray?>?> {
 
@@ -23,8 +22,10 @@ class CustomEmbeddingBatchTranslator internal constructor(
         val manager = ctx.ndManager
         val encodings = tokenizer.batchEncode(input?.map { it?.window })
         val indices = input?.map { it?.middleTokenIndex }
+        val poolings = input?.map { it?.pooling }
         ctx.setAttachment("encodings", encodings)
         ctx.setAttachment("indices", indices)
+        ctx.setAttachment("poolings", poolings)
 
         val batch = arrayOfNulls<NDList>(encodings.size)
         for (i in encodings.indices) {
@@ -38,6 +39,7 @@ class CustomEmbeddingBatchTranslator internal constructor(
         val batch = batchifier.unbatchify(list)
         val encoding = ctx.getAttachment("encodings") as Array<Encoding>
         val indices = ctx.getAttachment("indices") as ArrayList<Long>
+        val poolings = ctx.getAttachment("poolings") as ArrayList<String>
         val manager = ctx.ndManager
         val ret = arrayOfNulls<FloatArray>(batch.size)
         for (i in batch.indices) {
@@ -45,7 +47,7 @@ class CustomEmbeddingBatchTranslator internal constructor(
                 manager,
                 batch[i],
                 encoding[i],
-                pooling,
+                poolings[i],
                 indices[i],
             )
             if (normalize) {

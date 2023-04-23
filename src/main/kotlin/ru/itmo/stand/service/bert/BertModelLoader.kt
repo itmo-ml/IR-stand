@@ -35,7 +35,7 @@ class BertModelLoader(
 
     private val defaultModel by lazy {
         Criteria.builder()
-            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<CustomTranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
             .optEngine("PyTorch")
             .optArgument("padding", "true")
@@ -49,7 +49,7 @@ class BertModelLoader(
         val basePath = standProperties.app.basePath
 
         Criteria.builder()
-            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<CustomTranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelName("prajjwal1/bert-tiny")
             .optModelPath(Paths.get("$basePath/models/bert-tiny"))
             .optEngine("PyTorch")
@@ -67,7 +67,7 @@ class BertModelLoader(
         BertModelType.TINY to lazy { tinyModel },
     )
 
-    fun loadModel(type: BertModelType): ZooModel<Array<String>, Array<FloatArray>> {
+    fun loadModel(type: BertModelType): ZooModel<Array<CustomTranslatorInput>, Array<FloatArray>> {
         if (!models.containsKey(type)) {
             throw IllegalArgumentException(type.name)
         }

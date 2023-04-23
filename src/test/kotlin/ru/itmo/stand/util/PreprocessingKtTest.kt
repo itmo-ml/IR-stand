@@ -34,8 +34,8 @@ class PreprocessingKtTest {
         fun `should return one window when list size is less or equal to partial window size`() {
             val actualWhenListSizeLessThanPartialWindowSize = tokens.createWindows(29)
             val actualWhenListSizeEqualToPartialWindowSize = tokens.createWindows(27)
-            assertEquals(Window(content = tokens), actualWhenListSizeLessThanPartialWindowSize[0])
-            assertEquals(Window(content = tokens), actualWhenListSizeEqualToPartialWindowSize[0])
+            assertEquals(Window(content = tokens, tokenIndex = 0), actualWhenListSizeLessThanPartialWindowSize[0])
+            assertEquals(Window(content = tokens, tokenIndex = 0), actualWhenListSizeEqualToPartialWindowSize[0])
         }
 
         // @Test FIXME
@@ -57,20 +57,20 @@ class PreprocessingKtTest {
             val windows = tokens.createWindows(5)
             assertEquals(
                 listOf(
-                    Window("Some", listOf("Some", "sentence", "that")),
-                    Window("sentence", listOf("Some", "sentence", "that", "is")),
-                    Window("that", listOf("Some", "sentence", "that", "is", "used")),
-                    Window("is", listOf("sentence", "that", "is", "used", "in")),
-                    Window("used", listOf("that", "is", "used", "in", "tests")),
-                    Window("in", listOf("is", "used", "in", "tests", "to")),
-                    Window("tests", listOf("used", "in", "tests", "to", "check")),
-                    Window("to", listOf("in", "tests", "to", "check", "the")),
-                    Window("check", listOf("tests", "to", "check", "the", "correctness")),
-                    Window("the", listOf("to", "check", "the", "correctness", "of")),
-                    Window("correctness", listOf("check", "the", "correctness", "of", "the")),
-                    Window("of", listOf("the", "correctness", "of", "the", "function")),
-                    Window("the", listOf("correctness", "of", "the", "function")),
-                    Window("function", listOf("of", "the", "function")),
+                    Window("Some", listOf("Some", "sentence", "that"), 0),
+                    Window("sentence", listOf("Some", "sentence", "that", "is"), 1),
+                    Window("that", listOf("Some", "sentence", "that", "is", "used"), 2),
+                    Window("is", listOf("sentence", "that", "is", "used", "in"), 2),
+                    Window("used", listOf("that", "is", "used", "in", "tests"), 2),
+                    Window("in", listOf("is", "used", "in", "tests", "to"), 2),
+                    Window("tests", listOf("used", "in", "tests", "to", "check"), 2),
+                    Window("to", listOf("in", "tests", "to", "check", "the"), 2),
+                    Window("check", listOf("tests", "to", "check", "the", "correctness"), 2),
+                    Window("the", listOf("to", "check", "the", "correctness", "of"), 2),
+                    Window("correctness", listOf("check", "the", "correctness", "of", "the"), 2),
+                    Window("of", listOf("the", "correctness", "of", "the", "function"), 2),
+                    Window("the", listOf("correctness", "of", "the", "function"), 2),
+                    Window("function", listOf("of", "the", "function"), 2),
                 ),
                 windows,
             )
