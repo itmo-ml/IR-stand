@@ -5,12 +5,8 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding
 
 @ConfigurationProperties(value = "stand")
 data class StandProperties @ConstructorBinding constructor(
-    val elasticsearch: ElasticsearchProperties,
     val app: ApplicationProperties,
 ) {
-    data class ElasticsearchProperties(
-        val hostAndPort: String,
-    )
 
     data class ApplicationProperties(
         val basePath: String,

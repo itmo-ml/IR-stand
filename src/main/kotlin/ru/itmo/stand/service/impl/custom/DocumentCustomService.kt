@@ -2,7 +2,6 @@ package ru.itmo.stand.service.impl.custom
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.DefaultBertTranslator
@@ -11,7 +10,6 @@ import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.extractId
 
 @Service
-@Profile("!standalone")
 class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertService(bertTranslator) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)

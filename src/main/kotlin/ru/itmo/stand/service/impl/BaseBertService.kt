@@ -81,14 +81,13 @@ abstract class BaseBertService(
 
     private fun searchByQuery(query: String): List<String> = preprocess(query).asSequence()
         .mapNotNull { invertedIndex[it] }
-        .reduceOrNull { acc, scoreByDocIdMap ->
+        .fold(HashMap<String, Float>()) { acc, scoreByDocIdMap ->
             scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
             acc
-        }
-        ?.toList()
-        ?.sortedByDescending { (_, score) -> score }
-        ?.take(10)
-        ?.map { (docId, _) -> docId } ?: emptyList()
+        }.entries
+        .sortedByDescending { (_, score) -> score }
+        .take(10)
+        .map { (docId, _) -> docId }
 
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"

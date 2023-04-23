@@ -3,7 +3,6 @@ package ru.itmo.stand.service.impl.bertmultitoken
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.BertNspTranslator
@@ -14,7 +13,6 @@ import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.toTokens
 
 @Service
-@Profile("!standalone")
 class DocumentBertMultiTokenService(
     private val stanfordCoreNlp: StanfordCoreNLP,
     bertNspTranslator: BertNspTranslator,
