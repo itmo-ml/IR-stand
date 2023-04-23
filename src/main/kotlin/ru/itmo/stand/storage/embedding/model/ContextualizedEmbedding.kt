@@ -1,7 +1,7 @@
 package ru.itmo.stand.storage.embedding.model
 
 data class ContextualizedEmbedding(
-    val token: String,
+    val token: String, // TODO: combine token and embId
     val embeddingId: Int,
     val embedding: Array<Float>,
 ) {
