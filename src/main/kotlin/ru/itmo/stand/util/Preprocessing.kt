@@ -38,10 +38,10 @@ fun List<String>.createWindows(size: Int): List<Window> {
         result.add(Window(this[index], this.subList(0, partialWindowSize + index), index))
     }
     for (index in sideTokensCount until this.size - sideTokensCount) {
-        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1), index))
+        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1), sideTokensCount))
     }
     for (index in this.size - size + 1 until this.size - sideTokensCount) {
-        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size), index))
+        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size), sideTokensCount))
     }
     return result
 }

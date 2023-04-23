@@ -93,6 +93,6 @@ class WindowedTokenCreator(
         const val WINDOW_DOC_IDS_SEPARATOR = ":"
         const val WINDOWS_SEPARATOR = ";"
         const val DOC_IDS_SEPARATOR = " "
-        const val TOKEN_INDEX_SEPARATOR = "\\"
+        const val TOKEN_INDEX_SEPARATOR = "|"
     }
 }
