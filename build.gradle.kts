@@ -26,7 +26,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("com.github.haifengl:smile-core:3.0.0")
+    implementation("com.github.haifengl:smile-core:3.0.1")
     implementation("com.github.haifengl:smile-kotlin:3.0.0")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.3")
 
