@@ -7,8 +7,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
@@ -19,13 +17,13 @@ import ru.itmo.stand.config.Params.MAX_QUERY_LEN
 import ru.itmo.stand.config.Params.SNRM_OUTPUT_SIZE
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
-import ru.itmo.stand.service.footprint.ElasticsearchIndexFootprintFinder
+import ru.itmo.stand.service.footprint.IndexFootprintFinder
 import ru.itmo.stand.service.model.Format
 import ru.itmo.stand.service.preprocessing.StopWordRemover
-import ru.itmo.stand.storage.elasticsearch.model.DocumentSnrm
-import ru.itmo.stand.storage.elasticsearch.repository.DocumentSnrmRepository
-import ru.itmo.stand.storage.mongodb.model.ContentSnrm
-import ru.itmo.stand.storage.mongodb.repository.ContentSnrmRepository
+import ru.itmo.stand.storage.lucene.model.ContentSnrm
+import ru.itmo.stand.storage.lucene.model.DocumentSnrm
+import ru.itmo.stand.storage.lucene.repository.ContentSnrmRepository
+import ru.itmo.stand.storage.lucene.repository.DocumentSnrmRepository
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.throwDocIdNotFoundEx
@@ -34,12 +32,11 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-@Profile("!standalone")
 @Service
 class DocumentSnrmService(
-    private val elasticsearchIndexFootprintFinder: ElasticsearchIndexFootprintFinder,
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
+    private val indexFootprintFinder: IndexFootprintFinder,
     private val stopWordRemover: StopWordRemover,
     private val stanfordCoreNlp: StanfordCoreNLP,
     private val standProperties: StandProperties,
@@ -64,13 +61,12 @@ class DocumentSnrmService(
     override val method: Method
         get() = Method.SNRM
 
-    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id).block()?.content
+    override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
 
     override fun search(queries: File, format: Format): List<String> {
         val queryVector = preprocess(listOf(queries.readLines().single()), PreprocessingType.QUERY)[0]
-        val documents = mutableListOf<DocumentSnrm>()
         val (latentTerms, weights) = retrieveLatentTermsAndWeights(queryVector)
-        findDocsByTermsWithPages(documents, latentTerms, Pageable.ofSize(2000))
+        val documents = documentSnrmRepository.findAllByRepresentation(latentTerms)
 
         val queryLatentTermWeightMap = convertToMap(latentTerms, weights)
         // TODO: think about improving the algorithm
@@ -103,14 +99,6 @@ class DocumentSnrmService(
             }
         }
         return score
-    }
-
-    private fun findDocsByTermsWithPages(documents: MutableList<DocumentSnrm>, latentTerms: String, page: Pageable) {
-        val result = documentSnrmRepository.findByRepresentation(latentTerms, page)
-        documents += result.content
-        if (result.hasNext()) {
-            findDocsByTermsWithPages(documents, latentTerms, result.nextPageable())
-        }
     }
 
     override fun save(content: String, withId: Boolean): String {
@@ -166,7 +154,6 @@ class DocumentSnrmService(
                             )
                         },
                     )
-                    log.info("Index now holds ${documentSnrmRepository.count()} documents")
                 }
             }
         }
@@ -174,7 +161,7 @@ class DocumentSnrmService(
         emptyList()
     }
 
-    override fun getFootprint(): String = elasticsearchIndexFootprintFinder.findFootprint(method.indexName)
+    override fun getFootprint(): String = indexFootprintFinder.findFootprint(method.indexName)
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
         QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),

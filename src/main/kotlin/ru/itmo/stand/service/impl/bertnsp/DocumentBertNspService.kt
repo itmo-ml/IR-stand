@@ -1,7 +1,6 @@
 package ru.itmo.stand.service.impl.bertnsp
 
 import edu.stanford.nlp.naturalli.ClauseSplitter.log
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.BertNspTranslator
@@ -10,7 +9,6 @@ import ru.itmo.stand.util.TOKEN_SEPARATOR
 import ru.itmo.stand.util.extractId
 
 @Service
-@Profile("!standalone")
 class DocumentBertNspService(
     bertNspTranslator: BertNspTranslator,
 ) : BaseBertService(bertNspTranslator) {
