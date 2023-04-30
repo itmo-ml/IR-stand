@@ -33,7 +33,7 @@ dependencies {
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
-    implementation("io.weaviate:client:4.0.1")
+    implementation("io.weaviate:client:4.0.2")
 
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
