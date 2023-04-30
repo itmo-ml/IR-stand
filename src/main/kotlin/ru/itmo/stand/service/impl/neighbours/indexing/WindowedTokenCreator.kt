@@ -7,7 +7,6 @@ import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.util.Window
 import ru.itmo.stand.util.createPath
-import ru.itmo.stand.util.diskBasedMap
 import java.io.File
 
 @Service
