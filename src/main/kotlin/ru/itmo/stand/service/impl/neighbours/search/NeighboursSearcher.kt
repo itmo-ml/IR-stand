@@ -2,6 +2,7 @@ package ru.itmo.stand.service.impl.neighbours.search
 
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
 import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
 import ru.itmo.stand.storage.lucene.repository.neighbours.InvertedIndex
@@ -16,7 +17,7 @@ class NeighboursSearcher(
 
     fun search(query: String): List<String> {
         val windows = preprocessingPipelineExecutor.execute(query)
-        val embeddings = bertEmbeddingCalculator.calculate(windows.map { it.convertContentToString() }.toTypedArray())
+        val embeddings = bertEmbeddingCalculator.calculate(windows.map { TranslatorInput(it.tokenIndex.toLong(), it.convertContentToString()) }.toTypedArray())
         return embeddings.flatMap { embedding -> embeddingStorageClient.findByVector(embedding.toTypedArray()) }
             .map { contextualizedEmbedding ->
                 invertedIndex.findByTokenWithEmbeddingId(
