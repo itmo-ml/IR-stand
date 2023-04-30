@@ -35,10 +35,10 @@ class EmbeddingTranslator internal constructor(
     }
 
     override fun processInput(ctx: TranslatorContext, input: TranslatorInput): NDList {
-        val encoding = tokenizer.encode(input?.window)
+        val encoding = tokenizer.encode(input.window)
         ctx.setAttachment("encoding", encoding)
-        ctx.setAttachment("index", input?.middleTokenIndex)
-        ctx.setAttachment("pooling", input?.pooling)
+        ctx.setAttachment("index", input.middleTokenIndex)
+        ctx.setAttachment("pooling", input.pooling)
         return encoding.toNDList(ctx.ndManager, false)
     }
 
