@@ -35,9 +35,7 @@ class WindowedTokenCreator(
     }
 
     private fun constructMemoryIndex(documents: Sequence<Document>): MutableMap<String, HashMap<String, String>> {
-        val memoryIndex = diskBasedMap<String, HashMap<String, String>>(
-            "${standProperties.app.basePath}/indexes/neighbours/memory-index-stage-1.txt",
-        )
+        val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
             if (index % 10000 == 0) log.info("Documents processed: {}", index)

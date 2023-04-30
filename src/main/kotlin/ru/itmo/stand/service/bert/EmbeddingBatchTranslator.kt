@@ -4,21 +4,20 @@ import ai.djl.ndarray.NDList
 import ai.djl.translate.Batchifier
 import ai.djl.translate.NoBatchifyTranslator
 import ai.djl.translate.TranslatorContext
-import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.bert.TranslatorInput
 
 /** The translator for Huggingface text embedding model.  */
-class CustomEmbeddingBatchTranslator internal constructor(
+class EmbeddingBatchTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
     private val normalize: Boolean,
-) : NoBatchifyTranslator<Array<CustomTranslatorInput?>?, Array<FloatArray?>?> {
+) : NoBatchifyTranslator<Array<TranslatorInput>, Array<FloatArray>> {
 
     override fun getBatchifier(): Batchifier? {
         return super.getBatchifier()
     }
 
-    /** {@inheritDoc}  */
-    override fun processInput(ctx: TranslatorContext, input: Array<CustomTranslatorInput?>?): NDList {
+    override fun processInput(ctx: TranslatorContext, input: Array<TranslatorInput>): NDList {
         val manager = ctx.ndManager
         val encodings = tokenizer.batchEncode(input?.map { it?.window })
         val indices = input?.map { it?.middleTokenIndex }
@@ -34,16 +33,15 @@ class CustomEmbeddingBatchTranslator internal constructor(
         return batchifier.batchify(batch)
     }
 
-    /** {@inheritDoc}  */
-    override fun processOutput(ctx: TranslatorContext, list: NDList): Array<FloatArray?> {
+    override fun processOutput(ctx: TranslatorContext, list: NDList): Array<FloatArray> {
         val batch = batchifier.unbatchify(list)
         val encoding = ctx.getAttachment("encodings") as Array<Encoding>
         val indices = ctx.getAttachment("indices") as ArrayList<Long>
         val poolings = ctx.getAttachment("poolings") as ArrayList<String>
         val manager = ctx.ndManager
-        val ret = arrayOfNulls<FloatArray>(batch.size)
+        val ret = Array(batch.size) { floatArrayOf() }
         for (i in batch.indices) {
-            var array = CustomEmbeddingTranslator.processEmbedding(
+            var array = EmbeddingTranslator.processEmbedding(
                 manager,
                 batch[i],
                 encoding[i],

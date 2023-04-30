@@ -21,22 +21,20 @@ import ai.djl.translate.ArgumentsUtil
 import ai.djl.translate.Batchifier
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
-import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.bert.TranslatorInput
 import java.io.IOException
 
 /** The translator for Huggingface text embedding model.  */
-class CustomEmbeddingTranslator internal constructor(
+class EmbeddingTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
     private val normalize: Boolean,
-) : Translator<CustomTranslatorInput?, FloatArray?> {
-    /** {@inheritDoc}  */
+) : Translator<TranslatorInput, FloatArray> {
     override fun getBatchifier(): Batchifier {
         return batchifier
     }
 
-    /** {@inheritDoc}  */
-    override fun processInput(ctx: TranslatorContext, input: CustomTranslatorInput?): NDList {
+    override fun processInput(ctx: TranslatorContext, input: TranslatorInput): NDList {
         val encoding = tokenizer.encode(input?.window)
         ctx.setAttachment("encoding", encoding)
         ctx.setAttachment("index", input?.middleTokenIndex)
@@ -44,7 +42,6 @@ class CustomEmbeddingTranslator internal constructor(
         return encoding.toNDList(ctx.ndManager, false)
     }
 
-    /** {@inheritDoc}  */
     override fun processOutput(ctx: TranslatorContext, list: NDList): FloatArray {
         val encoding = ctx.getAttachment("encoding") as Encoding
         val index = ctx.getAttachment("index") as Long
@@ -63,13 +60,11 @@ class CustomEmbeddingTranslator internal constructor(
         return embeddings.toFloatArray()
     }
 
-    /** {@inheritDoc}  */
-    override fun toBatchTranslator(batchifier: Batchifier): CustomEmbeddingBatchTranslator {
+    override fun toBatchTranslator(batchifier: Batchifier): EmbeddingBatchTranslator {
         tokenizer.enableBatch()
-        return CustomEmbeddingBatchTranslator(tokenizer, batchifier, normalize)
+        return EmbeddingBatchTranslator(tokenizer, batchifier, normalize)
     }
 
-    /** The builder for token classification translator.  */
     class Builder internal constructor(private val tokenizer: HuggingFaceTokenizer) {
         private var batchifier = Batchifier.STACK
         private var normalize = true
@@ -114,8 +109,8 @@ class CustomEmbeddingTranslator internal constructor(
          * @throws IOException if I/O error occurs
          */
         @Throws(IOException::class)
-        fun build(): CustomEmbeddingTranslator {
-            return CustomEmbeddingTranslator(tokenizer, batchifier, normalize)
+        fun build(): EmbeddingTranslator {
+            return EmbeddingTranslator(tokenizer, batchifier, normalize)
         }
     }
 

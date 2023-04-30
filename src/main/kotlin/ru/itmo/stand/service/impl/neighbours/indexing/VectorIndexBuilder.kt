@@ -3,7 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
-import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_INDEX_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
@@ -64,7 +64,7 @@ class VectorIndexBuilder(
     fun process(token: Pair<String, Collection<Pair<String, Long>>>): Int {
         val embeddings = embeddingCalculator.calculate(
             token.second.map {
-                CustomTranslatorInput(it.second, it.first)
+                TranslatorInput(it.second, it.first)
             },
             BERT_BATCH_SIZE,
         )

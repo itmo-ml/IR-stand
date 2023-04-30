@@ -17,20 +17,17 @@ import ai.djl.translate.TranslateException
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorFactory
 import ai.djl.util.Pair
-import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.bert.TranslatorInput
 import java.io.IOException
 import java.io.Serializable
 import java.lang.reflect.Type
 
-/** A [TranslatorFactory] that creates a [CustomEmbeddingTranslator] instance.  */
-class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
-    /** {@inheritDoc}  */
+/** A [TranslatorFactory] that creates a [EmbeddingTranslator] instance.  */
+class EmbeddingTranslatorFactory : TranslatorFactory, Serializable {
     override fun getSupportedTypes(): Set<Pair<Type, Type>> {
         return SUPPORTED_TYPES
     }
 
-    /** {@inheritDoc}  */
-    @Throws(TranslateException::class)
     override fun <I, O> newInstance(
         input: Class<I>,
         output: Class<O>,
@@ -43,11 +40,11 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
                 .optTokenizerPath(modelPath)
                 .optManager(model.ndManager)
                 .build()
-            val translator = CustomEmbeddingTranslator.builder(tokenizer, arguments).build()
+            val translator = EmbeddingTranslator.builder(tokenizer, arguments).build()
 
-            if (input == CustomTranslatorInput::class.java && output == FloatArray::class.java) {
+            if (input == TranslatorInput::class.java && output == FloatArray::class.java) {
                 return translator as Translator<I, O>
-            } else if (input == Array<CustomTranslatorInput>::class.java && output == Array<FloatArray>::class.java) {
+            } else if (input == Array<TranslatorInput>::class.java && output == Array<FloatArray>::class.java) {
                 return translator.toBatchTranslator() as Translator<I, O>
             }
             throw IllegalArgumentException("Unsupported input/output types.")
@@ -63,13 +60,13 @@ class CustomEmbeddingTranslatorFactory : TranslatorFactory, Serializable {
         init {
             SUPPORTED_TYPES.add(
                 Pair(
-                    CustomTranslatorInput::class.java,
+                    TranslatorInput::class.java,
                     FloatArray::class.java,
                 ),
             )
             SUPPORTED_TYPES.add(
                 Pair(
-                    Array<CustomTranslatorInput>::class.java,
+                    Array<TranslatorInput>::class.java,
                     Array<FloatArray>::class.java,
                 ),
             )

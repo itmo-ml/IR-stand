@@ -14,11 +14,11 @@ class BertEmbeddingCalculator(
         bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()
     }
 
-    fun calculate(content: CustomTranslatorInput): FloatArray = predictor.predict(arrayOf(content)).first()
+    fun calculate(content: TranslatorInput): FloatArray = predictor.predict(arrayOf(content)).first()
 
-    fun calculate(contents: Array<CustomTranslatorInput>): Array<FloatArray> = predictor.predict(contents)
+    fun calculate(contents: Array<TranslatorInput>): Array<FloatArray> = predictor.predict(contents)
 
-    fun calculate(contents: Collection<CustomTranslatorInput>, batchSize: Int): Array<FloatArray> = contents.chunked(batchSize)
+    fun calculate(contents: Collection<TranslatorInput>, batchSize: Int): Array<FloatArray> = contents.chunked(batchSize)
         .flatMap { chunk -> predictor.predict(chunk.toTypedArray()).asIterable() }
         .toTypedArray()
 }

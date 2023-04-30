@@ -3,7 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
-import ru.itmo.stand.service.bert.CustomTranslatorInput
+import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
@@ -39,7 +39,7 @@ class InvertedIndexBuilder(
             // TODO: configure this value
             embeddingCalculator.calculate(
                 windows.map {
-                    CustomTranslatorInput(it.first, it.second)
+                    TranslatorInput(it.first, it.second)
                 }.take(1000),
                 BERT_BATCH_SIZE,
             ).forEachIndexed { index, embedding ->

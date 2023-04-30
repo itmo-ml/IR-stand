@@ -1,6 +1,6 @@
 package ru.itmo.stand.service.bert
 
-import CustomEmbeddingTranslatorFactory
+import EmbeddingTranslatorFactory
 import ai.djl.Application
 import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
@@ -35,7 +35,7 @@ class BertModelLoader(
 
     private val defaultModel by lazy {
         Criteria.builder()
-            .setTypes(Array<CustomTranslatorInput>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<TranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
             .optEngine("PyTorch")
             .optArgument("padding", "true")
@@ -49,7 +49,7 @@ class BertModelLoader(
         val basePath = standProperties.app.basePath
 
         Criteria.builder()
-            .setTypes(Array<CustomTranslatorInput>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<TranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelName("prajjwal1/bert-tiny")
             .optModelPath(Paths.get("$basePath/models/bert-tiny"))
             .optEngine("PyTorch")
@@ -57,7 +57,7 @@ class BertModelLoader(
             .optArgument("normalize", "false")
             .optArgument("pooling", "token")
             .optArgument("maxLength", "20")
-            .optTranslatorFactory(CustomEmbeddingTranslatorFactory())
+            .optTranslatorFactory(EmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }
@@ -67,7 +67,7 @@ class BertModelLoader(
         BertModelType.TINY to lazy { tinyModel },
     )
 
-    fun loadModel(type: BertModelType): ZooModel<Array<CustomTranslatorInput>, Array<FloatArray>> {
+    fun loadModel(type: BertModelType): ZooModel<Array<TranslatorInput>, Array<FloatArray>> {
         if (!models.containsKey(type)) {
             throw IllegalArgumentException(type.name)
         }
