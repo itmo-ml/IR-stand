@@ -8,7 +8,7 @@ plugins {
     kotlin("kapt") version "1.8.20"
     id("me.champeau.jmh") version "0.7.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
-    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.1"
+    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.2"
     id("com.star-zero.gradle.githook") version "1.2.1"
 }
 
