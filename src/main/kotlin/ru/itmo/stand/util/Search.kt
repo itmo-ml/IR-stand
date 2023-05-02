@@ -1,13 +1,23 @@
 package ru.itmo.stand.util
 
 import org.apache.lucene.analysis.Analyzer
+import org.apache.lucene.document.Document
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.BooleanClause
 import org.apache.lucene.search.BooleanQuery
 import org.apache.lucene.search.BoostQuery
+import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.Query
 import org.apache.lucene.search.TermQuery
 import java.io.File
+
+fun IndexSearcher.searchAll(query: Query): Sequence<Document> {
+    val pageSize = 1_000
+    val topDocs = this.search(query, pageSize)
+    check(topDocs.totalHits.value <= pageSize) { "Page size is smaller than the total hits" }
+    val storedFields = this.storedFields()
+    return sequenceOf(*topDocs.scoreDocs).map { storedFields.document(it.doc) }
+}
 
 fun buildBagOfWordsQuery(field: String, analyzer: Analyzer, queryText: String): Query {
     val tokens = analyze(analyzer, queryText)
