@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.lucene.LuceneRepository
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
+import ru.itmo.stand.util.booleanQuery
 import ru.itmo.stand.util.searchAll
 
 @Repository
@@ -38,8 +39,10 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
         entities.forEach { save(it) }
     }
 
-    fun findByTokenWithEmbeddingId(tokenWithEmbeddingId: String): Sequence<NeighboursDocument> {
-        val query = TermQuery(Term(NeighboursDocument::tokenWithEmbeddingId.name, tokenWithEmbeddingId))
+    fun findByTokenWithEmbeddingIds(tokenWithEmbeddingIds: Collection<String>): Sequence<NeighboursDocument> {
+        val query = booleanQuery(tokenWithEmbeddingIds) { tokenWithEmbeddingId ->
+            TermQuery(Term(NeighboursDocument::tokenWithEmbeddingId.name, tokenWithEmbeddingId))
+        }
 
         return searcher.searchAll(query)
             .map {

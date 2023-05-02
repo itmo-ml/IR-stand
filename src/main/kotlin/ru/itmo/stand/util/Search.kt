@@ -24,12 +24,15 @@ fun buildBagOfWordsQuery(field: String, analyzer: Analyzer, queryText: String): 
 
     val countByTokenMap = tokens.groupingBy { it }.eachCount()
 
+    return booleanQuery(countByTokenMap.entries) { (token, count) ->
+        BoostQuery(TermQuery(Term(field, token)), count.toFloat())
+    }
+}
+
+fun <E> booleanQuery(source: Collection<E>, queryConverter: (E) -> Query): BooleanQuery {
     val builder = BooleanQuery.Builder()
-    for ((token, count) in countByTokenMap) {
-        builder.add(
-            BoostQuery(TermQuery(Term(field, token)), count.toFloat()),
-            BooleanClause.Occur.SHOULD,
-        )
+    for (e in source) {
+        builder.add(queryConverter(e), BooleanClause.Occur.SHOULD)
     }
     return builder.build()
 }
