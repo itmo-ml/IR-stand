@@ -1,10 +1,15 @@
 package ru.itmo.stand.storage.embedding.model
 
+import com.github.jelmerk.knn.Item
+
 data class ContextualizedEmbedding(
-    val token: String, // TODO: combine token and embId
-    val embeddingId: Int,
-    val embedding: Array<Float>,
-) {
+    val tokenWithEmbeddingId: String,
+    val embedding: FloatArray,
+) : Item<String, FloatArray> {
+
+    override fun id(): String = tokenWithEmbeddingId
+    override fun vector(): FloatArray = embedding
+    override fun dimensions(): Int = embedding.size
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -12,21 +17,23 @@ data class ContextualizedEmbedding(
 
         other as ContextualizedEmbedding
 
-        if (token != other.token) return false
-        if (embeddingId != other.embeddingId) return false
+        if (tokenWithEmbeddingId != other.tokenWithEmbeddingId) return false
         if (!embedding.contentEquals(other.embedding)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = token.hashCode()
-        result = 31 * result + embeddingId
+        var result = tokenWithEmbeddingId.hashCode()
         result = 31 * result + embedding.contentHashCode()
         return result
     }
 
     override fun toString(): String {
-        return "ContextualizedEmbedding(token='$token', embeddingId=$embeddingId)"
+        return "ContextualizedEmbedding(tokenWithEmbeddingId='$tokenWithEmbeddingId')"
+    }
+
+    companion object {
+        const val TOKEN_AND_EMBEDDING_ID_SEPARATOR = ":"
     }
 }

@@ -6,8 +6,9 @@ import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
-import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
 import ru.itmo.stand.util.processParallel
 import ru.itmo.stand.util.toDoubleArray
 import ru.itmo.stand.util.toFloatArray
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class VectorIndexBuilder(
-    private val embeddingStorageClient: EmbeddingStorageClient,
+    private val contextualizedEmbeddingRepository: ContextualizedEmbeddingRepository,
     private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -53,7 +54,6 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-                .take(1000) // TODO: configure this value
             token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
         }
 
@@ -69,9 +69,12 @@ class VectorIndexBuilder(
         val centroids = clusterModel.centroids
 
         val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
-            ContextualizedEmbedding(token.first, index, centroid)
+            ContextualizedEmbedding(
+                tokenWithEmbeddingId = "${token.first}$TOKEN_AND_EMBEDDING_ID_SEPARATOR$index",
+                embedding = centroid.toFloatArray(),
+            )
         }
-        embeddingStorageClient.indexBatch(contextualizedEmbeddings)
+        contextualizedEmbeddingRepository.indexBatch(contextualizedEmbeddings)
 
         return clusterModel.k
     }

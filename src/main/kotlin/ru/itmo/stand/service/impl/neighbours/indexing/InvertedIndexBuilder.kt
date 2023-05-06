@@ -3,7 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
-import ru.itmo.stand.storage.embedding.EmbeddingStorageClient
+import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
 import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
@@ -13,8 +13,8 @@ import java.io.File
 
 @Service
 class InvertedIndexBuilder(
+    private val contextualizedEmbeddingRepository: ContextualizedEmbeddingRepository,
     private val documentEmbeddingRepository: DocumentEmbeddingRepository,
-    private val embeddingStorageClient: EmbeddingStorageClient,
     private val embeddingCalculator: BertEmbeddingCalculator,
     private val invertedIndex: InvertedIndex,
 ) {
@@ -35,10 +35,9 @@ class InvertedIndexBuilder(
         }.forEach { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-            // TODO: configure this value
-            embeddingCalculator.calculate(windows.take(1000), BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
+            embeddingCalculator.calculate(windows, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
                 val docIds = docIdsList[index]
-                embeddingStorageClient.findByVector(embedding.toTypedArray())
+                contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray())
                     .forEach { computeScoreAndSave(docIds, it) }
             }
         }
@@ -71,9 +70,9 @@ class InvertedIndexBuilder(
                 documentEmbeddingRepository.findByDocId(docId).embedding
             }
             NeighboursDocument(
-                tokenWithEmbeddingId = "${contextualizedEmbedding.token}:${contextualizedEmbedding.embeddingId}",
+                tokenWithEmbeddingId = contextualizedEmbedding.tokenWithEmbeddingId,
                 docId = docId,
-                score = documentEmbedding.dot(contextualizedEmbedding.embedding.toFloatArray()),
+                score = documentEmbedding.dot(contextualizedEmbedding.embedding),
             )
         }
         invertedIndex.saveAll(neighboursDocuments)

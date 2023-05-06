@@ -34,6 +34,8 @@ dependencies {
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
     implementation("io.weaviate:client:4.0.2")
+    implementation("com.github.jelmerk:hnswlib-core:1.1.0")
+    implementation("com.github.jelmerk:hnswlib-utils:1.1.0")
 
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
