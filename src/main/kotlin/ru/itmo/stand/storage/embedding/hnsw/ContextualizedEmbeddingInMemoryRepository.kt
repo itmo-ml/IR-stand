@@ -5,16 +5,12 @@ import com.github.jelmerk.knn.JavaObjectSerializer
 import com.github.jelmerk.knn.hnsw.HnswIndex
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import java.nio.file.Paths
 
-@Service
-@ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "IN_MEMORY")
-class ContextualizedEmbeddingHnswRepository(
+class ContextualizedEmbeddingInMemoryRepository(
     private val standProperties: StandProperties,
 ) : ContextualizedEmbeddingRepository {
 

@@ -10,13 +10,9 @@ import io.weaviate.client.v1.misc.model.VectorIndexConfig
 import io.weaviate.client.v1.schema.model.Property
 import io.weaviate.client.v1.schema.model.Schema
 import io.weaviate.client.v1.schema.model.WeaviateClass
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Service
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 
-@Service
-@ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "WEAVIATE")
 class ContextualizedEmbeddingWeaviateRepository(
     private val client: WeaviateClient,
 ) : ContextualizedEmbeddingRepository {
