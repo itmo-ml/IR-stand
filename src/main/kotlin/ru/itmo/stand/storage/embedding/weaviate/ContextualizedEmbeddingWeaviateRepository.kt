@@ -1,5 +1,6 @@
 package ru.itmo.stand.storage.embedding.weaviate
 
+import edu.stanford.nlp.naturalli.ClauseSplitter.log
 import io.weaviate.client.WeaviateClient
 import io.weaviate.client.base.Result
 import io.weaviate.client.v1.data.model.WeaviateObject
@@ -10,6 +11,7 @@ import io.weaviate.client.v1.misc.model.VectorIndexConfig
 import io.weaviate.client.v1.schema.model.Property
 import io.weaviate.client.v1.schema.model.Schema
 import io.weaviate.client.v1.schema.model.WeaviateClass
+import jakarta.annotation.PostConstruct
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 
@@ -27,6 +29,12 @@ class ContextualizedEmbeddingWeaviateRepository(
             Field.builder().name("certainty").build(),
         )
         .build()
+
+    @PostConstruct
+    private fun setUp() {
+        initialize()
+        log.info("ContextualizedEmbeddingModel ensured")
+    }
 
     override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> {
         val result = client.graphQL()
@@ -48,15 +56,6 @@ class ContextualizedEmbeddingWeaviateRepository(
                 )
             }
     }
-
-    fun findSchema(): Result<Schema> = client.schema()
-        .getter()
-        .run()
-
-    override fun deleteAllModels(): Boolean = client.schema()
-        .allDeleter()
-        .run()
-        .result
 
     override fun index(embedding: ContextualizedEmbedding) {
         val obj = WeaviateObject.builder()
@@ -86,11 +85,20 @@ class ContextualizedEmbeddingWeaviateRepository(
             .run()
     }
 
-    override fun initialize(): Boolean {
+    fun findSchema(): Result<Schema> = client.schema()
+        .getter()
+        .run()
+
+    fun deleteAllModels(): Boolean = client.schema()
+        .allDeleter()
+        .run()
+        .result
+
+    private fun initialize() {
         val foundClass = client.schema().classGetter()
             .withClassName(className)
             .run()
-        if (foundClass.result != null) return true
+        if (foundClass.result != null) return
 
         val weaviateClass = WeaviateClass.builder()
             .className(className)
@@ -110,9 +118,7 @@ class ContextualizedEmbeddingWeaviateRepository(
             .withClass(weaviateClass)
             .run()
 
-        if (createdClass.result) {
-            return true
-        }
+        if (createdClass.result) return
 
         error("Failed to ensure class [$weaviateClass]. Error: ${createdClass.error}")
     }

@@ -47,19 +47,11 @@ class ContextualizedEmbeddingInMemoryRepository(
             }
     }
 
-    override fun deleteAllModels(): Boolean {
-        TODO("No such api(")
-    }
-
     override fun index(embedding: ContextualizedEmbedding) {
         index.add(embedding)
     }
 
     override fun indexBatch(embeddings: List<ContextualizedEmbedding>) {
         index.addAll(embeddings)
-    }
-
-    override fun initialize(): Boolean {
-        return true
     }
 }
