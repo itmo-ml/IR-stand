@@ -1,5 +1,6 @@
 package ru.itmo.stand.config
 
 enum class EmbeddingStorageType {
-    WEAVIATE, HNSW
+    WEAVIATE,
+    IN_MEMORY,
 }

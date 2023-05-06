@@ -13,7 +13,7 @@ import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import java.nio.file.Paths
 
 @Service
-@ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "HNSW")
+@ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "IN_MEMORY")
 class ContextualizedEmbeddingHnswRepository(
     private val standProperties: StandProperties,
 ) : ContextualizedEmbeddingRepository {

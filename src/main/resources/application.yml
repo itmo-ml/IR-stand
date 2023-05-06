@@ -16,6 +16,6 @@ stand:
       token-batch-size: 5
       bert-model-type: TINY
       documents-count: 500000
-      embedding-storage: HNSW
+      embedding-storage: IN_MEMORY
     bert-multi-token:
       token-batch-size: 5
