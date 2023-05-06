@@ -35,8 +35,7 @@ class InvertedIndexBuilder(
         }.forEach { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-            // TODO: configure this value
-            embeddingCalculator.calculate(windows.take(1000), BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
+            embeddingCalculator.calculate(windows, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
                 val docIds = docIdsList[index]
                 contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray())
                     .forEach { computeScoreAndSave(docIds, it) }

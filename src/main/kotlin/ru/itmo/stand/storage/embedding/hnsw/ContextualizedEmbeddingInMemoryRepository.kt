@@ -38,14 +38,10 @@ class ContextualizedEmbeddingInMemoryRepository(
         index.save(Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw"))
     }
 
-    override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> {
-        return index.findNearest(vector.toFloatArray(), 100)
-            .map {
-                it.item()
-                // TODO distance is already calculated here, not need to recalculate it in index builder
-                // it.distance()
-            }
-    }
+    override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> =
+        index.findNearest(vector.toFloatArray(), 10) // TODO: configure this value
+            .filter { it.distance() <= 5 } // TODO: configure this value
+            .map { it.item() }
 
     override fun index(embedding: ContextualizedEmbedding) {
         index.add(embedding)

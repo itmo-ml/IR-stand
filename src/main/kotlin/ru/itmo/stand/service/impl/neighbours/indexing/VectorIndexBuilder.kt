@@ -54,7 +54,6 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-                .take(1000) // TODO: configure this value
             token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
         }
 
