@@ -1,6 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
@@ -19,19 +19,14 @@ class InvertedIndexBuilder(
     private val invertedIndex: InvertedIndex,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
     private val documentEmbeddingCache = HashMap<String, FloatArray>()
 
     fun index(windowedTokensFile: File) {
         val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
 
         tokensWithWindows.onEachIndexed { index, token ->
-            log.info(
-                "Tokens processed: {}. Current token: {}. Windows size: {}",
-                index,
-                token.token,
-                token.docIdsByWindowPairs.size,
-            )
+            log.info { "Tokens processed: $index. Current token: ${token.token}. Windows size: ${token.docIdsByWindowPairs.size}" }
         }.forEach { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()

@@ -1,5 +1,6 @@
 package ru.itmo.stand.util
 
+import io.github.oshai.KotlinLogging
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.index.Term
@@ -9,16 +10,14 @@ import org.apache.lucene.search.BoostQuery
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.Query
 import org.apache.lucene.search.TermQuery
-import org.slf4j.LoggerFactory
 import java.io.File
 
-// TODO: update to kotlin logging
-private val log = LoggerFactory.getLogger("Search")
+private val log = KotlinLogging.logger { }
 
 fun IndexSearcher.searchAll(query: Query): Sequence<Document> {
     val pageSize = 100_000
     var topDocs = this.search(query, pageSize)
-    log.debug("Found {} hits", topDocs.totalHits.value)
+    log.debug { "Found ${topDocs.totalHits.value} hits" }
     return sequence {
         // java doc: The returned instance should only be used by a single thread.
         val storedFields = this@searchAll.storedFields()

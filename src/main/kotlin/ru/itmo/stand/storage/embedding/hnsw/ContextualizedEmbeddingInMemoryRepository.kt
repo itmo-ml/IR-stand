@@ -3,8 +3,8 @@ package ru.itmo.stand.storage.embedding.hnsw
 import com.github.jelmerk.knn.DistanceFunctions
 import com.github.jelmerk.knn.JavaObjectSerializer
 import com.github.jelmerk.knn.hnsw.HnswIndex
+import io.github.oshai.KotlinLogging
 import jakarta.annotation.PreDestroy
-import org.slf4j.LoggerFactory
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
@@ -14,7 +14,7 @@ class ContextualizedEmbeddingInMemoryRepository(
     private val standProperties: StandProperties,
 ) : ContextualizedEmbeddingRepository {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
     private val itemIdSerializer = JavaObjectSerializer<String>()
     private val itemSerializer = JavaObjectSerializer<ContextualizedEmbedding>()
 
@@ -22,7 +22,7 @@ class ContextualizedEmbeddingInMemoryRepository(
         val indexPath = Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw")
         HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexPath)
     }.getOrElse {
-        log.info("Got exception [{}] during index loading with message: {}", it.javaClass.simpleName, it.message)
+        log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
         // TODO move dimensions to config
         HnswIndex.newBuilder(128, DistanceFunctions.FLOAT_EUCLIDEAN_DISTANCE, 64_000_000)
             // defaults for weaviate

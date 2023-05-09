@@ -1,7 +1,7 @@
 package ru.itmo.stand.config
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.Properties
@@ -9,7 +9,7 @@ import java.util.Properties
 @Configuration
 class NlpConfig {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     @Bean
     fun stanfordCoreNlp(): StanfordCoreNLP {

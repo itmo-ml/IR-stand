@@ -1,12 +1,11 @@
 package ru.itmo.stand.service.impl
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import io.github.oshai.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
@@ -42,7 +41,7 @@ class DocumentSnrmService(
     private val standProperties: StandProperties,
 ) : DocumentService {
 
-    private val log: Logger = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     private val model by lazy {
         val basePath = standProperties.app.basePath

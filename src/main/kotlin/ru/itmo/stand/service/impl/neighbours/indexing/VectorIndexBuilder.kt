@@ -1,6 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
@@ -21,10 +21,11 @@ class VectorIndexBuilder(
     private val contextualizedEmbeddingRepository: ContextualizedEmbeddingRepository,
     private val embeddingCalculator: BertEmbeddingCalculator,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+
+    private val log = KotlinLogging.logger { }
 
     fun index(windowedTokensFile: File) {
-        log.info("Starting vector indexing")
+        log.info { "Starting vector indexing" }
         val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
 
         val counter = AtomicInteger(0)
@@ -38,11 +39,11 @@ class VectorIndexBuilder(
             counter.incrementAndGet()
         }
 
-        log.info("Token count: ${counter.get()}")
-        log.info("Cluster sizes: ${clusterSizes.get()}")
-        log.info("Windows count: ${windowsCount.get()}")
-        log.info("Mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}")
-        log.info("Mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}")
+        log.info { "Token count: ${counter.get()}" }
+        log.info { "Cluster sizes: ${clusterSizes.get()}" }
+        log.info { "Windows count: ${windowsCount.get()}" }
+        log.info { "Mean windows per token: ${windowsCount.get().toDouble() / counter.get().toDouble()}" }
+        log.info { "Mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}" }
     }
 
     private fun readWindowsByTokenPairs(windowedTokensFile: File) = windowedTokensFile
@@ -64,7 +65,7 @@ class VectorIndexBuilder(
 
         val clusterModel = XMeans.fit(doubleEmb, 8) // TODO: configure this value
 
-        log.info("{} got {} centroids", token.first, clusterModel.k)
+        log.info { "${token.first} got ${clusterModel.k} centroids" }
 
         val centroids = clusterModel.centroids
 

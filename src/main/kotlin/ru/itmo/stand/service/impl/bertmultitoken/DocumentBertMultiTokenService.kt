@@ -1,8 +1,7 @@
 package ru.itmo.stand.service.impl.bertmultitoken
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.BertNspTranslator
@@ -18,7 +17,7 @@ class DocumentBertMultiTokenService(
     bertNspTranslator: BertNspTranslator,
 ) : BaseBertService(bertNspTranslator) {
 
-    private val log: Logger = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     override val method: Method
         get() = Method.BERT_MULTI_TOKEN
@@ -39,7 +38,7 @@ class DocumentBertMultiTokenService(
 
         scores.forEach { (token, score) -> invertedIndex.index(token, score, documentId) }
 
-        log.info("Content is indexed (id={})", documentId)
+        log.info { "Content is indexed (id=$documentId)" }
         return documentId
     }
 
