@@ -9,14 +9,27 @@ import org.apache.lucene.search.BoostQuery
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.Query
 import org.apache.lucene.search.TermQuery
+import org.slf4j.LoggerFactory
 import java.io.File
 
+// TODO: update to kotlin logging
+private val log = LoggerFactory.getLogger("Search")
+
 fun IndexSearcher.searchAll(query: Query): Sequence<Document> {
-    val pageSize = 1_000
-    val topDocs = this.search(query, pageSize)
-    check(topDocs.totalHits.value <= pageSize) { "Page size is smaller than the total hits" }
-    val storedFields = this.storedFields()
-    return sequenceOf(*topDocs.scoreDocs).map { storedFields.document(it.doc) }
+    val pageSize = 100_000
+    var topDocs = this.search(query, pageSize)
+    log.debug("Found {} hits", topDocs.totalHits.value)
+    return sequence {
+        // java doc: The returned instance should only be used by a single thread.
+        val storedFields = this@searchAll.storedFields()
+        while (topDocs.scoreDocs.isNotEmpty()) {
+            for (scoreDoc in topDocs.scoreDocs) {
+                yield(storedFields.document(scoreDoc.doc))
+            }
+            val lastScoreDoc = topDocs.scoreDocs.last()
+            topDocs = this@searchAll.searchAfter(lastScoreDoc, query, pageSize)
+        }
+    }
 }
 
 fun buildBagOfWordsQuery(field: String, analyzer: Analyzer, queryText: String): Query {
