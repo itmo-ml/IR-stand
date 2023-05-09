@@ -18,13 +18,10 @@ class NeighboursSearcher(
         val windows = preprocessingPipelineExecutor.execute(query)
         val embeddings = bertEmbeddingCalculator.calculate(windows.map { it.convertContentToString() }.toTypedArray())
         return embeddings.flatMap { embedding -> contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray()) }
-            .map { contextualizedEmbedding ->
-                invertedIndex.findByTokenWithEmbeddingId(contextualizedEmbedding.tokenWithEmbeddingId)
-                    .groupingBy { it.docId }
+            .let { contextualizedEmbeddings ->
+                val tokenWithEmbeddingIds = contextualizedEmbeddings.map { it.tokenWithEmbeddingId }
+                invertedIndex.findByTokenWithEmbeddingIds(tokenWithEmbeddingIds).groupingBy { it.docId }
                     .foldTo(HashMap(), 0f) { acc, doc -> acc + doc.score }
-            }.fold(HashMap<String, Float>()) { acc, scoreByDocIdMap ->
-                scoreByDocIdMap.forEach { (docId, score) -> acc.merge(docId, score) { prev, new -> prev + new } }
-                acc
             }.entries
             .sortedByDescending { (_, score) -> score }
             .take(10) // TODO: configure this value

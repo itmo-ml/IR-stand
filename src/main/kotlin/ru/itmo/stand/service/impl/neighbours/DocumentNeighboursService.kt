@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
@@ -25,8 +24,6 @@ class DocumentNeighboursService(
     private val neighboursSearcher: NeighboursSearcher,
     private val standProperties: StandProperties,
 ) : DocumentService {
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     override val method: Method
         get() = Method.NEIGHBOURS

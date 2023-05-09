@@ -1,6 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.model.Document
@@ -13,10 +13,10 @@ class DocumentEmbeddingCreator(
     private val bertEmbeddingCalculator: BertEmbeddingCalculator,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     fun create(documents: Sequence<Document>) {
-        documents.onEachIndexed { index, _ -> if (index % 10000 == 0) log.info("Document embeddings created: {}", index) }
+        documents.onEachIndexed { index, _ -> if (index % 10000 == 0) log.info { "Document embeddings created: $index" } }
             .chunked(BERT_BATCH_SIZE)
             .forEach { chunk ->
                 val embeddings = bertEmbeddingCalculator.calculate(chunk.map { it.content }.toTypedArray())

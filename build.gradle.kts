@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.20"
-    kotlin("plugin.spring") version "1.8.20"
-    kotlin("kapt") version "1.8.20"
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.spring") version "1.8.21"
+    kotlin("kapt") version "1.8.21"
     id("me.champeau.jmh") version "0.7.1"
-    id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
-    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.1"
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
+    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.2"
     id("com.star-zero.gradle.githook") version "1.2.1"
 }
 
@@ -47,6 +47,8 @@ dependencies {
     implementation("ai.djl:api")
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
+
+    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0-beta-27")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

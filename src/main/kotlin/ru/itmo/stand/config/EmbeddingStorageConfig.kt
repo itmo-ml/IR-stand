@@ -13,6 +13,7 @@ import ru.itmo.stand.storage.embedding.weaviate.ContextualizedEmbeddingWeaviateR
 class EmbeddingStorageConfig {
 
     @Bean
+    @ConditionalOnProperty(value = ["stand.app.neighbours-algorithm.embedding-storage"], havingValue = "WEAVIATE")
     fun weaviateClient(): WeaviateClient {
         val config = Config("http", "localhost:8080")
         return WeaviateClient(config)
