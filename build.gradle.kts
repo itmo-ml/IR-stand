@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.5"
+    id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.20"
-    kotlin("plugin.spring") version "1.8.20"
-    kotlin("kapt") version "1.8.20"
-    id("me.champeau.jmh") version "0.7.0"
-    id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
-    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.1"
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.spring") version "1.8.21"
+    kotlin("kapt") version "1.8.21"
+    id("me.champeau.jmh") version "0.7.1"
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
+    id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.2"
     id("com.star-zero.gradle.githook") version "1.2.1"
 }
 
@@ -31,7 +31,9 @@ dependencies {
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
     implementation("org.apache.lucene:lucene-grouping:9.5.0")
 
-    implementation("io.weaviate:client:4.0.1")
+    implementation("io.weaviate:client:4.0.2")
+    implementation("com.github.jelmerk:hnswlib-core:1.1.0")
+    implementation("com.github.jelmerk:hnswlib-utils:1.1.0")
 
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
@@ -44,11 +46,14 @@ dependencies {
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
 
+    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0-beta-27")
+
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
 }
 
 tasks.withType<KotlinCompile> {

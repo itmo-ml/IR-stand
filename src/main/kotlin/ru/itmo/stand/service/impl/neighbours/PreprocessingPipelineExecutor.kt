@@ -19,7 +19,7 @@ class PreprocessingPipelineExecutor(
     fun execute(content: String): List<Window> {
         val cleanedContent = textCleaner.preprocess(content)
         val tokens = bertTokenizer.tokenize(cleanedContent)
-        val tokensWithoutStopWords = stopWordRemover.preprocess(tokens)
+        val tokensWithoutStopWords = stopWordRemover.preprocess(tokens) // TODO: configure this value (try to delete it?)
         val windowSize = standProperties.app.neighboursAlgorithm.tokenBatchSize
         return contextSplitter.preprocess(ContextSplitter.Input(tokensWithoutStopWords, windowSize))
     }

@@ -1,6 +1,6 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
@@ -15,15 +15,15 @@ class WindowedTokenCreator(
     private val standProperties: StandProperties,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     fun create(documents: Sequence<Document>): File {
         val memoryIndex = constructMemoryIndex(documents)
 
-        log.info("MemoryIndex is constructed. Token number: ${memoryIndex.size}")
-        log.info("Min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}")
-        log.info("Max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}")
-        log.info("Mean windows: ${memoryIndex.values.map { it.keys.size }.average()}")
+        log.info { "MemoryIndex is constructed. Token number: ${memoryIndex.size}" }
+        log.info { "Min windows: ${memoryIndex.values.minBy { it.keys.size }.keys.size}" }
+        log.info { "Max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}" }
+        log.info { "Mean windows: ${memoryIndex.values.map { it.keys.size }.average()}" }
 
         val windowedTokensFile = File("${standProperties.app.basePath}/indexes/neighbours/windowed-tokens.txt")
             .createPath()

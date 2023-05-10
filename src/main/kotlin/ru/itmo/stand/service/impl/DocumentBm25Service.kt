@@ -1,7 +1,6 @@
 package ru.itmo.stand.service.impl
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
@@ -20,7 +19,7 @@ class DocumentBm25Service(
     private val standProperties: StandProperties,
 ) : DocumentService {
 
-    private val log: Logger = LoggerFactory.getLogger(javaClass)
+    private val log = KotlinLogging.logger { }
 
     override val method: Method
         get() = Method.BM25
@@ -45,7 +44,7 @@ class DocumentBm25Service(
         return "Document saved"
     }
 
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val chunkSize = 10_000
         contents.lineSequence()
@@ -54,7 +53,7 @@ class DocumentBm25Service(
             .chunked(chunkSize)
             .forEachIndexed { index, chunk ->
                 documentBm25Repository.saveAll(chunk)
-                log.info("Processed: ${(index + 1) * chunkSize}")
+                log.info { "Processed: ${(index + 1) * chunkSize}" }
             }
         documentBm25Repository.completeSaving()
         return emptyList()

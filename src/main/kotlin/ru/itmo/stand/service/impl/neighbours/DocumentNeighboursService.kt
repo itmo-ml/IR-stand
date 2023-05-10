@@ -1,6 +1,5 @@
 package ru.itmo.stand.service.impl.neighbours
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
@@ -26,8 +25,6 @@ class DocumentNeighboursService(
     private val standProperties: StandProperties,
 ) : DocumentService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override val method: Method
         get() = Method.NEIGHBOURS
 
@@ -49,7 +46,7 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> {
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)
