@@ -31,9 +31,12 @@ class InvertedIndexBuilder(
         }.forEach { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-            embeddingCalculator.calculate(windows.map {
-                TranslatorInput(it.first, it.second)
-            }, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
+            embeddingCalculator.calculate(
+                windows.map {
+                    TranslatorInput(it.first, it.second)
+                },
+                BERT_BATCH_SIZE,
+            ).forEachIndexed { index, embedding ->
                 val docIds = docIdsList[index]
                 contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray())
                     .forEach { computeScoreAndSave(docIds, it) }

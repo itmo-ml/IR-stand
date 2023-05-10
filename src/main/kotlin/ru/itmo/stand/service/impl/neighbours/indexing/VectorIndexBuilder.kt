@@ -14,7 +14,6 @@ import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
 import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processConcurrently
-import ru.itmo.stand.util.toFloatArray
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
