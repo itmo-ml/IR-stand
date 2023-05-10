@@ -13,7 +13,6 @@
 
 import ai.djl.huggingface.tokenizers.Encoding
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.modality.nlp.bert.BertTokenizer
 import ai.djl.ndarray.NDArray
 import ai.djl.ndarray.NDList
 import ai.djl.ndarray.NDManager
@@ -143,15 +142,14 @@ class EmbeddingTranslator internal constructor(
         }
 
         fun getTokenIndexes(window: String, middleTokenIndex: Int): Array<Int> {
-
-            val result = MutableList<Int>(0) {0}
+            val result = MutableList<Int>(0) { 0 }
             val windowTokens = window.split(" ")
 
             var bertIndex = 0
-            for((index, token) in windowTokens.withIndex()) {
+            for ((index, token) in windowTokens.withIndex()) {
                 val bertTokens = bertTokenizer.tokenize(token)
-                if(index == middleTokenIndex) {
-                    for(i in 0 until bertTokens.size) {
+                if (index == middleTokenIndex) {
+                    for (i in 0 until bertTokens.size) {
                         result.add(bertIndex + i)
                     }
                     return result.toTypedArray()
@@ -172,7 +170,7 @@ class EmbeddingTranslator internal constructor(
                 floatEmbeddings.map { it[col] }.average().toFloat()
             }.toFloatArray()
 
-            return result;
+            return result
         }
 
         private fun meanPool(embeddings: NDArray, attentionMask: NDArray, sqrt: Boolean): NDArray {
