@@ -1,6 +1,7 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.github.oshai.KotlinLogging
+import kotlinx.coroutines.flow.asFlow
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
@@ -9,7 +10,7 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
-import ru.itmo.stand.util.processParallel
+import ru.itmo.stand.util.processConcurrently
 import ru.itmo.stand.util.toDoubleArray
 import ru.itmo.stand.util.toFloatArray
 import smile.clustering.XMeans
@@ -24,7 +25,7 @@ class VectorIndexBuilder(
 
     private val log = KotlinLogging.logger { }
 
-    fun index(windowedTokensFile: File) {
+    suspend fun index(windowedTokensFile: File) {
         log.info { "Starting vector indexing" }
         val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
 
@@ -32,7 +33,11 @@ class VectorIndexBuilder(
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
 
-        processParallel(windowsByTokenPairs, MAX_CONCURRENCY, log) {
+        processConcurrently(
+            windowsByTokenPairs.asFlow(),
+            MAX_CONCURRENCY,
+            { if (it % 10 == 0) log.info { "Elements processed: $it" } },
+        ) {
             windowsCount.addAndGet(it.second.size)
             val k = process(it)
             clusterSizes.addAndGet(k)
