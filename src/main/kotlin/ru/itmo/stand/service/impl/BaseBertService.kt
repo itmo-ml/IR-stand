@@ -5,10 +5,9 @@ import ai.djl.translate.Translator
 import edu.stanford.nlp.naturalli.ClauseSplitter.log
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.h2.mvstore.MVMap
 import org.h2.mvstore.MVStore
 import org.springframework.beans.factory.annotation.Autowired
@@ -98,7 +97,7 @@ abstract class BaseBertService(
     /**
      * CLI command example: save-in-batch -m CUSTOM --with-id data/collection.air-subset.tsv
      */
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> = coroutineScope {
         val channel = Channel<String>(BATCH_SIZE_DOCUMENTS)
         contents.lineSequence()
             .onEachIndexed { index, _ -> if (index % 10 == 0) log.info("Indexing is started for $index passages") }

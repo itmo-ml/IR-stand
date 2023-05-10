@@ -1,5 +1,7 @@
 package ru.itmo.stand.command
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -39,7 +41,7 @@ class SaveInBatchCommand(
     )
     private var withId: Boolean = false
 
-    override fun run() {
+    override fun run(): Unit = runBlocking(Dispatchers.Default) {
         val seconds = measureTimeSeconds {
             println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contentFile, withId)}")
         }

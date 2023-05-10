@@ -44,7 +44,7 @@ class DocumentBm25Service(
         return "Document saved"
     }
 
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
         val chunkSize = 10_000
         contents.lineSequence()

@@ -46,7 +46,7 @@ class DocumentNeighboursService(
         TODO("Not yet implemented")
     }
 
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> {
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)

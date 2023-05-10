@@ -3,8 +3,8 @@ package ru.itmo.stand.service.impl
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import io.github.oshai.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
@@ -118,7 +118,7 @@ class DocumentSnrmService(
         return id
     }
 
-    override fun saveInBatch(contents: File, withId: Boolean): List<String> = runBlocking(Dispatchers.Default) {
+    override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> = coroutineScope {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")
 
         for (chunk in contents.lineSequence().chunked(BATCH_SIZE_DOCUMENTS)) {
