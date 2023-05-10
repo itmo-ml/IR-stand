@@ -13,6 +13,7 @@
 
 import ai.djl.huggingface.tokenizers.Encoding
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
+import ai.djl.modality.nlp.bert.BertTokenizer
 import ai.djl.ndarray.NDArray
 import ai.djl.ndarray.NDList
 import ai.djl.ndarray.NDManager
@@ -22,6 +23,7 @@ import ai.djl.translate.Batchifier
 import ai.djl.translate.Translator
 import ai.djl.translate.TranslatorContext
 import ru.itmo.stand.service.bert.TranslatorInput
+import ru.itmo.stand.util.bertTokenizer
 import java.io.IOException
 
 /** The translator for Huggingface text embedding model.  */
@@ -36,15 +38,19 @@ class EmbeddingTranslator internal constructor(
 
     override fun processInput(ctx: TranslatorContext, input: TranslatorInput): NDList {
         val encoding = tokenizer.encode(input.window)
+
+        val indexes = getTokenIndexes(input.window, input.middleTokenIndex.toInt())
+
         ctx.setAttachment("encoding", encoding)
-        ctx.setAttachment("index", input.middleTokenIndex)
+        ctx.setAttachment("indexes", indexes)
         ctx.setAttachment("pooling", input.pooling)
+
         return encoding.toNDList(ctx.ndManager, false)
     }
 
     override fun processOutput(ctx: TranslatorContext, list: NDList): FloatArray {
         val encoding = ctx.getAttachment("encoding") as Encoding
-        val index = ctx.getAttachment("index") as Long
+        val indexes = ctx.getAttachment("indexes") as Array<Int>
         val pooling = ctx.getAttachment("pooling") as String
         val manager = ctx.ndManager
         var embeddings = processEmbedding(
@@ -52,12 +58,10 @@ class EmbeddingTranslator internal constructor(
             list,
             encoding,
             pooling,
-            index,
+            indexes,
         )
-        if (normalize) {
-            embeddings = embeddings.normalize(2.0, 0)
-        }
-        return embeddings.toFloatArray()
+
+        return embeddings
     }
 
     override fun toBatchTranslator(batchifier: Batchifier): EmbeddingBatchTranslator {
@@ -121,21 +125,54 @@ class EmbeddingTranslator internal constructor(
             list: NDList,
             encoding: Encoding,
             pooling: String,
-            tokenIndex: Long,
-        ): NDArray {
+            tokenIndexes: Array<Int>,
+        ): FloatArray {
             val embedding = list["last_hidden_state"]
             val attentionMask = encoding.attentionMask
             val inputAttentionMask = manager.create(attentionMask).toType(DataType.FLOAT32, true)
             when (pooling) {
-                "mean" -> return meanPool(embedding, inputAttentionMask, false)
-                "mean_sqrt_len" -> return meanPool(embedding, inputAttentionMask, true)
-                "max" -> return maxPool(embedding, inputAttentionMask)
-                "weightedmean" -> return weightedMeanPool(embedding, inputAttentionMask)
-                "cls" -> return embedding[0]
+                "mean" -> return meanPool(embedding, inputAttentionMask, false).toFloatArray()
+                "mean_sqrt_len" -> return meanPool(embedding, inputAttentionMask, true).toFloatArray()
+                "max" -> return maxPool(embedding, inputAttentionMask).toFloatArray()
+                "weightedmean" -> return weightedMeanPool(embedding, inputAttentionMask).toFloatArray()
+                "cls" -> return embedding[0].toFloatArray()
                 // cls token is first
-                "token" -> return embedding[tokenIndex + 1]
+                "token" -> return tokenPool(embedding, tokenIndexes)
                 else -> throw AssertionError("Unexpected pooling mode: $pooling")
             }
+        }
+
+        fun getTokenIndexes(window: String, middleTokenIndex: Int): Array<Int> {
+
+            val result = MutableList<Int>(0) {0}
+            val windowTokens = window.split(" ")
+
+            var bertIndex = 0
+            for((index, token) in windowTokens.withIndex()) {
+                val bertTokens = bertTokenizer.tokenize(token)
+                if(index == middleTokenIndex) {
+                    for(i in 0 until bertTokens.size) {
+                        result.add(bertIndex + i)
+                    }
+                    return result.toTypedArray()
+                } else {
+                    bertIndex += bertTokens.size
+                }
+            }
+
+            throw IllegalArgumentException("middle token index $middleTokenIndex is not found in window $window")
+        }
+
+        private fun tokenPool(embeddings: NDArray, tokenIndexes: Array<Int>): FloatArray {
+            val floatEmbeddings = tokenIndexes.map {
+                embeddings.get(it.toLong() + 1).toFloatArray()
+            }
+            val columns = floatEmbeddings.first().size
+            val result = (0 until columns).map { col ->
+                floatEmbeddings.map { it[col] }.average().toFloat()
+            }.toFloatArray()
+
+            return result;
         }
 
         private fun meanPool(embeddings: NDArray, attentionMask: NDArray, sqrt: Boolean): NDArray {

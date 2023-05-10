@@ -20,7 +20,7 @@ class EmbeddingBatchTranslator internal constructor(
     override fun processInput(ctx: TranslatorContext, input: Array<TranslatorInput>): NDList {
         val manager = ctx.ndManager
         val encodings = tokenizer.batchEncode(input?.map { it?.window })
-        val indices = input?.map { it?.middleTokenIndex }
+        val indices = input?.map { EmbeddingTranslator.getTokenIndexes(it.window, it.middleTokenIndex.toInt()) }
         val poolings = input?.map { it?.pooling }
         ctx.setAttachment("encodings", encodings)
         ctx.setAttachment("indices", indices)
@@ -36,7 +36,7 @@ class EmbeddingBatchTranslator internal constructor(
     override fun processOutput(ctx: TranslatorContext, list: NDList): Array<FloatArray> {
         val batch = batchifier.unbatchify(list)
         val encoding = ctx.getAttachment("encodings") as Array<Encoding>
-        val indices = ctx.getAttachment("indices") as ArrayList<Long>
+        val indices = ctx.getAttachment("indices") as ArrayList<Array<Int>>
         val poolings = ctx.getAttachment("poolings") as ArrayList<String>
         val manager = ctx.ndManager
         val ret = Array(batch.size) { floatArrayOf() }
@@ -48,10 +48,8 @@ class EmbeddingBatchTranslator internal constructor(
                 poolings[i],
                 indices[i],
             )
-            if (normalize) {
-                array = array.normalize(2.0, 0)
-            }
-            ret[i] = array.toFloatArray()
+
+            ret[i] = array
         }
         return ret
     }
