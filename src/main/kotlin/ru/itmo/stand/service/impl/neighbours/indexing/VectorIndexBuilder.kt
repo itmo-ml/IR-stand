@@ -12,12 +12,9 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
-import ru.itmo.stand.util.processConcurrently
-import ru.itmo.stand.util.toDoubleArray
-import ru.itmo.stand.util.toFloatArray
-import smile.clustering.XMeans
 import ru.itmo.stand.util.kmeans.XMeans
-import ru.itmo.stand.util.processParallel
+import ru.itmo.stand.util.processConcurrently
+import ru.itmo.stand.util.toFloatArray
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -64,7 +61,6 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-                .take(1000) // TODO: configure this value
             token to windows.map {
                 val windowWithIndex = it.split(WINDOW_DOC_IDS_SEPARATOR).first()
                 val (window, index) = windowWithIndex.split(TOKEN_INDEX_SEPARATOR)
@@ -86,10 +82,10 @@ class VectorIndexBuilder(
 
         val centroids = clusterModel.centroids
 
-        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
+        val contextualizedEmbeddings = centroids.mapIndexed { index, centroid ->
             ContextualizedEmbedding(
                 tokenWithEmbeddingId = "${token.first}$TOKEN_AND_EMBEDDING_ID_SEPARATOR$index",
-                embedding = centroid.toFloatArray(),
+                embedding = centroid,
             )
         }
         contextualizedEmbeddingRepository.indexBatch(contextualizedEmbeddings)
