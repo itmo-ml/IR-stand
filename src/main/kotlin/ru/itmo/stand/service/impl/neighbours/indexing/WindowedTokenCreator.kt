@@ -44,13 +44,12 @@ class WindowedTokenCreator(
                 if (!memoryIndex.containsKey(window.middleToken)) {
                     memoryIndex[window.middleToken] = hashMapOf()
                 }
-                val docIdsByContentMap = memoryIndex[window.middleToken]!!
-                val currentContent = window.convertContentToString()
-                val contentAndDocIds = docIdsByContentMap[currentContent]
-                if (contentAndDocIds == null) {
+                val docIdsByContentMap = checkNotNull(memoryIndex[window.middleToken])
+                val currentContent = window.joinIndexAndContent(WINDOW_TOKEN_INDEX_SEPARATOR)
+                val docIds = docIdsByContentMap[currentContent]
+                if (docIds == null) {
                     docIdsByContentMap[currentContent] = docId
                 } else {
-                    val docIds = docIdsByContentMap[currentContent]
                     docIdsByContentMap[currentContent] = "$docIds$DOC_IDS_SEPARATOR$docId"
                 }
             }
@@ -84,6 +83,7 @@ class WindowedTokenCreator(
 
     companion object {
         const val TOKEN_WINDOWS_SEPARATOR = "="
+        const val WINDOW_TOKEN_INDEX_SEPARATOR = "|"
         const val WINDOW_DOC_IDS_SEPARATOR = ":"
         const val WINDOWS_SEPARATOR = ";"
         const val DOC_IDS_SEPARATOR = " "

@@ -32,7 +32,6 @@ class ContextualizedEmbeddingBatchTranslatorTest {
             .optEngine("PyTorch")
             .optArgument("tokenizer", "bert-base-uncased")
             .optArgument("normalize", false)
-            .optArgument("pooling", "token")
             .optOption("hasParameter", "false")
             .optTranslatorFactory(ContextualizedEmbeddingTranslatorFactory())
             .build()
@@ -75,7 +74,7 @@ class ContextualizedEmbeddingBatchTranslatorTest {
     }
 
     @Nested
-    inner class ClsPolling {
+    inner class ClsPooling {
 
         private val predictor = Criteria.builder()
             .setTypes(Array<TranslatorInput>::class.java, Array<FloatArray>::class.java)
@@ -84,7 +83,6 @@ class ContextualizedEmbeddingBatchTranslatorTest {
             .optEngine("PyTorch")
             .optArgument("tokenizer", "bert-base-uncased")
             .optArgument("normalize", false)
-            .optArgument("pooling", "cls")
             .optOption("hasParameter", "false")
             .optTranslatorFactory(ContextualizedEmbeddingTranslatorFactory())
             .build()
@@ -93,13 +91,11 @@ class ContextualizedEmbeddingBatchTranslatorTest {
 
         @Test
         fun `should return average embeddings for middle words consisting of one and two tokens`() {
-            val firstMiddleWord = "dancing"
-            val firstSentence = "They went $firstMiddleWord every weekend"
-            val secondMiddleWord = "snowboarding"
-            val secondSentence = "They went $secondMiddleWord yesterday"
+            val firstSentence = "They went dancing every weekend"
+            val secondSentence = "They went snowboarding yesterday"
             val input = arrayOf(
-                TranslatorInput(firstSentence.split(" ").indexOf(firstMiddleWord), firstSentence),
-                TranslatorInput(secondSentence.split(" ").indexOf(secondMiddleWord), secondSentence),
+                TranslatorInput.withClsWordIndex(firstSentence),
+                TranslatorInput.withClsWordIndex(secondSentence),
             )
 
             val result = predictor.predict(input)
@@ -110,13 +106,11 @@ class ContextualizedEmbeddingBatchTranslatorTest {
 
         @Test
         fun `should do padding on different window sizes`() {
-            val firstMiddleWord = "sentence"
-            val firstSentence = "Short $firstMiddleWord"
-            val secondMiddleWord = "snowboarding"
-            val secondSentence = "They went $secondMiddleWord yesterday"
+            val firstSentence = "Short sentence"
+            val secondSentence = "They went snowboarding yesterday"
             val input = arrayOf(
-                TranslatorInput(firstSentence.split(" ").indexOf(firstMiddleWord), firstSentence),
-                TranslatorInput(secondSentence.split(" ").indexOf(secondMiddleWord), secondSentence),
+                TranslatorInput.withClsWordIndex(firstSentence),
+                TranslatorInput.withClsWordIndex(secondSentence),
             )
 
             val result = predictor.predict(input)

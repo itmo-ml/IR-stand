@@ -23,22 +23,22 @@ class WindowedTokenCreatorTest {
             "The central nervous system is that part of the nervous system that consists " +
             "of the brain and spinal cord."
         val windows = arrayOf(
-            "definition central nervous",
-            "definition central nervous system",
-            "cn ##s central nervous system",
-            "definition central nervous system cn",
-            "##s central nervous system part",
-            "system part nervous system consists",
-            "central nervous system cn ##s",
-            "central nervous system part nervous",
-            "part nervous system consists brain",
-            "nervous system cn ##s central",
-            "system cn ##s central nervous",
-            "nervous system part nervous system",
-            "nervous system consists brain spinal",
-            "system consists brain spinal cord",
-            "consists brain spinal cord",
-            "brain spinal cord",
+            "0|definition central nervous",
+            "1|definition central nervous system",
+            "2|cn ##s central nervous system",
+            "2|definition central nervous system cn",
+            "2|##s central nervous system part",
+            "2|system part nervous system consists",
+            "2|central nervous system cn ##s",
+            "2|central nervous system part nervous",
+            "2|part nervous system consists brain",
+            "2|nervous system cn ##s central",
+            "2|system cn ##s central nervous",
+            "2|nervous system part nervous system",
+            "2|nervous system consists brain spinal",
+            "2|system consists brain spinal cord",
+            "2|consists brain spinal cord",
+            "2|brain spinal cord",
         )
 
         mockkStatic(File::createPath) {

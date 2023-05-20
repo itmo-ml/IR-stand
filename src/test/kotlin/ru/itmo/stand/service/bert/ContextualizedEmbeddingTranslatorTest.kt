@@ -24,7 +24,7 @@ class ContextualizedEmbeddingTranslatorTest {
     }
 
     @Nested
-    inner class TokenPolling {
+    inner class TokenPooling {
 
         private val predictor = Criteria.builder()
             .setTypes(TranslatorInput::class.java, FloatArray::class.java)
@@ -33,7 +33,6 @@ class ContextualizedEmbeddingTranslatorTest {
             .optEngine("PyTorch")
             .optArgument("tokenizer", "bert-base-uncased")
             .optArgument("normalize", false)
-            .optArgument("pooling", "token")
             .optOption("hasParameter", "false")
             .optTranslatorFactory(ContextualizedEmbeddingTranslatorFactory())
             .build()
@@ -44,7 +43,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return embedding for middle word consisting of one token`() {
             val middleWord = "dancing"
             val sentence = "They went $middleWord every weekend"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput(wordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
 
             val result = predictor.predict(input)
 
@@ -56,7 +55,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return average embedding for middle word consisting of two tokens`() {
             val middleWord = "snowboarding"
             val sentence = "They went $middleWord yesterday"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput(wordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
 
             val result = predictor.predict(input)
 
@@ -68,7 +67,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return average embedding for middle word consisting of three tokens`() {
             val middleWord = "pragmatic"
             val sentence = "Making $middleWord decisions"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput(wordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
 
             val result = predictor.predict(input)
 
@@ -82,7 +81,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return average embedding for middle word consisting of four tokens`() {
             val middleWord = "pharmacist"
             val sentence = "Licensed $middleWord"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput(wordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
 
             val result = predictor.predict(input)
 
@@ -92,7 +91,7 @@ class ContextualizedEmbeddingTranslatorTest {
     }
 
     @Nested
-    inner class ClsPolling {
+    inner class ClsPooling {
 
         private val predictor = Criteria.builder()
             .setTypes(TranslatorInput::class.java, FloatArray::class.java)
@@ -101,7 +100,6 @@ class ContextualizedEmbeddingTranslatorTest {
             .optEngine("PyTorch")
             .optArgument("tokenizer", "bert-base-uncased")
             .optArgument("normalize", false)
-            .optArgument("pooling", "cls")
             .optOption("hasParameter", "false")
             .optTranslatorFactory(ContextualizedEmbeddingTranslatorFactory())
             .build()
@@ -112,7 +110,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return cls embedding for middle word consisting of one token`() {
             val middleWord = "dancing"
             val sentence = "They went $middleWord every weekend"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput.withClsWordIndex(sentence)
 
             val result = predictor.predict(input)
 
@@ -124,7 +122,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return cls embedding for middle word consisting of two tokens`() {
             val middleWord = "snowboarding"
             val sentence = "They went $middleWord yesterday"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput.withClsWordIndex(sentence)
 
             val result = predictor.predict(input)
 
@@ -136,7 +134,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return cls embedding for middle word consisting of three tokens`() {
             val middleWord = "pragmatic"
             val sentence = "Making $middleWord decisions"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput.withClsWordIndex(sentence)
 
             val result = predictor.predict(input)
 
@@ -148,7 +146,7 @@ class ContextualizedEmbeddingTranslatorTest {
         fun `should return cls embedding for middle word consisting of four tokens`() {
             val middleWord = "pharmacist"
             val sentence = "Licensed $middleWord"
-            val input = TranslatorInput(middleWordIndex = sentence.split(" ").indexOf(middleWord), content = sentence)
+            val input = TranslatorInput.withClsWordIndex(sentence)
 
             val result = predictor.predict(input)
 

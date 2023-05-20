@@ -4,9 +4,11 @@ import io.github.oshai.KotlinLogging
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
+import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_TOKEN_INDEX_SEPARATOR
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
@@ -27,18 +29,18 @@ class VectorIndexBuilder(
 
     suspend fun index(windowedTokensFile: File) {
         log.info { "Starting vector indexing" }
-        val windowsByTokenPairs = readWindowsByTokenPairs(windowedTokensFile)
+        val tokensWindows = readTokensWindows(windowedTokensFile)
 
         val counter = AtomicInteger(0)
         val clusterSizes = AtomicInteger(0)
         val windowsCount = AtomicInteger(0)
 
         processConcurrently(
-            windowsByTokenPairs.asFlow(),
+            tokensWindows.asFlow(),
             MAX_CONCURRENCY,
             { if (it % 10 == 0) log.info { "Elements processed: $it" } },
         ) {
-            windowsCount.addAndGet(it.second.size)
+            windowsCount.addAndGet(it.windows.size)
             val k = process(it)
             clusterSizes.addAndGet(k)
             counter.incrementAndGet()
@@ -51,7 +53,7 @@ class VectorIndexBuilder(
         log.info { "Mean cluster size is ${clusterSizes.get() / counter.get().toFloat()}" }
     }
 
-    private fun readWindowsByTokenPairs(windowedTokensFile: File) = windowedTokensFile
+    private fun readTokensWindows(windowedTokensFile: File) = windowedTokensFile
         .bufferedReader()
         .lineSequence()
         .map { line ->
@@ -60,23 +62,27 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-            token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
+                .map {
+                    it.split(WINDOW_DOC_IDS_SEPARATOR)
+                        .first()
+                        .split(WINDOW_TOKEN_INDEX_SEPARATOR)
+                        .let { (tokenIndex, window) -> TranslatorInput(tokenIndex.toInt(), window) }
+                }
+            TokenWindows(token = token, windows = windows)
         }
 
-    fun process(token: Pair<String, Collection<String>>): Int {
-        val embeddings = embeddingCalculator.calculate(token.second, BERT_BATCH_SIZE)
+    private fun process(tokenInputs: TokenWindows): Int {
+        val embeddings = embeddingCalculator.calculate(tokenInputs.windows, BERT_BATCH_SIZE)
 
-        val doubleEmb = embeddings.toDoubleArray()
+        val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 8) // TODO: configure this value
 
-        val clusterModel = XMeans.fit(doubleEmb, 8) // TODO: configure this value
-
-        log.info { "${token.first} got ${clusterModel.k} centroids" }
+        log.info { "${tokenInputs.token} got ${clusterModel.k} centroids" }
 
         val centroids = clusterModel.centroids
 
-        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
+        val contextualizedEmbeddings = centroids.mapIndexed { index, centroid ->
             ContextualizedEmbedding(
-                tokenWithEmbeddingId = "${token.first}$TOKEN_AND_EMBEDDING_ID_SEPARATOR$index",
+                tokenWithEmbeddingId = "${tokenInputs.token}$TOKEN_AND_EMBEDDING_ID_SEPARATOR$index",
                 embedding = centroid.toFloatArray(),
             )
         }
@@ -84,6 +90,11 @@ class VectorIndexBuilder(
 
         return clusterModel.k
     }
+
+    private data class TokenWindows(
+        val token: String,
+        val windows: List<TranslatorInput>,
+    )
 
     companion object {
         const val MAX_CONCURRENCY = 10

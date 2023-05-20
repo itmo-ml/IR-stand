@@ -9,16 +9,15 @@ class BertEmbeddingCalculator(
     private val standProperties: StandProperties,
 ) {
 
-    // TODO: configure to return vector for middle token
     private val predictor by lazy {
         bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()
     }
 
-    fun calculate(content: String): FloatArray = predictor.predict(arrayOf(content)).first()
+    fun calculate(input: TranslatorInput): FloatArray = predictor.predict(arrayOf(input)).first()
 
-    fun calculate(contents: Array<String>): Array<FloatArray> = predictor.predict(contents)
+    fun calculate(inputs: Array<TranslatorInput>): Array<FloatArray> = predictor.predict(inputs)
 
-    fun calculate(contents: Collection<String>, batchSize: Int): Array<FloatArray> = contents.chunked(batchSize)
+    fun calculate(inputs: Collection<TranslatorInput>, batchSize: Int): Array<FloatArray> = inputs.chunked(batchSize)
         .flatMap { chunk -> predictor.predict(chunk.toTypedArray()).asIterable() }
         .toTypedArray()
 }

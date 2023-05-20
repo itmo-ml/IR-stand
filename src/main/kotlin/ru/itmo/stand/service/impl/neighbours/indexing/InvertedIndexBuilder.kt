@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
@@ -23,7 +24,7 @@ class InvertedIndexBuilder(
     private val documentEmbeddingCache = HashMap<String, FloatArray>()
 
     fun index(windowedTokensFile: File) {
-        val tokensWithWindows = readTokensWithWindows(windowedTokensFile)
+        val tokensWithWindows = readTokensWindowsAndDocIds(windowedTokensFile)
 
         tokensWithWindows.onEachIndexed { index, token ->
             log.info { "Tokens processed: $index. Current token: ${token.token}. Windows size: ${token.docIdsByWindowPairs.size}" }
@@ -40,7 +41,7 @@ class InvertedIndexBuilder(
         invertedIndex.completeIndexing()
     }
 
-    private fun readTokensWithWindows(windowedTokensFile: File) = windowedTokensFile
+    private fun readTokensWindowsAndDocIds(windowedTokensFile: File) = windowedTokensFile
         .bufferedReader()
         .lineSequence()
         .map { line ->
@@ -49,11 +50,13 @@ class InvertedIndexBuilder(
                 .split(WindowedTokenCreator.WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
                 .map {
-                    val (window, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
+                    val (windowString, docIdsString) = it.split(WindowedTokenCreator.WINDOW_DOC_IDS_SEPARATOR)
+                    val window = windowString.split(WindowedTokenCreator.WINDOW_TOKEN_INDEX_SEPARATOR)
+                        .let { (tokenIndex, window) -> TranslatorInput(tokenIndex.toInt(), window) }
                     val docIds = docIdsString.split(WindowedTokenCreator.DOC_IDS_SEPARATOR)
                     window to docIds
                 }
-            TokenWithWindows(token, docIdsByWindowPairs)
+            TokenWindowsAndDocIds(token, docIdsByWindowPairs)
         }
 
     private fun computeScoreAndSave(
@@ -73,9 +76,9 @@ class InvertedIndexBuilder(
         invertedIndex.saveAll(neighboursDocuments)
     }
 
-    private data class TokenWithWindows(
+    private data class TokenWindowsAndDocIds(
         val token: String,
-        val docIdsByWindowPairs: List<Pair<String, List<String>>>,
+        val docIdsByWindowPairs: List<Pair<TranslatorInput, List<String>>>,
     )
 
     companion object {

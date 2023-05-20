@@ -15,12 +15,12 @@ class PreprocessingPipelineExecutorTest {
 
         assertEquals(
             listOf(
-                Window("quick", listOf("quick", "brown", "fox")),
-                Window("brown", listOf("quick", "brown", "fox", "jumps")),
-                Window("fox", listOf("quick", "brown", "fox", "jumps", "lazy")),
-                Window("jumps", listOf("brown", "fox", "jumps", "lazy", "dog")),
-                Window("lazy", listOf("fox", "jumps", "lazy", "dog")),
-                Window("dog", listOf("jumps", "lazy", "dog")),
+                Window("quick", 0, listOf("quick", "brown", "fox")),
+                Window("brown", 1, listOf("quick", "brown", "fox", "jumps")),
+                Window("fox", 2, listOf("quick", "brown", "fox", "jumps", "lazy")),
+                Window("jumps", 2, listOf("brown", "fox", "jumps", "lazy", "dog")),
+                Window("lazy", 2, listOf("fox", "jumps", "lazy", "dog")),
+                Window("dog", 2, listOf("jumps", "lazy", "dog")),
             ),
             result,
         )

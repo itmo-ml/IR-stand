@@ -15,7 +15,6 @@ class ContextualizedEmbeddingTranslator internal constructor(
     private val tokenizer: HuggingFaceTokenizer,
     private val batchifier: Batchifier,
     private val normalize: Boolean,
-    private val pooling: String,
 ) : Translator<TranslatorInput, FloatArray> {
     override fun getBatchifier(): Batchifier = batchifier
 
@@ -23,21 +22,20 @@ class ContextualizedEmbeddingTranslator internal constructor(
         val encoding = tokenizer.encode(input.content, true)
 
         ctx.setAttachment("encoding", encoding)
-        ctx.setAttachment("middleWordIndex", input.middleWordIndex)
+        ctx.setAttachment(TranslatorInput::wordIndex.name, input.wordIndex)
 
         return encoding.toNDList(ctx.ndManager, false)
     }
 
     override fun processOutput(ctx: TranslatorContext, list: NDList): FloatArray {
         val encoding = ctx.getAttachment("encoding") as Encoding
-        val middleWordIndex = ctx.getAttachment("middleWordIndex") as Int
+        val wordIndex = ctx.getAttachment(TranslatorInput::wordIndex.name) as Int
         val manager = ctx.ndManager
         var embeddings = processEmbedding(
             manager,
             list,
             encoding,
-            pooling,
-            getWordRange(encoding.wordIds, middleWordIndex.toLong()),
+            wordIndex,
         )
         if (normalize) {
             embeddings = embeddings.normalize(2.0, 0)
@@ -47,13 +45,12 @@ class ContextualizedEmbeddingTranslator internal constructor(
 
     override fun toBatchTranslator(batchifier: Batchifier): ContextualizedEmbeddingBatchTranslator {
         tokenizer.enableBatch()
-        return ContextualizedEmbeddingBatchTranslator(tokenizer, batchifier, normalize, pooling)
+        return ContextualizedEmbeddingBatchTranslator(tokenizer, batchifier, normalize)
     }
 
     class Builder internal constructor(private val tokenizer: HuggingFaceTokenizer) {
         private var batchifier = Batchifier.STACK
         private var normalize = false
-        private var pooling = "token"
 
         /**
          * Sets the [Batchifier] for the [Translator].
@@ -78,17 +75,6 @@ class ContextualizedEmbeddingTranslator internal constructor(
         }
 
         /**
-         * Sets the pooling for the [Translator].
-         *
-         * @param pooling the pooling model
-         * @return this builder
-         */
-        fun optPoolingMode(pooling: String): Builder {
-            this.pooling = pooling
-            return this
-        }
-
-        /**
          * Configures the builder with the model arguments.
          *
          * @param arguments the model arguments
@@ -97,11 +83,10 @@ class ContextualizedEmbeddingTranslator internal constructor(
             val batchifierStr = ArgumentsUtil.stringValue(arguments, "batchifier", "stack")
             optBatchifier(Batchifier.fromString(batchifierStr))
             optNormalize(ArgumentsUtil.booleanValue(arguments, "normalize", false))
-            optPoolingMode(ArgumentsUtil.stringValue(arguments, "pooling", "token"))
         }
 
         fun build(): ContextualizedEmbeddingTranslator =
-            ContextualizedEmbeddingTranslator(tokenizer, batchifier, normalize, pooling)
+            ContextualizedEmbeddingTranslator(tokenizer, batchifier, normalize)
     }
 
     companion object {
@@ -110,20 +95,18 @@ class ContextualizedEmbeddingTranslator internal constructor(
             manager: NDManager,
             list: NDList,
             encoding: Encoding,
-            pooling: String,
-            wordRange: String,
+            wordIndex: Int,
         ): NDArray {
             val embedding = list["last_hidden_state"]
             val attentionMask = encoding.attentionMask
             val inputAttentionMask = manager.create(attentionMask).toType(DataType.FLOAT32, true)
-            return when (pooling) {
-                "cls" -> embedding[0]
-                "token" -> tokenPool(embedding, inputAttentionMask, wordRange)
-                else -> throw AssertionError("Unexpected pooling mode: $pooling")
+            return when (wordIndex) {
+                TranslatorInput.CLS -> embedding[0]
+                else -> tokenPool(embedding, inputAttentionMask, getWordRange(encoding.wordIds, wordIndex.toLong()))
             }
         }
 
-        fun getWordRange(wordIds: LongArray, middleTokenIndex: Long): String {
+        private fun getWordRange(wordIds: LongArray, middleTokenIndex: Long): String {
             check(middleTokenIndex != -1L) { "middleTokenIndex must not point to special tokens" }
             check(middleTokenIndex in wordIds) {
                 "Specified middleTokenIndex=$middleTokenIndex is not in the passed words=${wordIds.contentToString()}"
