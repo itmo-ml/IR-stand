@@ -43,7 +43,7 @@ dependencies {
     implementation("com.h2database:h2-mvstore:2.1.214")
 
     // djl
-    implementation(platform("ai.djl:bom:0.21.0"))
+    implementation(platform("ai.djl:bom:0.22.1"))
     implementation("ai.djl:api")
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
