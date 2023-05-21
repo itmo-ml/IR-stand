@@ -2,7 +2,6 @@ package ru.itmo.stand.service.bert
 
 import EmbeddingTranslatorFactory
 import ai.djl.Application
-import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
 import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
@@ -40,7 +39,7 @@ class BertModelLoader(
             .optEngine("PyTorch")
             .optArgument("padding", "true")
             .optArgument("normalize", "false")
-            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .optTranslatorFactory(EmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }

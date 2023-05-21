@@ -1,6 +1,5 @@
 package ru.itmo.stand.util.kmeans
 
-import org.slf4j.LoggerFactory
 
 open class KMeans(
     distortion: Double,
@@ -14,7 +13,6 @@ open class KMeans(
 
     companion object {
         private const val serialVersionUID = 2L
-        private val logger = LoggerFactory.getLogger(KMeans::class.java)
 
         @JvmOverloads
         fun fit(data: Array<FloatArray>, k: Int, maxIter: Int = 100, tol: Double = 1E-4): KMeans {
@@ -30,7 +28,7 @@ open class KMeans(
             val medoids = Array(k) { floatArrayOf() }
 
             var distortion: Double = MathEx.sum(seed(data, medoids, y, MathEx::squaredDistance))
-            logger.info(String.format("Distortion after initialization: %.4f", distortion))
+            //logger.info(String.format("Distortion after initialization: %.4f", distortion))
 
             // Initialize the centroids
             val size = IntArray(k)
@@ -45,7 +43,7 @@ open class KMeans(
             var iter = 1
             while (iter <= maxIter && diff > tol) {
                 val wcss: Double = bbd.clustering(centroids, sum, size, y)
-                logger.info(String.format("Distortion after %3d iterations: %.4f", iter, wcss))
+                //logger.info(String.format("Distortion after %3d iterations: %.4f", iter, wcss))
                 diff = distortion - wcss
                 distortion = wcss
                 iter++
@@ -62,7 +60,7 @@ open class KMeans(
             val y = IntArray(n)
             val medoids = Array(k) { floatArrayOf() }
             var distortion: Double = MathEx.sum(seed(data, medoids, y, MathEx::squaredDistanceWithMissingValues))
-            logger.info(String.format("Distortion after initialization: %.4f", distortion))
+            //logger.info(String.format("Distortion after initialization: %.4f", distortion))
             val size = IntArray(k)
             val centroids = Array(k) {
                 FloatArray(
@@ -76,7 +74,7 @@ open class KMeans(
             while (iter <= maxIter && diff > tol) {
                 updateCentroidsWithMissingValues(centroids, data, y, size, notNaN)
                 val wcss: Double = assign(y, data, centroids, MathEx::squaredDistanceWithMissingValues)
-                logger.info(String.format("Distortion after %3d iterations: %.4f", iter, wcss))
+                //logger.info(String.format("Distortion after %3d iterations: %.4f", iter, wcss))
                 diff = distortion - wcss
                 distortion = wcss
                 iter++

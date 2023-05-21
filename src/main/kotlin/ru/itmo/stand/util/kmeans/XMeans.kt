@@ -1,6 +1,5 @@
 package ru.itmo.stand.util.kmeans
 
-import org.slf4j.LoggerFactory
 import java.util.Arrays
 import java.util.stream.IntStream
 
@@ -16,7 +15,6 @@ class XMeans(
 
     companion object {
         private const val serialVersionUID = 2L
-        private val logger = LoggerFactory.getLogger(XMeans::class.java)
         private val LOG2PI = Math.log(Math.PI * 2.0)
 
         @JvmOverloads
@@ -50,7 +48,6 @@ class XMeans(
                     // don't split too small cluster. Anyway likelihood estimation
                     // is not accurate in this case.
                     if (ni < 25) {
-                        logger.info("Cluster {} too small to split: {} observations", i, ni)
                         score[i] = 0.0
                         kmeans[i] = null
                         continue
@@ -68,15 +65,7 @@ class XMeans(
                     val newBIC = bic(2, ni, d, kmeans[i]!!.distortion, kmeans[i]!!.size)
                     val oldBIC = bic(ni, d, distortions[i])
                     score[i] = newBIC - oldBIC
-                    logger.info(
-                        String.format(
-                            "Cluster %3d BIC: %12.4f, BIC after split: %12.4f, improvement: %12.4f",
-                            i,
-                            oldBIC,
-                            newBIC,
-                            score[i],
-                        ),
-                    )
+
                 }
                 val index = QuickSort.sort(score)
                 for (i in 0 until k) {
@@ -89,7 +78,6 @@ class XMeans(
                 while (--i >= 0) {
                     if (score[i] > 0) {
                         if (centers.size + i - m + 1 < kmax) {
-                            logger.info("Split cluster {}", index[i])
                             centers.add(kmeans[index[i]]!!.centroids[0])
                             centers.add(kmeans[index[i]]!!.centroids[1])
                         } else {
@@ -100,7 +88,6 @@ class XMeans(
 
                 // no more split.
                 if (centers.size == k) {
-                    logger.info("No more split. Finish with {} clusters", k)
                     break
                 }
                 k = centers.size
@@ -122,7 +109,6 @@ class XMeans(
                         }
                     }
                 }
-                logger.info(String.format("Distortion with %d clusters: %.5f", k, distortion))
             }
             return XMeans(distortion, centroids, y)
         }
