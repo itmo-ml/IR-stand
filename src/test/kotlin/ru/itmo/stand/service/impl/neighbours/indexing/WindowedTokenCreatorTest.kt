@@ -25,19 +25,18 @@ class WindowedTokenCreatorTest {
         val windows = arrayOf(
             "0|definition central nervous",
             "1|definition central nervous system",
-            "2|cn ##s central nervous system",
-            "2|definition central nervous system cn",
-            "2|##s central nervous system part",
-            "2|system part nervous system consists",
-            "2|central nervous system cn ##s",
+            "2|definition central nervous system cns",
+            "2|central nervous system cns central",
+            "2|nervous system cns central nervous",
+            "2|system cns central nervous system",
+            "2|cns central nervous system part",
             "2|central nervous system part nervous",
-            "2|part nervous system consists brain",
-            "2|nervous system cn ##s central",
-            "2|system cn ##s central nervous",
             "2|nervous system part nervous system",
-            "2|nervous system consists brain spinal",
-            "2|system consists brain spinal cord",
-            "2|consists brain spinal cord",
+            "2|system part nervous system consist",
+            "2|part nervous system consist brain",
+            "2|nervous system consist brain spinal",
+            "2|system consist brain spinal cord",
+            "2|consist brain spinal cord",
             "2|brain spinal cord",
         )
 
@@ -64,17 +63,27 @@ class WindowedTokenCreatorTest {
             assertThat(windowedTokensFile.name).startsWith("windowed-token-creator-test")
             assertThat(result).containsExactlyInAnyOrder(
                 "definition" to setOf(windows[0] to listOf("id")),
-                "central" to setOf(windows[1] to listOf("id"), windows[2] to listOf("id")),
-                "nervous" to setOf(windows[3] to listOf("id"), windows[4] to listOf("id"), windows[5] to listOf("id")),
-                "system" to setOf(windows[6] to listOf("id"), windows[7] to listOf("id"), windows[8] to listOf("id")),
-                "cn" to setOf(windows[9] to listOf("id")),
-                "##s" to setOf(windows[10] to listOf("id")),
-                "part" to setOf(windows[11] to listOf("id")),
-                "consists" to setOf(windows[12] to listOf("id")),
-                "brain" to setOf(windows[13] to listOf("id")),
-                "spinal" to setOf(windows[14] to listOf("id")),
-                "cord" to setOf(windows[15] to listOf("id")),
+                "central" to setOf(windows[1] to listOf("id"), windows[5] to listOf("id")),
+                "nervous" to setOf(windows[2] to listOf("id"), windows[6] to listOf("id"), windows[9] to listOf("id")),
+                "system" to setOf(windows[3] to listOf("id"), windows[7] to listOf("id"), windows[10] to listOf("id")),
+                "cns" to setOf(windows[4] to listOf("id")),
+                "part" to setOf(windows[8] to listOf("id")),
+                "consist" to setOf(windows[11] to listOf("id")),
+                "brain" to setOf(windows[12] to listOf("id")),
+                "spinal" to setOf(windows[13] to listOf("id")),
+                "cord" to setOf(windows[14] to listOf("id")),
             )
         }
+        /*
+        helper to find window indexes in evaluation mode:
+        result.filter { it.first == "cord" }
+            .flatMap { it.second }
+            .map { it.first.split("|")[1] }
+            .let { values ->
+                windows.mapIndexedNotNull { index, window ->
+                    if (window.split("|")[1] in values) index else null
+                }
+            }
+         */
     }
 }
