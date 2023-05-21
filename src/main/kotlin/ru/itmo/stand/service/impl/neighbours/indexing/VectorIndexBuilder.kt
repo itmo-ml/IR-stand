@@ -4,16 +4,16 @@ import io.github.oshai.KotlinLogging
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.stereotype.Service
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
+import ru.itmo.stand.service.bert.TranslatorInput
+import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_INDEX_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
+import ru.itmo.stand.util.kmeans.XMeans
 import ru.itmo.stand.util.processConcurrently
-import ru.itmo.stand.util.toDoubleArray
-import ru.itmo.stand.util.toFloatArray
-import smile.clustering.XMeans
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -60,24 +60,31 @@ class VectorIndexBuilder(
             val windows = tokenAndWindows[1]
                 .split(WINDOWS_SEPARATOR)
                 .filter { it.isNotBlank() }
-            token to windows.map { it.split(WINDOW_DOC_IDS_SEPARATOR).first() }
+            token to windows.map {
+                val windowWithIndex = it.split(WINDOW_DOC_IDS_SEPARATOR).first()
+                val (window, index) = windowWithIndex.split(TOKEN_INDEX_SEPARATOR)
+                Pair(window, index.toLong())
+            }
         }
 
-    fun process(token: Pair<String, Collection<String>>): Int {
-        val embeddings = embeddingCalculator.calculate(token.second, BERT_BATCH_SIZE)
+    fun process(token: Pair<String, Collection<Pair<String, Long>>>): Int {
+        val embeddings = embeddingCalculator.calculate(
+            token.second.map {
+                TranslatorInput(it.second, it.first)
+            },
+            BERT_BATCH_SIZE,
+        )
 
-        val doubleEmb = embeddings.toDoubleArray()
-
-        val clusterModel = XMeans.fit(doubleEmb, 8) // TODO: configure this value
+        val clusterModel = XMeans.fit(embeddings, 8)
 
         log.info { "${token.first} got ${clusterModel.k} centroids" }
 
         val centroids = clusterModel.centroids
 
-        val contextualizedEmbeddings = centroids.map { it.toFloatArray() }.mapIndexed { index, centroid ->
+        val contextualizedEmbeddings = centroids.mapIndexed { index, centroid ->
             ContextualizedEmbedding(
                 tokenWithEmbeddingId = "${token.first}$TOKEN_AND_EMBEDDING_ID_SEPARATOR$index",
-                embedding = centroid.toFloatArray(),
+                embedding = centroid,
             )
         }
         contextualizedEmbeddingRepository.indexBatch(contextualizedEmbeddings)

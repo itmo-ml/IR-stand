@@ -31,17 +31,17 @@ fun List<String>.createWindows(size: Int): List<Window> {
     val sideTokensCount = (size - 1) / 2
     val partialWindowSize = sideTokensCount + 1
     if (this.size <= sideTokensCount + 1) {
-        return arrayListOf(Window(content = this))
+        return arrayListOf(Window(content = this, tokenIndex = 0))
     }
     val result = mutableListOf<Window>()
     for (index in 0 until sideTokensCount) {
-        result.add(Window(this[index], this.subList(0, partialWindowSize + index)))
+        result.add(Window(this[index], this.subList(0, partialWindowSize + index), index))
     }
     for (index in sideTokensCount until this.size - sideTokensCount) {
-        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1)))
+        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1), sideTokensCount))
     }
     for (index in this.size - size + 1 until this.size - sideTokensCount) {
-        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size)))
+        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size), sideTokensCount))
     }
     return result
 }
@@ -49,6 +49,7 @@ fun List<String>.createWindows(size: Int): List<Window> {
 data class Window internal constructor(
     val middleToken: String = "UNKNOWN",
     val content: List<String>,
+    val tokenIndex: Int,
 ) {
     fun convertContentToString() = content.joinToString(" ")
 }

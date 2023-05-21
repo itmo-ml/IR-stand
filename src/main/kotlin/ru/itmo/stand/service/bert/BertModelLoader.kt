@@ -1,7 +1,7 @@
 package ru.itmo.stand.service.bert
 
+import EmbeddingTranslatorFactory
 import ai.djl.Application
-import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory
 import ai.djl.repository.zoo.Criteria
 import ai.djl.repository.zoo.ZooModel
 import ai.djl.training.util.ProgressBar
@@ -34,12 +34,12 @@ class BertModelLoader(
 
     private val defaultModel by lazy {
         Criteria.builder()
-            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<TranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/msmarco-distilbert-dot-v5")
             .optEngine("PyTorch")
             .optArgument("padding", "true")
             .optArgument("normalize", "false")
-            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .optTranslatorFactory(EmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }
@@ -48,15 +48,15 @@ class BertModelLoader(
         val basePath = standProperties.app.basePath
 
         Criteria.builder()
-            .setTypes(Array<String>::class.java, Array<FloatArray>::class.java)
+            .setTypes(Array<TranslatorInput>::class.java, Array<FloatArray>::class.java)
             .optModelName("prajjwal1/bert-tiny")
             .optModelPath(Paths.get("$basePath/models/bert-tiny"))
             .optEngine("PyTorch")
             .optArgument("padding", "true")
             .optArgument("normalize", "false")
-            .optArgument("pooling", "cls")
+            .optArgument("pooling", "token")
             .optArgument("maxLength", "20")
-            .optTranslatorFactory(TextEmbeddingTranslatorFactory())
+            .optTranslatorFactory(EmbeddingTranslatorFactory())
             .build()
             .loadModel()
     }
@@ -66,7 +66,7 @@ class BertModelLoader(
         BertModelType.TINY to lazy { tinyModel },
     )
 
-    fun loadModel(type: BertModelType): ZooModel<Array<String>, Array<FloatArray>> {
+    fun loadModel(type: BertModelType): ZooModel<Array<TranslatorInput>, Array<FloatArray>> {
         if (!models.containsKey(type)) {
             throw IllegalArgumentException(type.name)
         }

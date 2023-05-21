@@ -16,7 +16,7 @@ class BertEmbeddingCalculatorTest {
     fun `should return the same result as for Python`() {
         val content = "test 1"
 
-        val embedding = embeddingCalculator.calculate(content)
+        val embedding = embeddingCalculator.calculate(TranslatorInput(-1, content))
 
         assertThat(embedding)
             .usingComparatorWithPrecision(precision)
@@ -28,11 +28,17 @@ class BertEmbeddingCalculatorTest {
         val content1 = "test 1"
         val content2 = "test 2 3"
         val content3 = "test 3 4 5"
-        val embedding1 = embeddingCalculator.calculate(content1)
-        val embedding2 = embeddingCalculator.calculate(content2)
-        val embedding3 = embeddingCalculator.calculate(content3)
+        val embedding1 = embeddingCalculator.calculate(TranslatorInput(-1, content1))
+        val embedding2 = embeddingCalculator.calculate(TranslatorInput(-1, content2))
+        val embedding3 = embeddingCalculator.calculate(TranslatorInput(-1, content3))
 
-        val embeddingsBatch = embeddingCalculator.calculate(arrayOf(content1, content2, content3))
+        val embeddingsBatch = embeddingCalculator.calculate(
+            arrayOf(
+                TranslatorInput(-1, content1),
+                TranslatorInput(-1, content2),
+                TranslatorInput(-1, content3),
+            ),
+        )
 
         assertThat(embeddingsBatch[0]).usingComparatorWithPrecision(precision).containsExactly(*embedding1)
         assertThat(embeddingsBatch[1]).usingComparatorWithPrecision(precision).containsExactly(*embedding2)

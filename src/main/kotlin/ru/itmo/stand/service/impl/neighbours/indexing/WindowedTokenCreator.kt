@@ -33,7 +33,7 @@ class WindowedTokenCreator(
         return windowedTokensFile
     }
 
-    private fun constructMemoryIndex(documents: Sequence<Document>): HashMap<String, HashMap<String, String>> {
+    private fun constructMemoryIndex(documents: Sequence<Document>): MutableMap<String, HashMap<String, String>> {
         val memoryIndex = hashMapOf<String, HashMap<String, String>>()
 
         for ((index, document) in documents.withIndex()) {
@@ -46,12 +46,15 @@ class WindowedTokenCreator(
                 }
                 val docIdsByContentMap = memoryIndex[window.middleToken]!!
                 val currentContent = window.convertContentToString()
-                val contentAndDocIds = docIdsByContentMap[currentContent]
+
+                val contentAndIndex = "$currentContent$TOKEN_INDEX_SEPARATOR${window.tokenIndex}"
+                val contentAndDocIds = docIdsByContentMap[contentAndIndex]
+
                 if (contentAndDocIds == null) {
-                    docIdsByContentMap[currentContent] = docId
+                    docIdsByContentMap[contentAndIndex] = docId
                 } else {
-                    val docIds = docIdsByContentMap[currentContent]
-                    docIdsByContentMap[currentContent] = "$docIds$DOC_IDS_SEPARATOR$docId"
+                    val docIds = docIdsByContentMap[contentAndIndex]
+                    docIdsByContentMap[contentAndIndex] = "$docIds$DOC_IDS_SEPARATOR$docId"
                 }
             }
         }
@@ -59,7 +62,7 @@ class WindowedTokenCreator(
     }
 
     private fun writeMemoryIndexToFile(
-        memoryIndex: HashMap<String, HashMap<String, String>>,
+        memoryIndex: Map<String, HashMap<String, String>>,
         windowedTokensFile: File,
     ) {
         windowedTokensFile.bufferedWriter()
@@ -87,5 +90,6 @@ class WindowedTokenCreator(
         const val WINDOW_DOC_IDS_SEPARATOR = ":"
         const val WINDOWS_SEPARATOR = ";"
         const val DOC_IDS_SEPARATOR = " "
+        const val TOKEN_INDEX_SEPARATOR = "|"
     }
 }
