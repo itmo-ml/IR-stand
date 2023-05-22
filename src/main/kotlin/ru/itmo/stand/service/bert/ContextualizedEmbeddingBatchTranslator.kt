@@ -14,16 +14,12 @@ class ContextualizedEmbeddingBatchTranslator internal constructor(
 ) : NoBatchifyTranslator<Array<TranslatorInput>, Array<FloatArray>> {
 
     override fun processInput(ctx: TranslatorContext, input: Array<TranslatorInput>): NDList {
-        val manager = ctx.ndManager
         val encodings = tokenizer.batchEncode(input.map { it.content })
         val wordIndexes = input.map { it.wordIndex }
         ctx.setAttachment("encodings", encodings)
         ctx.setAttachment("wordIndexes", wordIndexes)
-
-        val batch = arrayOfNulls<NDList>(encodings.size)
-        for (i in encodings.indices) {
-            batch[i] = encodings[i].toNDList(manager, false)
-        }
+        val manager = ctx.ndManager
+        val batch = Array(encodings.size) { i -> encodings[i].toNDList(manager, false) }
         return batchifier.batchify(batch)
     }
 
@@ -32,8 +28,7 @@ class ContextualizedEmbeddingBatchTranslator internal constructor(
         val encoding = ctx.getAttachment("encodings") as Array<Encoding>
         val wordIndexes = ctx.getAttachment("wordIndexes") as ArrayList<Int>
         val manager = ctx.ndManager
-        val ret = Array(batch.size) { floatArrayOf() }
-        for (i in batch.indices) {
+        return Array(batch.size) { i ->
             var array = ContextualizedEmbeddingTranslator.processEmbedding(
                 manager,
                 batch[i],
@@ -43,8 +38,7 @@ class ContextualizedEmbeddingBatchTranslator internal constructor(
             if (normalize) {
                 array = array.normalize(2.0, 0)
             }
-            ret[i] = array.toFloatArray()
+            array.toFloatArray()
         }
-        return ret
     }
 }
