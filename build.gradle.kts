@@ -48,7 +48,7 @@ dependencies {
     implementation("ai.djl.pytorch:pytorch-engine")
     implementation("ai.djl.huggingface:tokenizers")
 
-    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0-beta-27")
+    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0-beta-28")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
