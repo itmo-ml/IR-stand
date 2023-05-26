@@ -16,7 +16,7 @@ class NeighboursSearcher(
 
     fun search(query: String): List<String> {
         val windows = preprocessingPipelineExecutor.execute(query)
-        val embeddings = bertEmbeddingCalculator.calculate(windows.map { it.convertContentToString() }.toTypedArray())
+        val embeddings = bertEmbeddingCalculator.calculate(windows.map { it.toTranslatorInput() }.toTypedArray())
         return embeddings.flatMap { embedding -> contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray()) }
             .let { contextualizedEmbeddings ->
                 val tokenWithEmbeddingIds = contextualizedEmbeddings.map { it.tokenWithEmbeddingId }

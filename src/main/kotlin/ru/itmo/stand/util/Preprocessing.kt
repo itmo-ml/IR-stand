@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.shingle.ShingleFilter
 import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
+import ru.itmo.stand.service.bert.TranslatorInput
 import java.io.IOException
 import java.io.StringReader
 
@@ -31,26 +32,29 @@ fun List<String>.createWindows(size: Int): List<Window> {
     val sideTokensCount = (size - 1) / 2
     val partialWindowSize = sideTokensCount + 1
     if (this.size <= sideTokensCount + 1) {
-        return arrayListOf(Window(content = this))
+        return arrayListOf(Window(middleTokenIndex = 0, content = this))
     }
     val result = mutableListOf<Window>()
     for (index in 0 until sideTokensCount) {
-        result.add(Window(this[index], this.subList(0, partialWindowSize + index)))
+        result.add(Window(this[index], index, this.subList(0, partialWindowSize + index)))
     }
     for (index in sideTokensCount until this.size - sideTokensCount) {
-        result.add(Window(this[index], this.subList(index - sideTokensCount, index + sideTokensCount + 1)))
+        result.add(Window(this[index], sideTokensCount, this.subList(index - sideTokensCount, index + sideTokensCount + 1)))
     }
     for (index in this.size - size + 1 until this.size - sideTokensCount) {
-        result.add(Window(this[index + sideTokensCount], this.subList(index, this.size)))
+        result.add(Window(this[index + sideTokensCount], sideTokensCount, this.subList(index, this.size)))
     }
     return result
 }
 
 data class Window internal constructor(
     val middleToken: String = "UNKNOWN",
+    val middleTokenIndex: Int,
     val content: List<String>,
 ) {
-    fun convertContentToString() = content.joinToString(" ")
+    fun contentToString() = content.joinToString(" ")
+    fun joinIndexAndContent(separator: String) = "$middleTokenIndex$separator${contentToString()}"
+    fun toTranslatorInput() = TranslatorInput(middleTokenIndex, contentToString())
 }
 
 fun analyze(analyzer: Analyzer, s: String): List<String> {

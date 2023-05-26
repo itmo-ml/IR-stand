@@ -17,11 +17,13 @@ fun FloatArray.toDoubleArray(): DoubleArray {
     return this.map { it.toDouble() }.toDoubleArray()
 }
 
-fun DoubleArray.toFloatArray(): Array<Float> = this.map { it.toFloat() }.toTypedArray()
-
 fun Array<FloatArray>.toDoubleArray(): Array<DoubleArray> {
     return this.map { it.toDoubleArray() }.toTypedArray()
 }
+
+fun DoubleArray.toTypedFloatArray(): Array<Float> = this.map { it.toFloat() }.toTypedArray()
+
+fun DoubleArray.toFloatArray(): FloatArray = this.map { it.toFloat() }.toFloatArray()
 
 fun String.toFloatArray(): FloatArray = this.split(' ')
     .map { it.toFloat() }
