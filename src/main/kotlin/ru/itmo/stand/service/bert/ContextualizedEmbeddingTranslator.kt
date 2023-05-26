@@ -79,7 +79,7 @@ class ContextualizedEmbeddingTranslator internal constructor(
          *
          * @param arguments the model arguments
          */
-        fun configure(arguments: Map<String?, *>?) {
+        fun configure(arguments: Map<String, *>) {
             val batchifierStr = ArgumentsUtil.stringValue(arguments, "batchifier", "stack")
             optBatchifier(Batchifier.fromString(batchifierStr))
             optNormalize(ArgumentsUtil.booleanValue(arguments, "normalize", false))
@@ -148,7 +148,7 @@ class ContextualizedEmbeddingTranslator internal constructor(
          * @param arguments the models' arguments
          * @return a new builder
          */
-        fun builder(tokenizer: HuggingFaceTokenizer, arguments: Map<String?, *>?): Builder {
+        fun builder(tokenizer: HuggingFaceTokenizer, arguments: Map<String, *>): Builder {
             val builder = builder(tokenizer)
             builder.configure(arguments)
             return builder

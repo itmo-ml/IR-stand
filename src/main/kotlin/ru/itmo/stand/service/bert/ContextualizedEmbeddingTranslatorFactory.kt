@@ -17,7 +17,7 @@ class ContextualizedEmbeddingTranslatorFactory : TranslatorFactory, Serializable
         input: Class<I>,
         output: Class<O>,
         model: Model,
-        arguments: Map<String?, *>?,
+        arguments: Map<String, *>,
     ): Translator<I, O> {
         val modelPath = model.modelPath
         try {
