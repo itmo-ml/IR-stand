@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 @Service
 class IndexFootprintFinder {
 
-    fun findFootprint(indexName: String): String {
+    fun findFootprint(): String {
         TODO()
     }
 }

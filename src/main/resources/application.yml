@@ -20,3 +20,5 @@ stand:
       embedding-storage: IN_MEMORY
     bert-multi-token:
       token-batch-size: 5
+    ann-algorithm:
+      bert-model-type: BASE

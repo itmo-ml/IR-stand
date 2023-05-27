@@ -18,9 +18,7 @@ data class ContextualizedEmbedding(
         other as ContextualizedEmbedding
 
         if (tokenWithEmbeddingId != other.tokenWithEmbeddingId) return false
-        if (!embedding.contentEquals(other.embedding)) return false
-
-        return true
+        return embedding.contentEquals(other.embedding)
     }
 
     override fun hashCode(): Int {

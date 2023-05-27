@@ -13,6 +13,7 @@ data class StandProperties @ConstructorBinding constructor(
         val basePath: String,
         val bertMultiToken: BertMultiToken,
         val neighboursAlgorithm: NeighboursAlgorithm,
+        val annAlgorithm: AnnAlgorithm,
     )
 
     data class BertMultiToken(
@@ -25,5 +26,9 @@ data class StandProperties @ConstructorBinding constructor(
         val bertWindowBatchSize: Int,
         val documentsCount: Int,
         val embeddingStorage: EmbeddingStorageType,
+    )
+
+    data class AnnAlgorithm(
+        val bertModelType: BertModelType,
     )
 }
