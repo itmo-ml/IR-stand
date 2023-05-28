@@ -23,10 +23,12 @@ class ContextualizedEmbeddingInMemoryRepository(
         HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexPath)
     }.getOrElse {
         log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
-        // TODO move dimensions to config
-        HnswIndex.newBuilder(128, DistanceFunctions.FLOAT_EUCLIDEAN_DISTANCE, 64_000_000)
-            // defaults for weaviate
-            .withCustomSerializers(itemIdSerializer, itemSerializer)
+        HnswIndex.newBuilder(
+            standProperties.app.neighboursAlgorithm.bertModelType.dimensions,
+            DistanceFunctions.FLOAT_EUCLIDEAN_DISTANCE,
+            64_000_000,
+        ).withCustomSerializers(itemIdSerializer, itemSerializer)
+            // TODO: configure these values
             .withEf(64)
             .withM(64)
             .withEfConstruction(128)
