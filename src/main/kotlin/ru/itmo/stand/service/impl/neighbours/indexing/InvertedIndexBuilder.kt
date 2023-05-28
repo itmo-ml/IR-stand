@@ -68,6 +68,7 @@ class InvertedIndexBuilder(
                 documentEmbeddingRepository.findByDocId(docId).embedding
             }
             NeighboursDocument(
+                token = contextualizedEmbedding.tokenWithEmbeddingId.split(ContextualizedEmbedding.TOKEN_AND_EMBEDDING_ID_SEPARATOR).first(),
                 tokenWithEmbeddingId = contextualizedEmbedding.tokenWithEmbeddingId,
                 docId = docId,
                 score = documentEmbedding.dot(contextualizedEmbedding.embedding),

@@ -3,7 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.service.impl.neighbours.PreprocessingPipelineExecutor
+import ru.itmo.stand.service.impl.neighbours.WindowsPipelineExecutor
 import ru.itmo.stand.service.model.Document
 import ru.itmo.stand.util.Window
 import ru.itmo.stand.util.createPath
@@ -11,7 +11,7 @@ import java.io.File
 
 @Service
 class WindowedTokenCreator(
-    private val preprocessingPipelineExecutor: PreprocessingPipelineExecutor,
+    private val windowsPipelineExecutor: WindowsPipelineExecutor,
     private val standProperties: StandProperties,
 ) {
 
@@ -78,7 +78,7 @@ class WindowedTokenCreator(
     }
 
     fun create(document: Document): List<Window> {
-        return preprocessingPipelineExecutor.execute(document.content)
+        return windowsPipelineExecutor.execute(document.content)
     }
 
     companion object {

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import ru.itmo.stand.fixtures.preprocessingPipelineExecutor
 import ru.itmo.stand.util.Window
 
-class PreprocessingPipelineExecutorTest {
+class WindowsPipelineExecutorTest {
 
     private val preprocessingPipelineExecutor = preprocessingPipelineExecutor()
 
