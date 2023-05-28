@@ -8,7 +8,6 @@ import org.apache.lucene.index.ConcurrentMergeScheduler
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.BooleanQuery
-import org.apache.lucene.search.BoostQuery
 import org.apache.lucene.search.TermQuery
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
@@ -43,7 +42,7 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
     }
 
     fun findByTokens(tokens: Collection<String>): Sequence<NeighboursDocument> {
-        val query = booleanQuery(tokens) { token->
+        val query = booleanQuery(tokens) { token ->
             TermQuery(Term(NeighboursDocument::token.name, token))
         }
 

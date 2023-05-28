@@ -13,7 +13,7 @@ class NeighboursSearcher(
     private val windowsPipelineExecutor: WindowsPipelineExecutor,
     private val bertEmbeddingCalculator: BertEmbeddingCalculator,
     private val invertedIndex: InvertedIndex,
-    private val tokensPipelineExecutor: TokensPipelineExecutor
+    private val tokensPipelineExecutor: TokensPipelineExecutor,
 ) {
 
     fun search(query: String): List<String> {
@@ -32,7 +32,6 @@ class NeighboursSearcher(
                 sequenceOf(primaryDocuments, secondaryDocuments).flatten()
                     .groupingBy { it.docId }
                     .foldTo(HashMap(), 0f) { acc, doc -> acc + doc.score }
-
             }.entries
             .sortedByDescending { (_, score) -> score }
             .take(10) // TODO: configure this value
