@@ -50,7 +50,7 @@ class DocumentNeighboursService(
         documentEmbeddingCreator.create(contents.documentSequenceWithSpecifiedCount())
         val windowedTokensFile = windowedTokenCreator.create(contents.documentSequenceWithSpecifiedCount())
         vectorIndexBuilder.index(windowedTokensFile)
-        invertedIndexBuilder.index(windowedTokensFile)
+        invertedIndexBuilder.index(windowedTokensFile, contents.documentSequenceWithSpecifiedCount())
         return emptyList()
     }
 
