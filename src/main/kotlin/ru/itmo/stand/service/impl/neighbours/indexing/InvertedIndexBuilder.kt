@@ -21,16 +21,13 @@ class InvertedIndexBuilder(
     private val documentEmbeddingRepository: DocumentEmbeddingRepository,
     private val embeddingCalculator: BertEmbeddingCalculator,
     private val invertedIndex: InvertedIndex,
-    private val tokensPipelineExecutor: TokensPipelineExecutor
+    private val tokensPipelineExecutor: TokensPipelineExecutor,
 ) {
 
     private val log = KotlinLogging.logger { }
     private val documentEmbeddingCache = HashMap<String, FloatArray>()
 
-
-
     fun index(windowedTokensFile: File, documents: Sequence<Document>) {
-
         val (tf, idf) = getTfIdf(documents)
 
         val tokensWithWindows = readTokensWindowsAndDocIds(windowedTokensFile)
@@ -50,13 +47,12 @@ class InvertedIndexBuilder(
         invertedIndex.completeIndexing()
     }
 
-    private fun getTfIdf(documents: Sequence<Document>): Pair<Map<String, Map<String, Double>>,Map<String, Double> > {
-
+    private fun getTfIdf(documents: Sequence<Document>): Pair<Map<String, Map<String, Double>>, Map<String, Double>> {
         val df = mutableMapOf<String, HashSet<String>>()
         val tf = mutableMapOf<String, MutableMap<String, Double>>()
 
         var docsCount = 0.0
-        for(doc in documents){
+        for (doc in documents) {
             docsCount++
             val tokens = tokensPipelineExecutor.execute(doc.content)
             tf[doc.id] = mutableMapOf()
