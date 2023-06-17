@@ -1,6 +1,5 @@
 package ru.itmo.stand.util
 
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -21,6 +20,12 @@ suspend fun <T> processConcurrently(
     val semaphore = Semaphore(numWorkers)
     data.onEach { progressListener(index.getAndIncrement()) }
         .map { datum -> launch { semaphore.withPermit { action(datum) } } }
-        .buffer(capacity = UNLIMITED)
+        /*
+        In cases where one or more workers take longer than the combined time of the others,
+        an increased buffer is utilized to prevent the emitter coroutine from stalling,
+        allowing the remaining workers to continue their tasks while the first coroutine completes its execution.
+        NOTE: Using an unlimited buffer results in unnecessary memory consumption for large amounts of data.
+         */
+        .buffer(numWorkers * 10)
         .collect { it.join() }
 }
