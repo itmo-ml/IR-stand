@@ -7,6 +7,7 @@ import org.apache.lucene.document.StringField
 import org.apache.lucene.index.ConcurrentMergeScheduler
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.Term
+import org.apache.lucene.search.BooleanQuery
 import org.apache.lucene.search.TermQuery
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
@@ -29,6 +30,7 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
 
     fun save(entity: NeighboursDocument) {
         val document = Document()
+        document.add(StringField(NeighboursDocument::token.name, entity.token, YES))
         document.add(StringField(NeighboursDocument::tokenWithEmbeddingId.name, entity.tokenWithEmbeddingId, YES))
         document.add(StringField(NeighboursDocument::docId.name, entity.docId, YES))
         document.add(StringField(NeighboursDocument::score.name, entity.score.toString(), YES))
@@ -39,14 +41,27 @@ class InvertedIndex(private val standProperties: StandProperties) : LuceneReposi
         entities.forEach { save(it) }
     }
 
+    fun findByTokens(tokens: Collection<String>): Sequence<NeighboursDocument> {
+        val query = booleanQuery(tokens) { token ->
+            TermQuery(Term(NeighboursDocument::token.name, token))
+        }
+
+        return search(query)
+    }
+
     fun findByTokenWithEmbeddingIds(tokenWithEmbeddingIds: Collection<String>): Sequence<NeighboursDocument> {
         val query = booleanQuery(tokenWithEmbeddingIds) { tokenWithEmbeddingId ->
             TermQuery(Term(NeighboursDocument::tokenWithEmbeddingId.name, tokenWithEmbeddingId))
         }
 
+        return search(query)
+    }
+
+    private fun search(query: BooleanQuery): Sequence<NeighboursDocument> {
         return searcher.searchAll(query)
             .map {
                 NeighboursDocument(
+                    it.get(NeighboursDocument::token.name),
                     it.get(NeighboursDocument::tokenWithEmbeddingId.name),
                     it.get(NeighboursDocument::docId.name),
                     it.get(NeighboursDocument::score.name).toFloat(),

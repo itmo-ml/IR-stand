@@ -9,7 +9,7 @@ import ru.itmo.stand.service.preprocessing.Tokenizer
 import ru.itmo.stand.util.Window
 
 @Service
-class PreprocessingPipelineExecutor(
+class WindowsPipelineExecutor(
     private val standProperties: StandProperties,
     private val contextSplitter: ContextSplitter,
     private val stopWordRemover: StopWordRemover,
