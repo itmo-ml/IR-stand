@@ -39,7 +39,7 @@ dependencies {
 
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
     implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
-    implementation("org.tensorflow:tensorflow:1.4.0")
+    implementation("org.tensorflow:tensorflow:1.15.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 
     // djl
