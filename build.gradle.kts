@@ -31,7 +31,7 @@ dependencies {
     implementation("info.picocli:picocli-spring-boot-starter:4.7.3")
 
     implementation("org.apache.lucene:lucene-queryparser:9.5.0")
-    implementation("org.apache.lucene:lucene-grouping:9.5.0")
+    implementation("org.apache.lucene:lucene-grouping:9.7.0")
 
     implementation("io.weaviate:client:4.1.2")
     implementation("com.github.jelmerk:hnswlib-core:1.1.0")
