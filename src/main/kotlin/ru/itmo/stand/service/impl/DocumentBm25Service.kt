@@ -1,8 +1,8 @@
 package ru.itmo.stand.service.impl
 
 import io.github.oshai.KotlinLogging
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.model.Format
@@ -14,6 +14,7 @@ import ru.itmo.stand.util.writeAsFileInMrrFormat
 import java.io.File
 
 @Service
+@ConditionalOnProperty(value = ["stand.app.method"], havingValue = "bm25")
 class DocumentBm25Service(
     private val documentBm25Repository: DocumentBm25Repository,
     private val standProperties: StandProperties,
@@ -21,15 +22,13 @@ class DocumentBm25Service(
 
     private val log = KotlinLogging.logger { }
 
-    override val method: Method
-        get() = Method.BM25
-
     override fun find(id: String): String? = TODO()
 
     override fun search(queries: File, format: Format): List<String> = when (format) {
         Format.JUST_QUERY -> documentBm25Repository.findByContent(queries.readLines().single(), 10).map { it.id }
         Format.MS_MARCO -> {
-            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/resultInMrrFormat.tsv"
+            val outputPath = "${standProperties.app.basePath}/outputs/" +
+                "${standProperties.app.method.name.lowercase()}/resultInMrrFormat.tsv"
             writeAsFileInMrrFormat(queries, outputPath) { query ->
                 documentBm25Repository.findByContent(query, 10).map { it.id }
             }

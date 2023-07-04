@@ -1,20 +1,18 @@
 package ru.itmo.stand.service.impl.custom
 
 import io.github.oshai.KotlinLogging
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.DefaultBertTranslator
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.dot
 import ru.itmo.stand.util.extractId
 
 @Service
+@ConditionalOnProperty(value = ["stand.app.method"], havingValue = "custom")
 class DocumentCustomService(bertTranslator: DefaultBertTranslator) : BaseBertService(bertTranslator) {
 
     private val log = KotlinLogging.logger { }
-
-    override val method: Method
-        get() = Method.CUSTOM
 
     /**
      * CLI command example: save -m CUSTOM "Around 9 Million people live in London"

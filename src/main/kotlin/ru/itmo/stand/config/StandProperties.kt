@@ -9,6 +9,7 @@ data class StandProperties @ConstructorBinding constructor(
 ) {
 
     data class ApplicationProperties(
+        val method: Method,
         val basePath: String,
         val bertMultiToken: BertMultiToken,
         val neighboursAlgorithm: NeighboursAlgorithm,
