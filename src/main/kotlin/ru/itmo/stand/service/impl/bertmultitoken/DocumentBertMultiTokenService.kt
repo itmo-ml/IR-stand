@@ -2,8 +2,8 @@ package ru.itmo.stand.service.impl.bertmultitoken
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import io.github.oshai.KotlinLogging
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.bert.BertNspTranslator
 import ru.itmo.stand.service.impl.BaseBertService
 import ru.itmo.stand.util.TOKEN_SEPARATOR
@@ -12,15 +12,13 @@ import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.toTokens
 
 @Service
+@ConditionalOnProperty(value = ["stand.app.method"], havingValue = "bert_multi_token")
 class DocumentBertMultiTokenService(
     private val stanfordCoreNlp: StanfordCoreNLP,
     bertNspTranslator: BertNspTranslator,
 ) : BaseBertService(bertNspTranslator) {
 
     private val log = KotlinLogging.logger { }
-
-    override val method: Method
-        get() = Method.BERT_MULTI_TOKEN
 
     override fun save(content: String, withId: Boolean): String {
         if (!withId) throw UnsupportedOperationException("Save without id is not supported")

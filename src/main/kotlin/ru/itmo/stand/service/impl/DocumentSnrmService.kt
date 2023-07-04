@@ -6,10 +6,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.tensorflow.SavedModelBundle
 import org.tensorflow.Tensor
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.Params.BATCH_SIZE_DOCUMENTS
 import ru.itmo.stand.config.Params.MAX_DOC_LEN
 import ru.itmo.stand.config.Params.MAX_QUERY_LEN
@@ -32,6 +32,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 @Service
+@ConditionalOnProperty(value = ["stand.app.method"], havingValue = "snrm")
 class DocumentSnrmService(
     private val documentSnrmRepository: DocumentSnrmRepository,
     private val contentSnrmRepository: ContentSnrmRepository,
@@ -56,9 +57,6 @@ class DocumentSnrmService(
             Files.lines(Paths.get("src/main/resources/data/tokens.txt")).forEach { term -> it[term] = id++ }
         }.toMap()
     }
-
-    override val method: Method
-        get() = Method.SNRM
 
     override fun find(id: String): String? = contentSnrmRepository.findByIndexId(id)?.content
 
@@ -160,7 +158,7 @@ class DocumentSnrmService(
         emptyList()
     }
 
-    override fun getFootprint(): String = indexFootprintFinder.findFootprint(method.indexName)
+    override fun getFootprint(): String = indexFootprintFinder.findFootprint(standProperties.app.method.indexName)
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
         QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),

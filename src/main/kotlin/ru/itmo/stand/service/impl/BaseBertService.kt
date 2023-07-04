@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import org.h2.mvstore.MVMap
 import org.h2.mvstore.MVStore
 import org.springframework.beans.factory.annotation.Autowired
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.bert.BertModelLoader
@@ -42,7 +41,7 @@ abstract class BaseBertService(
 
     private val invertedIndexStore by lazy {
         val basePath = standProperties.app.basePath
-        val invertedIndexPath = "$basePath/indexes/${method.name.lowercase()}/inverted_index.dat"
+        val invertedIndexPath = "$basePath/indexes/${standProperties.app.method.name.lowercase()}/inverted_index.dat"
         File(invertedIndexPath).createPath()
         MVStore.open(invertedIndexPath)
     }
@@ -63,8 +62,6 @@ abstract class BaseBertService(
         invertedIndexStore.close()
     }
 
-    abstract override val method: Method
-
     override fun find(id: String): String? {
         return invertedIndex.toString() // TODO: add impl for finding by id
     }
@@ -72,7 +69,8 @@ abstract class BaseBertService(
     override fun search(queries: File, format: Format): List<String> = when (format) {
         JUST_QUERY -> searchByQuery(queries.readLines().single())
         MS_MARCO -> {
-            val outputPath = "${standProperties.app.basePath}/outputs/${method.name.lowercase()}/resultInMrrFormat.tsv"
+            val outputPath = "${standProperties.app.basePath}/" +
+                "outputs/${standProperties.app.method.name.lowercase()}/resultInMrrFormat.tsv"
             writeAsFileInMrrFormat(queries, outputPath) { query -> searchByQuery(query) }
             listOf("See output in $outputPath")
         }

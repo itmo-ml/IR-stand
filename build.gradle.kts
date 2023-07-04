@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.1.0"
     id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.21"
-    kotlin("plugin.spring") version "1.8.21"
-    kotlin("kapt") version "1.8.21"
+    kotlin("jvm") version "1.8.22"
+    kotlin("plugin.spring") version "1.8.22"
+    kotlin("kapt") version "1.8.22"
     id("me.champeau.jmh") version "0.7.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
     id("org.jlleitschuh.gradle.ktlint-idea") version "11.3.2"
@@ -30,15 +30,15 @@ dependencies {
     implementation("com.github.haifengl:smile-kotlin:3.0.1")
     implementation("info.picocli:picocli-spring-boot-starter:4.7.3")
 
-    implementation("org.apache.lucene:lucene-queryparser:9.5.0")
-    implementation("org.apache.lucene:lucene-grouping:9.5.0")
+    implementation("org.apache.lucene:lucene-queryparser:9.7.0")
+    implementation("org.apache.lucene:lucene-grouping:9.7.0")
 
     implementation("io.weaviate:client:4.1.2")
     implementation("com.github.jelmerk:hnswlib-core:1.1.0")
     implementation("com.github.jelmerk:hnswlib-utils:1.1.0")
 
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.3")
-    implementation("edu.stanford.nlp:stanford-corenlp:4.5.3:models")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.4")
+    implementation("edu.stanford.nlp:stanford-corenlp:4.5.4:models")
     implementation("org.tensorflow:tensorflow:1.4.0")
     implementation("com.h2database:h2-mvstore:2.1.214")
 

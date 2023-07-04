@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 
@@ -14,7 +13,7 @@ import ru.itmo.stand.util.measureTimeSeconds
     mixinStandardHelpOptions = true,
     description = ["Save the document and return its ID."],
 )
-class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentService>) : Runnable {
+class SaveCommand(private val documentService: DocumentService) : Runnable {
 
     @Parameters(
         paramLabel = "document",
@@ -24,13 +23,6 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
     private lateinit var content: String
 
     @Option(
-        names = ["-m", "-method"],
-        required = true,
-        description = ["Search method. Available values: BM25, SNRM."],
-    )
-    private lateinit var method: Method
-
-    @Option(
         names = ["--with-id"],
         description = ["Indicates that document has its own id, separated by tab"],
     )
@@ -38,7 +30,7 @@ class SaveCommand(private val documentServicesByMethod: Map<Method, DocumentServ
 
     override fun run() {
         val seconds = measureTimeSeconds {
-            println("Saved document ID: ${documentServicesByMethod[method]!!.save(content, withId)}")
+            println("Saved document ID: ${documentService.save(content, withId)}")
         }
         println("Latency: $seconds seconds")
     }

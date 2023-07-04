@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import ru.itmo.stand.config.Method
 import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.util.measureTimeSeconds
 import java.io.File
@@ -18,7 +17,7 @@ import java.io.File
     description = ["Save the documents and return their IDs."],
 )
 class SaveInBatchCommand(
-    private val documentServicesByMethod: Map<Method, DocumentService>,
+    private val documentService: DocumentService,
 ) : Runnable {
 
     @Parameters(
@@ -29,13 +28,6 @@ class SaveInBatchCommand(
     private lateinit var contentFile: File
 
     @Option(
-        names = ["-m", "-method"],
-        required = true,
-        description = ["Search method. Available values: BM25, SNRM."],
-    )
-    private lateinit var method: Method
-
-    @Option(
         names = ["--with-id"],
         description = ["Indicates that document has its own id, separated by tab"],
     )
@@ -43,7 +35,7 @@ class SaveInBatchCommand(
 
     override fun run(): Unit = runBlocking(Dispatchers.Default) {
         val seconds = measureTimeSeconds {
-            println("Saved document IDs: ${documentServicesByMethod[method]!!.saveInBatch(contentFile, withId)}")
+            println("Saved document IDs: ${documentService.saveInBatch(contentFile, withId)}")
         }
         println("Latency: $seconds seconds")
     }
