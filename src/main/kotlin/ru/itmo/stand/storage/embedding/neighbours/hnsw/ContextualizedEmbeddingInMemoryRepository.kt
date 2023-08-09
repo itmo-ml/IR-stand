@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.embedding.hnsw
+package ru.itmo.stand.storage.embedding.neighbours.hnsw
 
 import com.github.jelmerk.knn.DistanceFunctions
 import com.github.jelmerk.knn.JavaObjectSerializer
@@ -6,9 +6,10 @@ import com.github.jelmerk.knn.hnsw.HnswIndex
 import io.github.oshai.KotlinLogging
 import jakarta.annotation.PreDestroy
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
-import java.nio.file.Paths
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
+import ru.itmo.stand.util.createPath
+import java.io.File
 
 class ContextualizedEmbeddingInMemoryRepository(
     private val standProperties: StandProperties,
@@ -17,10 +18,10 @@ class ContextualizedEmbeddingInMemoryRepository(
     private val log = KotlinLogging.logger { }
     private val itemIdSerializer = JavaObjectSerializer<String>()
     private val itemSerializer = JavaObjectSerializer<ContextualizedEmbedding>()
+    private val indexFile = File("${standProperties.app.basePath}/indexes/neighbours/hnsw").createPath()
 
     private var index = runCatching {
-        val indexPath = Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw")
-        HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexPath)
+        HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexFile)
     }.getOrElse {
         log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
         HnswIndex.newBuilder(
@@ -37,7 +38,7 @@ class ContextualizedEmbeddingInMemoryRepository(
 
     @PreDestroy
     fun saveIndex() {
-        index.save(Paths.get("${standProperties.app.basePath}/indexes/neighbours/hnsw"))
+        index.save(indexFile)
     }
 
     override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> =

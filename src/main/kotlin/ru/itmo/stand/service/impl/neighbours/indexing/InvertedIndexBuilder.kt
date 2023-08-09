@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.bert.TranslatorInput
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
 import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
 import ru.itmo.stand.storage.lucene.repository.neighbours.InvertedIndex

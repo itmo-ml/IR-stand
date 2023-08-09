@@ -158,7 +158,7 @@ class DocumentSnrmService(
         emptyList()
     }
 
-    override fun getFootprint(): String = indexFootprintFinder.findFootprint(standProperties.app.method.indexName)
+    override fun getFootprint(): String = indexFootprintFinder.findFootprint()
 
     enum class PreprocessingType(val feedOperation: String, val fetchOperation: String, val maxInputArrayLength: Int) {
         QUERY("Placeholder_5", "Mean_6", MAX_QUERY_LEN),

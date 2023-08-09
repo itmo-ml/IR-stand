@@ -10,9 +10,9 @@ import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Compa
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOWS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_DOC_IDS_SEPARATOR
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.WINDOW_TOKEN_INDEX_SEPARATOR
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding.Companion.TOKEN_AND_EMBEDDING_ID_SEPARATOR
 import ru.itmo.stand.util.processConcurrently
 import ru.itmo.stand.util.toDoubleArray
 import ru.itmo.stand.util.toFloatArray

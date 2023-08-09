@@ -6,9 +6,6 @@ data class DocumentSnrm(
     val weights: FloatArray,
     val representation: String,
 ) {
-    companion object {
-        const val DOCUMENT_SNRM = "document_snrm"
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
