@@ -23,7 +23,10 @@ class ContextualizedEmbeddingInMemoryRepository(
     private var index = runCatching {
         HnswIndex.load<String, FloatArray, ContextualizedEmbedding, Float>(indexFile)
     }.getOrElse {
-        log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
+        log.info {
+            "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}. " +
+                "Cause: ${it.cause?.message}"
+        }
         HnswIndex.newBuilder(
             standProperties.app.neighboursAlgorithm.bertModelType.dimensions,
             DistanceFunctions.FLOAT_EUCLIDEAN_DISTANCE,
