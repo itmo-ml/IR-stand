@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.embedding.hnsw.ann
+package ru.itmo.stand.storage.embedding.ann.hnsw
 
 import com.github.jelmerk.knn.DistanceFunctions
 import com.github.jelmerk.knn.JavaObjectSerializer
@@ -7,7 +7,7 @@ import io.github.oshai.KotlinLogging
 import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.embedding.model.ann.DocumentEmbedding
+import ru.itmo.stand.storage.embedding.ann.model.DocumentEmbedding
 import ru.itmo.stand.util.createPath
 import java.io.File
 

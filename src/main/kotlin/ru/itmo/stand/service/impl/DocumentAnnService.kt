@@ -8,8 +8,8 @@ import ru.itmo.stand.service.DocumentService
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.service.model.Format
-import ru.itmo.stand.storage.embedding.hnsw.ann.DocumentEmbeddingInMemoryRepository
-import ru.itmo.stand.storage.embedding.model.ann.DocumentEmbedding
+import ru.itmo.stand.storage.embedding.ann.hnsw.DocumentEmbeddingInMemoryRepository
+import ru.itmo.stand.storage.embedding.ann.model.DocumentEmbedding
 import ru.itmo.stand.util.extractId
 import ru.itmo.stand.util.lineSequence
 import ru.itmo.stand.util.writeAsFileInMrrFormat

@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.embedding.model.ann
+package ru.itmo.stand.storage.embedding.ann.model
 
 import com.github.jelmerk.knn.Item
 

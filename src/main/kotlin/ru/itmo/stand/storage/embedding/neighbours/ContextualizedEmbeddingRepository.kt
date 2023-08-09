@@ -1,6 +1,6 @@
-package ru.itmo.stand.storage.embedding
+package ru.itmo.stand.storage.embedding.neighbours
 
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
 
 interface ContextualizedEmbeddingRepository {
     fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding>

@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.embedding.weaviate
+package ru.itmo.stand.storage.embedding.neighbours.weaviate
 
 import edu.stanford.nlp.naturalli.ClauseSplitter.log
 import io.weaviate.client.WeaviateClient
@@ -12,8 +12,8 @@ import io.weaviate.client.v1.schema.model.Property
 import io.weaviate.client.v1.schema.model.Schema
 import io.weaviate.client.v1.schema.model.WeaviateClass
 import jakarta.annotation.PostConstruct
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
 
 class ContextualizedEmbeddingWeaviateRepository(
     private val client: WeaviateClient,

@@ -1,4 +1,4 @@
-package ru.itmo.stand.storage.embedding.hnsw
+package ru.itmo.stand.storage.embedding.neighbours.hnsw
 
 import com.github.jelmerk.knn.DistanceFunctions
 import com.github.jelmerk.knn.JavaObjectSerializer
@@ -6,8 +6,8 @@ import com.github.jelmerk.knn.hnsw.HnswIndex
 import io.github.oshai.KotlinLogging
 import jakarta.annotation.PreDestroy
 import ru.itmo.stand.config.StandProperties
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.model.ContextualizedEmbedding
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
 import ru.itmo.stand.util.createPath
 import java.io.File
 

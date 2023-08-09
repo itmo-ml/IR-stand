@@ -5,9 +5,9 @@ import io.weaviate.client.WeaviateClient
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
-import ru.itmo.stand.storage.embedding.hnsw.ContextualizedEmbeddingInMemoryRepository
-import ru.itmo.stand.storage.embedding.weaviate.ContextualizedEmbeddingWeaviateRepository
+import ru.itmo.stand.storage.embedding.neighbours.ContextualizedEmbeddingRepository
+import ru.itmo.stand.storage.embedding.neighbours.hnsw.ContextualizedEmbeddingInMemoryRepository
+import ru.itmo.stand.storage.embedding.neighbours.weaviate.ContextualizedEmbeddingWeaviateRepository
 
 @Configuration
 class EmbeddingStorageConfig {
