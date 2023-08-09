@@ -47,16 +47,14 @@ class DocumentAnnService(
 
     override fun save(content: String, withId: Boolean): String {
         val (id, document) = extractId(content)
-
         val embedding = bertEmbeddingCalculator.calculate(TranslatorInput.withClsWordIndex(document))
-
         documentEmbeddingInMemoryRepository.index(DocumentEmbedding(id, embedding))
-
         return id
     }
 
     override suspend fun saveInBatch(contents: File, withId: Boolean): List<String> {
-        contents.documentSequenceWithSpecifiedCount()
+        contents.lineSequence()
+            .map { extractId(it) }
             .onEachIndexed { index, _ -> if (index % 1000 == 0) log.info { "Documents indexed: $index" } }
             .chunked(BERT_BATCH_SIZE)
             .forEach { chunk ->
@@ -71,10 +69,6 @@ class DocumentAnnService(
     override fun getFootprint(): String {
         TODO("Not yet implemented")
     }
-
-    private fun File.documentSequenceWithSpecifiedCount() = this.lineSequence()
-        .take(500_000)
-        .map { extractId(it) }
 
     companion object {
         const val BERT_BATCH_SIZE = 100
