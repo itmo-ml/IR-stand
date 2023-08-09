@@ -21,7 +21,7 @@ class PreprocessingPipelineExecutor(
         val cleanedContent = textCleaner.preprocess(content)
         val tokens = tokenizer.preprocess(cleanedContent)
         val tokensWithoutStopWords = stopWordRemover.preprocess(tokens)
-        val windowSize = standProperties.app.neighboursAlgorithm.tokenBatchSize
+        val windowSize = standProperties.app.neighboursAlgorithm.windowSize
         return contextSplitter.preprocess(ContextSplitter.Input(tokensWithoutStopWords, windowSize))
     }
 }

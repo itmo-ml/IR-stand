@@ -18,8 +18,9 @@ fun standProperties(
         basePath,
         BertMultiToken(bertMultiTokenBatchSize),
         NeighboursAlgorithm(
-            tokenBatchSize = neighboursAlgorithmBatchSize,
+            windowSize = neighboursAlgorithmBatchSize,
             bertModelType = BertModelType.BASE,
+            bertWindowBatchSize = 1000,
             documentsCount = 500_000,
             embeddingStorage = EmbeddingStorageType.IN_MEMORY,
         ),

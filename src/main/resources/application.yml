@@ -13,8 +13,9 @@ stand:
   app:
     base-path: "."
     neighbours-algorithm:
-      token-batch-size: 5
+      window-size: 5
       bert-model-type: BASE
+      bert-window-batch-size: 1000
       documents-count: 500000
       embedding-storage: IN_MEMORY
     bert-multi-token:

@@ -20,8 +20,9 @@ data class StandProperties @ConstructorBinding constructor(
     )
 
     data class NeighboursAlgorithm(
-        val tokenBatchSize: Int,
+        val windowSize: Int,
         val bertModelType: BertModelType,
+        val bertWindowBatchSize: Int,
         val documentsCount: Int,
         val embeddingStorage: EmbeddingStorageType,
     )

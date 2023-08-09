@@ -2,6 +2,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.github.oshai.KotlinLogging
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.storage.embedding.ContextualizedEmbeddingRepository
@@ -17,6 +18,7 @@ class InvertedIndexBuilder(
     private val contextualizedEmbeddingRepository: ContextualizedEmbeddingRepository,
     private val documentEmbeddingRepository: DocumentEmbeddingRepository,
     private val embeddingCalculator: BertEmbeddingCalculator,
+    private val standProperties: StandProperties,
     private val invertedIndex: InvertedIndex,
 ) {
 
@@ -31,11 +33,12 @@ class InvertedIndexBuilder(
         }.forEach { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
-            embeddingCalculator.calculate(windows, BERT_BATCH_SIZE).forEachIndexed { index, embedding ->
-                val docIds = docIdsList[index]
-                contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray())
-                    .forEach { computeScoreAndSave(docIds, it) }
-            }
+            embeddingCalculator.calculate(windows, standProperties.app.neighboursAlgorithm.bertWindowBatchSize)
+                .forEachIndexed { index, embedding ->
+                    val docIds = docIdsList[index]
+                    contextualizedEmbeddingRepository.findByVector(embedding.toTypedArray())
+                        .forEach { computeScoreAndSave(docIds, it) }
+                }
         }
 
         invertedIndex.completeIndexing()
@@ -80,8 +83,4 @@ class InvertedIndexBuilder(
         val token: String,
         val docIdsByWindowPairs: List<Pair<TranslatorInput, List<String>>>,
     )
-
-    companion object {
-        const val BERT_BATCH_SIZE = 10_000
-    }
 }

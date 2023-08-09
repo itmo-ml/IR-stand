@@ -3,6 +3,7 @@ package ru.itmo.stand.service.impl.neighbours.indexing
 import io.github.oshai.KotlinLogging
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.stereotype.Service
+import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
 import ru.itmo.stand.service.bert.TranslatorInput
 import ru.itmo.stand.service.impl.neighbours.indexing.WindowedTokenCreator.Companion.TOKEN_WINDOWS_SEPARATOR
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class VectorIndexBuilder(
     private val contextualizedEmbeddingRepository: ContextualizedEmbeddingRepository,
     private val embeddingCalculator: BertEmbeddingCalculator,
+    private val standProperties: StandProperties,
 ) {
 
     private val log = KotlinLogging.logger { }
@@ -72,7 +74,12 @@ class VectorIndexBuilder(
         }
 
     private fun process(tokenInputs: TokenWindows): Int {
-        val embeddings = embeddingCalculator.calculate(tokenInputs.windows, BERT_BATCH_SIZE)
+        val embeddings = embeddingCalculator.calculate(
+            tokenInputs.windows,
+            standProperties.app.neighboursAlgorithm.bertWindowBatchSize,
+        )
+
+        log.info { "${tokenInputs.token} has ${embeddings.size} embeddings" }
 
         val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 8) // TODO: configure this value
 
@@ -98,6 +105,5 @@ class VectorIndexBuilder(
 
     companion object {
         const val MAX_CONCURRENCY = 10
-        const val BERT_BATCH_SIZE = 10000
     }
 }
