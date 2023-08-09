@@ -8,7 +8,8 @@ import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.storage.embedding.model.ann.DocumentEmbedding
-import java.nio.file.Paths
+import ru.itmo.stand.util.createPath
+import java.io.File
 
 @Repository
 class DocumentEmbeddingInMemoryRepository(
@@ -18,10 +19,10 @@ class DocumentEmbeddingInMemoryRepository(
     private val log = KotlinLogging.logger { }
     private val itemIdSerializer = JavaObjectSerializer<String>()
     private val itemSerializer = JavaObjectSerializer<DocumentEmbedding>()
+    private val indexFile = File("${standProperties.app.basePath}/indexes/ann/hnsw").createPath()
 
     private var index = runCatching {
-        val indexPath = Paths.get("${standProperties.app.basePath}/indexes/ann/hnsw")
-        HnswIndex.load<String, FloatArray, DocumentEmbedding, Float>(indexPath)
+        HnswIndex.load<String, FloatArray, DocumentEmbedding, Float>(indexFile)
     }.getOrElse {
         log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
         HnswIndex.newBuilder(
@@ -38,7 +39,7 @@ class DocumentEmbeddingInMemoryRepository(
 
     @PreDestroy
     fun saveIndex() {
-        index.save(Paths.get("${standProperties.app.basePath}/indexes/ann/hnsw"))
+        index.save(indexFile)
     }
 
     fun findByVector(vector: Array<Float>, topN: Int): List<DocumentEmbedding> =
