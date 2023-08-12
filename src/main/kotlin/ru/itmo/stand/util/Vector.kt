@@ -1,6 +1,26 @@
 package ru.itmo.stand.util
 
 import kotlin.math.exp
+import kotlin.math.pow
+import kotlin.math.sqrt
+
+/**
+ * https://en.wikipedia.org/wiki/Cosine_similarity
+ */
+infix fun FloatArray.cos(other: FloatArray): Float {
+    require(this.size == other.size) {
+        "Vectors must have the same length (this.size=${this.size}, other.size=${other.size})"
+    }
+    var dotProduct = 0f
+    var normThis = 0f
+    var normOther = 0f
+    for (i in indices) {
+        dotProduct += this[i] * other[i]
+        normThis += this[i].pow(2)
+        normOther += other[i].pow(2)
+    }
+    return dotProduct / sqrt(normThis * normOther)
+}
 
 infix fun FloatArray.dot(other: FloatArray): Float {
     var out = 0.0F
