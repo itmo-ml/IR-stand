@@ -8,6 +8,7 @@ import org.apache.lucene.document.StringField
 import org.apache.lucene.index.ConcurrentMergeScheduler
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.Term
+import org.apache.lucene.search.MatchAllDocsQuery
 import org.apache.lucene.search.TermQuery
 import org.springframework.stereotype.Repository
 import ru.itmo.stand.config.StandProperties
@@ -67,4 +68,6 @@ class DocumentEmbeddingRepository(private val standProperties: StandProperties) 
         writer.forceMerge(1, true)
         writer.commit()
     }
+
+    fun countAll(): Int = searcher.count(MatchAllDocsQuery())
 }

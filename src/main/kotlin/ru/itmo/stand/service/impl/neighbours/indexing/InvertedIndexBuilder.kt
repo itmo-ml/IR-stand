@@ -1,6 +1,9 @@
 package ru.itmo.stand.service.impl.neighbours.indexing
 
 import io.github.oshai.KotlinLogging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import ru.itmo.stand.config.StandProperties
 import ru.itmo.stand.service.bert.BertEmbeddingCalculator
@@ -10,8 +13,10 @@ import ru.itmo.stand.storage.embedding.neighbours.model.ContextualizedEmbedding
 import ru.itmo.stand.storage.lucene.model.neighbours.NeighboursDocument
 import ru.itmo.stand.storage.lucene.repository.neighbours.DocumentEmbeddingRepository
 import ru.itmo.stand.storage.lucene.repository.neighbours.InvertedIndex
-import ru.itmo.stand.util.dot
+import ru.itmo.stand.util.cos
+import ru.itmo.stand.util.processConcurrently
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class InvertedIndexBuilder(
@@ -23,14 +28,16 @@ class InvertedIndexBuilder(
 ) {
 
     private val log = KotlinLogging.logger { }
-    private val documentEmbeddingCache = HashMap<String, FloatArray>()
+    private val documentEmbeddingCache = ConcurrentHashMap<String, FloatArray>()
 
-    fun index(windowedTokensFile: File) {
+    fun index(windowedTokensFile: File) = runBlocking(Dispatchers.Default) {
         val tokensWithWindows = readTokensWindowsAndDocIds(windowedTokensFile)
 
-        tokensWithWindows.onEachIndexed { index, token ->
-            log.info { "Tokens processed: $index. Current token: ${token.token}. Windows size: ${token.docIdsByWindowPairs.size}" }
-        }.forEach { tokenWithWindows ->
+        processConcurrently(
+            tokensWithWindows.asFlow(),
+            10,
+            { log.info { "Tokens processed: $it" } },
+        ) { tokenWithWindows ->
             val (_, docIdsByWindowPairs) = tokenWithWindows
             val (windows, docIdsList) = docIdsByWindowPairs.unzip()
             embeddingCalculator.calculate(windows, standProperties.app.neighboursAlgorithm.bertWindowBatchSize)
@@ -73,7 +80,7 @@ class InvertedIndexBuilder(
             NeighboursDocument(
                 tokenWithEmbeddingId = contextualizedEmbedding.tokenWithEmbeddingId,
                 docId = docId,
-                score = documentEmbedding.dot(contextualizedEmbedding.embedding),
+                score = documentEmbedding.cos(contextualizedEmbedding.embedding),
             )
         }
         invertedIndex.saveAll(neighboursDocuments)

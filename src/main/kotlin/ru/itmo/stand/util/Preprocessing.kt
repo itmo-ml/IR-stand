@@ -19,7 +19,7 @@ fun String.toNgrams(minGram: Int = 2, maxGram: Int = 2): List<String> {
 
 fun String.toTokens(stanfordCoreNLP: StanfordCoreNLP): List<String> = stanfordCoreNLP.processToCoreDocument(this)
     .tokens()
-    .map { it.lemma().lowercase() }
+    .map { it.value().lowercase() }
 
 /**
  * For n tokens and size = m,

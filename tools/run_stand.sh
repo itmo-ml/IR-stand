@@ -1,10 +1,10 @@
 # Initialize
-method=bm25
-repo_path=/your/repo/path/
-collection_path=collections/collection.500k.tsv
-queries_path=collections/queries.500k.tsv
-qrels_path=collections/qrels.500k.tsv
-is_need_to_index=true
+method=ann
+repo_path=/home/user/IdeaProjects/IR-stand/
+collection_path=collections/collection.with-preprocessed-ids.500k.tsv
+queries_path=collections/queries.preprocessed.500k.tsv
+qrels_path=collections/qrels.preprocessed.500k.tsv
+is_need_to_index=false
 
 # Rebuild
 cd $repo_path || { echo "Failure"; exit 1; }

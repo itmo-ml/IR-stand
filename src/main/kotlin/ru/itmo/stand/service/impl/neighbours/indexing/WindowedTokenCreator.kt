@@ -18,6 +18,16 @@ class WindowedTokenCreator(
     private val log = KotlinLogging.logger { }
 
     fun create(documents: Sequence<Document>): File {
+        val windowedTokensFile = File("${standProperties.app.basePath}/indexes/neighbours/windowed-tokens.txt")
+        if (windowedTokensFile.exists()) {
+            log.info {
+                "The windowedTokensFile already exist. " +
+                    "The addition of new tokens is not being executed. " +
+                    "The creation process has been omitted. " +
+                    "If you wish to add new ones, please remove the previous ones."
+            }
+            return windowedTokensFile
+        }
         val memoryIndex = constructMemoryIndex(documents)
 
         log.info { "MemoryIndex is constructed. Token number: ${memoryIndex.size}" }
@@ -25,10 +35,7 @@ class WindowedTokenCreator(
         log.info { "Max windows: ${memoryIndex.values.maxBy { it.keys.size }.keys.size}" }
         log.info { "Mean windows: ${memoryIndex.values.map { it.keys.size }.average()}" }
 
-        val windowedTokensFile = File("${standProperties.app.basePath}/indexes/neighbours/windowed-tokens.txt")
-            .createPath()
-
-        writeMemoryIndexToFile(memoryIndex, windowedTokensFile)
+        writeMemoryIndexToFile(memoryIndex, windowedTokensFile.createPath())
 
         return windowedTokensFile
     }

@@ -46,7 +46,7 @@ class ContextualizedEmbeddingInMemoryRepository(
 
     override fun findByVector(vector: Array<Float>): List<ContextualizedEmbedding> =
         index.findNearest(vector.toFloatArray(), 10) // TODO: configure this value
-            .filter { it.distance() <= 5 } // TODO: configure this value
+            .filter { it.distance() <= 4 } // TODO: configure this value
             .map { it.item() }
 
     override fun index(embedding: ContextualizedEmbedding) {

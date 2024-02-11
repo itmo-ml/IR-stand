@@ -28,6 +28,6 @@ class NlpConfig {
     }
 
     companion object {
-        const val ANNOTATORS = "tokenize,pos,lemma"
+        const val ANNOTATORS = "tokenize"
     }
 }

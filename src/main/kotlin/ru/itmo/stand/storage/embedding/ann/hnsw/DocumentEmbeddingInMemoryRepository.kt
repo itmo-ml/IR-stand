@@ -21,7 +21,7 @@ class DocumentEmbeddingInMemoryRepository(
     private val itemSerializer = JavaObjectSerializer<DocumentEmbedding>()
     private val indexFile = File("${standProperties.app.basePath}/indexes/ann/hnsw").createPath()
 
-    private var index = runCatching {
+    private val index = runCatching {
         HnswIndex.load<String, FloatArray, DocumentEmbedding, Float>(indexFile)
     }.getOrElse {
         log.info { "Got exception [${it.javaClass.simpleName}] during index loading with message: ${it.message}" }
@@ -36,6 +36,7 @@ class DocumentEmbeddingInMemoryRepository(
             .withEfConstruction(128)
             .build()
     }
+    private val exactIndex = index.asExactIndex()
 
     @PreDestroy
     fun saveIndex() {
@@ -44,6 +45,9 @@ class DocumentEmbeddingInMemoryRepository(
 
     fun findByVector(vector: Array<Float>, topN: Int): List<DocumentEmbedding> =
         index.findNearest(vector.toFloatArray(), topN).map { it.item() }
+
+    fun findExactByVector(vector: Array<Float>, topN: Int): List<DocumentEmbedding> =
+        exactIndex.findNearest(vector.toFloatArray(), topN).map { it.item() }
 
     fun index(embedding: DocumentEmbedding) {
         index.add(embedding)

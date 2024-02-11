@@ -10,7 +10,7 @@ class BertEmbeddingCalculator(
 ) {
 
     private val predictor by lazy {
-        bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor()
+        bertModelLoader.loadModel(standProperties.app.neighboursAlgorithm.bertModelType).newPredictor() // TODO: fix me
     }
 
     fun calculate(input: TranslatorInput): FloatArray = predictor.predict(arrayOf(input)).first()

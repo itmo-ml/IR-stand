@@ -41,7 +41,7 @@ class DocumentAnnService(
 
     private fun search(query: String): List<String> {
         val queryVector = bertEmbeddingCalculator.calculate(TranslatorInput.withClsWordIndex(query)).toTypedArray()
-        val results = documentEmbeddingInMemoryRepository.findByVector(queryVector, 10)
+        val results = documentEmbeddingInMemoryRepository.findExactByVector(queryVector, 10)
         return results.map { it.id }
     }
 

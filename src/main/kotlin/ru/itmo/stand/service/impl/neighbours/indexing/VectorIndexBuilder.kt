@@ -31,6 +31,8 @@ class VectorIndexBuilder(
 
     suspend fun index(windowedTokensFile: File) {
         log.info { "Starting vector indexing" }
+        log.info { "SKIP" }
+        return
         val tokensWindows = readTokensWindows(windowedTokensFile)
 
         val counter = AtomicInteger(0)
@@ -81,7 +83,7 @@ class VectorIndexBuilder(
 
         log.info { "${tokenInputs.token} has ${embeddings.size} embeddings" }
 
-        val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 8) // TODO: configure this value
+        val clusterModel = XMeans.fit(embeddings.toDoubleArray(), 4) // TODO: configure this value
 
         log.info { "${tokenInputs.token} got ${clusterModel.k} centroids" }
 

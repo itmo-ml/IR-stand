@@ -21,4 +21,6 @@ TODO:
 2. бэнчмарки - https://arxiv.org/pdf/2105.04021.pdf, https://github.com/castorini/anserini
 
 по
+search -m NEIGHBOURS -f MS_MARCO /home/user/Desktop/queries.out.tsv
+save-in-batch -m NEIGHBOURS --with-id /home/user/Downloads/msmarco/collection.tsv
  */
